@@ -95,6 +95,8 @@ const DEPT_DIV={'Procurement':'procurement','Accounts & Tax':'finance','Home Mai
 function divForDept(d){return DEPT_DIV[d]||'ops_all';}
 const DEPT_OPSUSER={"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"};
 function opsUserForDept(d){return DEPT_OPSUSER[String(d==null?'':d).trim()]||'';}
+function roleOf(u){const d=deptForUser(u),ul=_norm(u);if(d==='Accounts & Tax'){if(ul==='ayman.g')return 'Director';if(ul==='patrick.smith')return 'CEO';return 'Finance';}if(d==='Procurement')return 'Procurement';return '';}
+function opsDivFor(reqdept){return (reqdept==='Home Maintenance Services'||reqdept==='FitOut Services')?'ops_hm':'ops_all';}
 function amt(r){const v=Number(r['Total amount']);return isFinite(v)?v:0;}
 function xd(v){if(v instanceof Date)return isNaN(v)?null:v; if(typeof v==='number'&&isFinite(v)){const o=XLSX.SSF.parse_date_code(v);if(!o||!o.y)return null;return new Date(Date.UTC(o.y,o.m-1,o.d,o.H||0,o.M||0,Math.floor(o.S||0)));} if(typeof v==='string'&&v){const d=new Date(v);return isNaN(d)?null:d;} return null;}
 function ageDays(v){const d=xd(v);return d?Math.max(0,Math.floor((Date.now()-d.getTime())/86400000)):null;}
@@ -104,16 +106,22 @@ function prHb(b){return PROC.has(b)?'Procurement':(OPS.has(b)?'Operations to Con
 function prAge(r){const sd=r['Step date and time'];return ageDays(sd!=null?sd:r['Created date']);}
 function poAge(r){const sd=r['Step date and time'];return ageDays(sd!=null?sd:(r['Created date and time']!=null?r['Created date and time']:r['Requested receipt date']));}
 function prPendingWith(r){const st=String(r['Status']||'');if(st==='Draft')return String(r['Preparer']||'').trim();if(st==='Approved')return String(r['Accepted By/Assign To']||'').trim();return String(r['Pending Approver/User']||'').trim();}
-function itemDivision(it){
-  if(it.doc==='PO'){ if(it.stage==='Sent to Supplier')return 'procurement'; if(it.stage==='Pending Invoicing')return 'finance'; if(it.ppend)return (deptForUser(it.owner)==='Accounts & Tax')?'finance':'procurement'; return (it.stage==='Procurement')?'procurement':'finance'; }
-  if(it.stage==='Procurement')return 'procurement';
-  if(it.stage==='Finance'||it.stage==='Director'||it.stage==='CEO')return 'finance';
-  return (it.dept==='Home Maintenance Services'||it.dept==='FitOut Services')?'ops_hm':'ops_all';
-}
+function itemDivision(it){ return it.div; }
 function buildItems(prRows,poRows){
   const items=[];
-  for(const r of prRows){ if(!prLive(r))continue; const st=prHb(PR_MAP[r['Step name']]); const pw=prPendingWith(r); const rowdept=String(r['Department']||'').trim(); const owner=((st==='Operations to Confirm'?(opsUserForDept(rowdept)||pw):pw)||'(unassigned)'); items.push({ref:r['Purchase requisition'],doc:'PR',typ:String(r['Purchase requisition']||'').startsWith('CPR')?'CPR':'PR',stage:st,age:prAge(r),owner:owner,dept:rowdept,value:amt(r),vendor:'',ppend:true,step:String(r['Step name']||''),status:String(r['Status']||'')}); }
-  for(const r of poRows){ const bk=poBucket(r); if(!bk)continue; const ven=String(r['Vendor name']||'-').trim(); const poStat=String(r['Approval status']||''); const createdBy=String(r['Created by']||r['Created By']||'').trim(); const poPend=String(r['Pending Approver/User']||'').trim(); const isVenBk=(bk==='Sent to Supplier'||bk==='Pending Invoicing'); let own,ppend; if(isVenBk){own=ven;ppend=false;}else if(poStat==='In review'){own=poPend||'(unassigned)';ppend=true;}else if(poStat==='Draft'){own=createdBy||'(unassigned)';ppend=true;}else{own=poPend||'(unassigned)';ppend=false;} items.push({ref:r['Purchase order'],doc:'PO',typ:'PO',stage:bk,age:poAge(r),owner:own,dept:String(r['Department']||'').trim(),value:amt(r),vendor:ven,ppend:ppend,step:String(r['Step name']||''),status:(poStat+' / '+String(r['Purchase order status']||'')).replace(/^ \/ | \/ $/g,'')}); }
+  for(const r of prRows){ if(!prLive(r))continue; const hb=prHb(PR_MAP[r['Step name']]); const rowdept=String(r['Department']||'').trim(); const pw0=prPendingWith(r);
+    const owner=((hb==='Operations to Confirm'?(opsUserForDept(rowdept)||pw0):pw0)||'(unassigned)');
+    let stage,div;
+    if(hb==='Procurement'){stage='Procurement';div='procurement';}
+    else if(hb==='Operations to Confirm'||hb==='Dep Managers'){stage=hb;div=opsDivFor(rowdept);}
+    else{const rl=roleOf(owner); if(rl==='Finance'||rl==='Director'||rl==='CEO'){stage=rl;div='finance';} else if(rl==='Procurement'){stage='Procurement';div='procurement';} else {stage='Dep Managers';div=opsDivFor(rowdept);}}
+    items.push({ref:r['Purchase requisition'],doc:'PR',typ:String(r['Purchase requisition']||'').startsWith('CPR')?'CPR':'PR',stage:stage,div:div,age:prAge(r),owner:owner,dept:rowdept,value:amt(r),vendor:'',ppend:true,step:String(r['Step name']||''),status:String(r['Status']||'')}); }
+  for(const r of poRows){ const bk=poBucket(r); if(!bk)continue; const ven=String(r['Vendor name']||'-').trim(); const poStat=String(r['Approval status']||''); const createdBy=String(r['Created by']||r['Created By']||'').trim(); const poPend=String(r['Pending Approver/User']||'').trim(); const isVenBk=(bk==='Sent to Supplier'||bk==='Pending Invoicing'); let own,ppend; if(isVenBk){own=ven;ppend=false;}else if(poStat==='In review'){own=poPend||'(unassigned)';ppend=true;}else if(poStat==='Draft'){own=createdBy||'(unassigned)';ppend=true;}else{own=poPend||'(unassigned)';ppend=false;}
+    let stage,div;
+    if(bk==='Sent to Supplier'){stage=bk;div='procurement';}
+    else if(bk==='Pending Invoicing'){stage=bk;div='finance';}
+    else{const rl=roleOf(own); if(rl==='Finance'||rl==='Director'||rl==='CEO'){stage=rl;div='finance';} else {stage='Procurement';div='procurement';}}
+    items.push({ref:r['Purchase order'],doc:'PO',typ:'PO',stage:stage,div:div,age:poAge(r),owner:own,dept:String(r['Department']||'').trim(),value:amt(r),vendor:ven,ppend:ppend,step:String(r['Step name']||''),status:(poStat+' / '+String(r['Purchase order status']||'')).replace(/^ \/ | \/ $/g,'')}); }
   return items;
 }
 const DIVS=[
