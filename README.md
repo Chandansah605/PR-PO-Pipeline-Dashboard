@@ -2,7 +2,7 @@
 
 Live dashboard for Strive Services Group showing the purchase requisition (PR) and purchase order (PO) pipeline from D365 Finance & Operations.
 
-**Live site:** https://strive-services-group.github.io/PR-PO-Pipeline-Dashboard/ (sign in with your Microsoft work account)
+**Live site:** https://chandansah605.github.io/PR-PO-Pipeline-Dashboard/ (sign in with your Microsoft work account)
 
 ## This is one of two repos (same project)
 | Repo | Purpose | Deploys to |
@@ -13,10 +13,8 @@ Live dashboard for Strive Services Group showing the purchase requisition (PR) a
 They're kept separate because they deploy to different places. The dashboard calls the proxy for live data.
 
 ## How the data flows
-1. On sign-in, the dashboard calls the proxy (`/api/pr`, `/api/po`) for **live** D365 data and auto-refreshes every 3 minutes.
-2. **Pending approver(s)** come only from live `WorkflowWorkItems` OData, including parallel approvers. They are never overwritten by Excel.
-3. The friendly **Step name / step date** remain a temporary `pr_steps.json` overlay until F&O exposes the authoritative custom fields. The source badge makes this distinction explicit.
-4. Every successful response is saved as the browser's last live snapshot. If one endpoint is temporarily unavailable, the other stays live and only the unavailable side retains its last snapshot.
+1. On sign-in, the dashboard calls the proxy (`/api/pr`, `/api/po`) for **live** D365 data — amounts, status, departments, vendors, dates — and auto-refreshes every 3 minutes.
+2. The **Step name / step date / pending approver / department-location-contract** come from `pr_steps.json` (generated from the latest D365 PR export), because the workflow "Step name" is a stored field not yet exposed on D365's live OData. The dashboard overlays these onto the live data by requisition number.
 
 ## Key files
 - `index.html` — the entire dashboard (UI + data loading + charts).
