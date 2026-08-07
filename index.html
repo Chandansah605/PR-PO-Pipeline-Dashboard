@@ -542,20 +542,24 @@ function prReconstruct(r,bucket){
   if(rl==='Finance'||rl==='Director'||rl==='CEO') hdr=rl;
   else if(rl==='Procurement') hdr=(hb==='Operations to Confirm'&&inrev)?'Re-Assigned/Rejected':'Procurement';
   else hdr=(hb==='Procurement'&&inrev)?'Re-Assigned/Rejected':(hb==='Operations to Confirm')?'Operations to Confirm':'Dep Managers';
-  return {hdr, owner};
+  // disp = sub-bucket for the dept sections: keep the granular step card only when the step agrees
+  // with the reconstructed home; otherwise use the reconstructed header bucket as the card.
+  const disp=(hdr==='Procurement')?(PR_PROC_STEPBUCKETS.has(bucket)?bucket:'Procurement')
+            :(hdr==='Operations to Confirm')?bucket:hdr;
+  return {hdr, owner, disp};
 }
 function poReconstruct(r,bucket){
   // returns {hdr, owner} for a mapped/live PO record
   const appr=String(r['Approval status']||'').trim();
   const createdBy=String(r['Created by']||r['Created By']||'').trim();
   const poPend=String(r['Pending Approver/User']||'').trim();
-  if(bucket==='Sent to Supplier'||bucket==='Pending Invoicing') return {hdr:bucket, owner:String(r['Vendor name']||'').trim()};
+  if(bucket==='Sent to Supplier'||bucket==='Pending Invoicing') return {hdr:bucket, owner:String(r['Vendor name']||'').trim(), disp:bucket};
   const owner=(appr==='Draft')?(createdBy||poPend):poPend;
   const rl=roleOf(owner);
-  if(rl==='Finance'||rl==='Director'||rl==='CEO') return {hdr:rl, owner};
-  return {hdr:'Procurement', owner};
+  if(rl==='Finance'||rl==='Director'||rl==='CEO') return {hdr:rl, owner, disp:rl};
+  return {hdr:'Procurement', owner, disp:'Procurement'};
 }
-const PR_BUCKET_ORDER = ["PR In Review", "RFQ to suppliers", "Qt received & Logged", "Qt Shared to Op", "OP confirms material", "Unit Price Updated", "Procurement (in process)", "Dep Managers", "Finance", "Director", "CEO", "Needs Step Name"];
+const PR_BUCKET_ORDER = ["Re-Assigned/Rejected", "PR In Review", "RFQ to suppliers", "Qt received & Logged", "Qt Shared to Op", "OP confirms material", "Unit Price Updated", "Procurement (in process)", "Procurement", "Dep Managers", "Finance", "Director", "CEO", "Needs Step Name"];
 const PO_BUCKET_ORDER = ["Procurement", "Finance", "Director", "CEO", "Sent to Supplier", "Pending Invoicing"];
 // PR: Procurement (header card) aggregates these 4 step-buckets
 const PR_PROCUREMENT_GROUP = ["PR In Review", "RFQ to suppliers", "Qt received & Logged", "OP confirms material", "Procurement (in process)"];
@@ -625,7 +629,7 @@ function buildPRRecords(prData){
       name:r['Name']||'', preparer:r['Preparer']||'', vendorName:'', quotationRef:r['Quotation reference']||'',
       department:r['Department']||'—', deptGroup:normalizeDept(r['Department']),
       project:r['Location']||'—', contract:r['Contract']||'',
-      bucket, subBucket: step || null, hdrBucket: rec_.hdr,
+      bucket, subBucket: step || null, hdrBucket: rec_.hdr, dispBucket: rec_.disp||bucket,
       status:r['Status']||'—',
       createdDate:created, stepDate, aging, amount:Number(r['Total amount'])||0,
       pendingUser:rec_.owner||r['Pending Approver/User']||'', raw:r,
@@ -670,7 +674,7 @@ function buildPORecords(poData){
       name:'', preparer:'', vendorName:r['Vendor name']||'',
       department:r['Department']||'—', deptGroup:normalizeDept(r['Department']),
       project:r['Location']||'—', contract:r['Contract']||'',
-      bucket, subBucket: step || null, hdrBucket: rec_.hdr,
+      bucket, subBucket: step || null, hdrBucket: rec_.hdr, dispBucket: rec_.disp||bucket,
       status:r['Approval status']||'—',
       poStatus: poStatusRaw,
       currency:r['Currency']||'',
@@ -692,7 +696,7 @@ function headerBuckets(){return mode==='PR'?PR_HEADER_BUCKETS:PO_HEADER_BUCKETS;
 /* ============ Filters ============ */
 function populateFilters(records){
   const fill=(id,items)=>{const sel=document.getElementById(id);const cur=sel.value;sel.innerHTML=`<option value="">All</option>`+items.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');if(cur)sel.value=cur;};
-  fill('filterBucket', bucketOrder().filter(b=>records.some(r=>r.bucket===b)));
+  fill('filterBucket', bucketOrder().filter(b=>records.some(r=>(r.dispBucket||r.bucket)===b)));
   fill('filterStep', uniqueSorted(records.map(r=>r.subBucket)));
   fill('filterDept', uniqueSorted(records.map(r=>r.department)));
   fill('filterStatus', uniqueSorted(records.map(r=>r.status)));
@@ -758,7 +762,7 @@ function applyFilters(){
     // - PR mode: based on Purchase requisition prefix
     // - PO mode: based on linked Purchase requisition prefix
     if(activeFilters.prtype!=='all' && r.prType!==activeFilters.prtype) return false;
-    if(activeFilters.bucket && r.bucket!==activeFilters.bucket) return false;
+    if(activeFilters.bucket && (r.dispBucket||r.bucket)!==activeFilters.bucket) return false;
     if(activeFilters.step && r.subBucket!==activeFilters.step) return false;
     if(activeFilters.dept && r.department!==activeFilters.dept) return false;
     if(activeFilters.status && r.status!==activeFilters.status) return false;
@@ -909,7 +913,7 @@ function renderDeptSections(records){
     const dcolLight2=hexToRgba(dcol,0.22);
 
     const bMap={};
-    drecs.forEach(r=>{if(!bMap[r.bucket])bMap[r.bucket]={count:0,sum:0,c:0};bMap[r.bucket].count++;if(r.aging!=null){bMap[r.bucket].sum+=r.aging;bMap[r.bucket].c++;}});
+    drecs.forEach(r=>{const bk=r.dispBucket||r.bucket;if(!bMap[bk])bMap[bk]={count:0,sum:0,c:0};bMap[bk].count++;if(r.aging!=null){bMap[bk].sum+=r.aging;bMap[bk].c++;}});
     const ordered=bucketOrder().filter(b=>bMap[b]&&bMap[b].count>0);
     const maxC=ordered.length?Math.max(...ordered.map(b=>bMap[b].count)):1;
 
@@ -1083,12 +1087,22 @@ function openDrill(kind,payload){
   let subset = filteredRecords.filter(livePipelineFilter);
   let title='';
   if(kind==='headerGroup'){
-    if(mode==='PR' && payload==='Procurement') subset=subset.filter(r=>PR_PROCUREMENT_GROUP.includes(r.bucket));
-    else if(mode==='PR' && payload==='Operations to Confirm') subset=subset.filter(r=>PR_OPERATIONS_GROUP.includes(r.bucket));
-    else subset=subset.filter(r=>r.bucket===payload);
+    // Header cards are aggregated on the reconstructed hdrBucket, so drill on the same key
+    subset=subset.filter(r=>{
+      let g=r.hdrBucket;
+      if(!g){
+        g=r.bucket;
+        if(mode==='PR'){
+          if(PR_PROCUREMENT_GROUP.includes(r.bucket)) g='Procurement';
+          else if(PR_OPERATIONS_GROUP.includes(r.bucket)) g='Operations to Confirm';
+        }
+      }
+      return g===payload;
+    });
     title=`Header bucket: ${payload}`;
   } else if(kind==='deptBucket'){
-    subset=subset.filter(r=>r.deptGroup===payload.dept&&r.bucket===payload.bucket);
+    // Dept cards are keyed on dispBucket, so drill on the same key
+    subset=subset.filter(r=>r.deptGroup===payload.dept&&(r.dispBucket||r.bucket)===payload.bucket);
     title=`${payload.dept} → ${payload.bucket}`;
   }
   showDrillModal(subset, title);
