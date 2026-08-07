@@ -109,12 +109,12 @@ function prPendingWith(r){const st=String(r['Status']||'');if(st==='Draft')retur
 function itemDivision(it){ return it.div; }
 function buildItems(prRows,poRows){
   const items=[];
-  for(const r of prRows){ if(!prLive(r))continue; const hb=prHb(PR_MAP[r['Step name']]); const rowdept=String(r['Department']||'').trim(); const pw0=prPendingWith(r);
+  for(const r of prRows){ if(!prLive(r))continue; const hb=prHb(PR_MAP[r['Step name']]); const rowdept=String(r['Department']||'').trim(); const pw0=prPendingWith(r); const inrev=(String(r['Status']||'').trim()==='In review');
     const owner=((hb==='Operations to Confirm'?(opsUserForDept(rowdept)||pw0):pw0)||'(unassigned)');
     const rl=roleOf(owner); let stage,div;
     if(rl==='Finance'||rl==='Director'||rl==='CEO'){stage=rl;div='finance';}
-    else if(rl==='Procurement'){div='procurement';stage=(hb==='Operations to Confirm')?'Re-Assigned/Rejected':'Procurement';}
-    else{div=opsDivFor(rowdept);stage=(hb==='Procurement')?'Re-Assigned/Rejected':(hb==='Operations to Confirm')?'Operations to Confirm':'Dep Managers';}
+    else if(rl==='Procurement'){div='procurement';stage=(hb==='Operations to Confirm'&&inrev)?'Re-Assigned/Rejected':'Procurement';}
+    else{div=opsDivFor(rowdept);stage=(hb==='Procurement'&&inrev)?'Re-Assigned/Rejected':(hb==='Operations to Confirm')?'Operations to Confirm':'Dep Managers';}
     items.push({ref:r['Purchase requisition'],doc:'PR',typ:String(r['Purchase requisition']||'').startsWith('CPR')?'CPR':'PR',stage:stage,div:div,age:prAge(r),owner:owner,dept:rowdept,value:amt(r),vendor:'',ppend:true,step:String(r['Step name']||''),status:String(r['Status']||'')}); }
   for(const r of poRows){ const bk=poBucket(r); if(!bk)continue; const ven=String(r['Vendor name']||'-').trim(); const poStat=String(r['Approval status']||''); const createdBy=String(r['Created by']||r['Created By']||'').trim(); const poPend=String(r['Pending Approver/User']||'').trim(); const isVenBk=(bk==='Sent to Supplier'||bk==='Pending Invoicing'); let own,ppend; if(isVenBk){own=ven;ppend=false;}else if(poStat==='In review'){own=poPend||'(unassigned)';ppend=true;}else if(poStat==='Draft'){own=createdBy||'(unassigned)';ppend=true;}else{own=poPend||'(unassigned)';ppend=false;}
     let stage,div;
