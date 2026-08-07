@@ -383,6 +383,7 @@ table.dataTable thead{background:#f8fafc}
       <div class="filter-toggle page-toggle">
         <button class="toggle-btn active" data-mode="PR" onclick="setMode('PR',this)"><i class="fa-solid fa-clipboard-list"></i> PR</button>
         <button class="toggle-btn" data-mode="PO" onclick="setMode('PO',this)"><i class="fa-solid fa-file-invoice-dollar"></i> PO</button>
+        <button class="toggle-btn" data-mode="ANALYSIS" onclick="setMode('ANALYSIS',this)"><i class="fa-solid fa-magnifying-glass-chart"></i> Analysis</button>
       </div>
     </div>
 
@@ -425,6 +426,8 @@ table.dataTable thead{background:#f8fafc}
   </aside>
 
   <main class="main">
+
+    <div id="analysisSection" style="display:none"></div>
 
     <div class="section-h"><i class="fa-solid fa-gauge-high"></i>Overall Performance <span class="mode-badge pr" id="modeBadge">PR MODE</span></div>
     <div class="kpi-strip" id="kpiOverall"></div>
@@ -704,7 +707,10 @@ function populateFilters(records){
 }
 
 function setMode(m, btn){
-  if(mode === m) return;
+  if(m==='ANALYSIS'){ enterAnalysis(btn); return; }
+  const wasAnalysis = !!window.__analysisOn;
+  exitAnalysis(btn);
+  if(mode === m){ return; }
   mode = m;
   document.querySelectorAll('.page-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -727,6 +733,150 @@ function setMode(m, btn){
     rebuild();
     hideLoader();
   }, 200);
+}
+
+/* ================= ANALYSIS TAB — Procurement Action Centre · Journey · Supplier Intel · Weekly ================= */
+window.__analysisOn=false;
+function enterAnalysis(btn){
+  document.querySelectorAll('.page-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.main > *').forEach(el=>{ if(el.id!=='analysisSection') el.style.display='none'; });
+  document.getElementById('analysisSection').style.display='';
+  window.__analysisOn=true;
+  renderAnalysis();
+}
+function exitAnalysis(btn){
+  if(!window.__analysisOn) { if(btn){document.querySelectorAll('.page-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');} return; }
+  document.querySelectorAll('.main > *').forEach(el=>{ el.style.display=''; });
+  document.getElementById('analysisSection').style.display='none';
+  window.__analysisOn=false;
+  document.querySelectorAll('.page-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+function _anMoney(v){ return 'AED '+(Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
+function _anAge(a){ a=Math.round(a||0); const c=a>14?'var(--red)':a>7?'var(--amber)':'var(--green)'; return `<b style="color:${c}">${a}d</b>`; }
+function _anTbl(head,rows,minw){ if(!rows.length) return '<div style="color:#8494ab;font-size:12px;padding:6px 2px">Nothing right now.</div>';
+  return `<div style="overflow:auto"><table style="border-collapse:collapse;font-size:12px;background:#fff;border:1px solid #e2e8f0;min-width:${minw||560}px">`
+   +`<tr>${head.map(h=>`<th style="background:#14315E;color:#fff;padding:6px 9px;text-align:left;white-space:nowrap;font-size:11px">${h}</th>`).join('')}</tr>`
+   +rows.map((cells,i)=>`<tr>${cells.map(c=>`<td style="padding:5px 9px;border-bottom:1px solid #eef1f6;background:${i%2?'#f7f9fc':'#fff'};white-space:nowrap">${c}</td>`).join('')}</tr>`).join('')+`</table></div>`; }
+function _anDet(title,n,inner){ return `<details style="margin:7px 0"><summary style="cursor:pointer;font-weight:700;color:#14315E;font-size:12.5px">${title} <span style="color:#8494ab">(${n})</span></summary><div style="margin-top:7px">${inner}</div></details>`; }
+function _anCard(label,value,sub,col,extra){ return `<div class="kpi-card" style="border-left:4px solid ${col}">${extra||''}<div class="kpi-label">${label}</div><div class="kpi-value" style="color:${col}">${value}</div><div class="kpi-sub">${sub}</div></div>`; }
+function _anBar(label,val,max,col,right){ const w=max?Math.max(2,Math.round(val/max*100)):0;
+  return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px"><div style="width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escapeHtml(String(label))}">${escapeHtml(String(label))}</div><div style="flex:1;background:#eef1f6;border-radius:4px;height:14px"><div style="width:${w}%;background:${col};height:14px;border-radius:4px"></div></div><div style="width:160px;text-align:right;white-space:nowrap">${right}</div></div>`; }
+function _anSec(icon,title,note){ return `<div class="section-h" style="margin-top:18px"><i class="fa-solid ${icon}"></i>${title}</div>`+(note?`<div style="font-size:11.5px;color:#7688a0;margin:-4px 0 10px">${note}</div>`:''); }
+function _anWaitOf(r,isPO){ if(isPO){ if(r.hdrBucket==='Sent to Supplier') return 'Supplier'; if(r.hdrBucket==='Pending Invoicing') return 'Finance'; }
+  const rl=roleOf(r.pendingUser); return rl==='Procurement'?'Procurement':(rl?'Finance':'Operations'); }
+function renderAnalysis(){
+  const host=document.getElementById('analysisSection');
+  const PRR=buildPRRecords(PR_DATA), POR=buildPORecords(PO_DATA);
+  const prLive=PRR.filter(r=>!r._isClosed&&!r._isUnmapped&&!['Rejected','Cancelled'].includes(r.status));
+  const poLive=POR.filter(r=>!r._isUnmapped&&!r._isPORejected&&!r._isPOCanceled&&!r._isInvoiced);
+  const live=prLive.map(r=>({...r,_doc:'PR'})).concat(poLive.map(r=>({...r,_doc:'PO'})));
+  let h='';
+  h+=`<div class="section-h"><i class="fa-solid fa-magnifying-glass-chart"></i>Analysis — Procurement Action Centre <span class="mode-badge pr">PR + PO</span></div>
+      <div style="font-size:11.5px;color:#7688a0;margin:-4px 0 10px">All counts use the approver-based logic (same as the daily division emails). Live pipeline only.</div>`;
+  /* ---- 1. WHO IS EVERYTHING WAITING ON ---- */
+  const waitAgg={};
+  live.forEach(r=>{const w=_anWaitOf(r,r._doc==='PO'); const e=waitAgg[w]||(waitAgg[w]={n:0,v:0,ages:[]}); e.n++; e.v+=(r.amount||0); if(r.aging!=null)e.ages.push(r.aging);});
+  const wcol={Procurement:'#3b82f6',Operations:'#14b8a6',Finance:'#22c55e',Supplier:'#a855f7'};
+  h+=`<div class="kpi-strip">`+['Procurement','Operations','Finance','Supplier'].map(w=>{const e=waitAgg[w]||{n:0,v:0,ages:[]};const av=e.ages.length?(e.ages.reduce((a,b)=>a+b,0)/e.ages.length).toFixed(0):'0';
+    return _anCard('Waiting on '+w, e.n.toLocaleString(), `Avg <b>${av}d</b> · ${_anMoney(e.v)}`, wcol[w]);}).join('')+`</div>`;
+  /* ---- pending by person ---- */
+  const pg={};
+  live.forEach(r=>{ if(r._doc==='PO'&&(r.hdrBucket==='Sent to Supplier'||r.hdrBucket==='Pending Invoicing'))return;
+    const o=String(r.pendingUser||'').trim(); if(!o||o==='(unassigned)')return;
+    const k=o.toLowerCase(); const e=pg[k]||(pg[k]={disp:o,pr:0,po:0,v:0,old:0,br:0}); if(r._doc==='PR')e.pr++;else e.po++; e.v+=(r.amount||0); if(r.aging!=null){if(r.aging>e.old)e.old=r.aging; if(r.aging>7)e.br++;}});
+  const prows=Object.values(pg).sort((a,b)=>(b.pr+b.po)-(a.pr+a.po)).slice(0,15)
+    .map(e=>[`<b>${escapeHtml(e.disp)}</b>`,escapeHtml(deptForUser(e.disp)||'—'),String(e.pr),String(e.po),_anAge(e.old),`<b style="color:var(--red)">${e.br}</b>`,_anMoney(e.v)]);
+  h+=_anSec('fa-user-clock','Pending by person — next action & accountable','Top 15 people holding live items (excludes supplier-side stages). Br>7 = items past the 7-day SLA.');
+  h+=_anTbl(['Accountable person','Department','PRs','POs','Oldest','Br>7','Value'],prows,640);
+  /* ---- unassigned + unmapped ---- */
+  const unas=live.filter(r=>{const o=String(r.pendingUser||'').trim();return (!o||o==='(unassigned)')&&!(r._doc==='PO'&&(r.hdrBucket==='Sent to Supplier'||r.hdrBucket==='Pending Invoicing'));});
+  const unmapped=prLive.filter(r=>r.hdrBucket==='Operations to Confirm'&&!opsUserForDept(String(r.raw['Department']||'').trim())&&!deptForUser(r.pendingUser));
+  h+=_anDet('Unassigned items — nobody accountable',unas.length,_anTbl(['Doc','#','Dept','Stage','Status','Age','Value'],unas.slice(0,12).map(r=>[r._doc,escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(r.hdrBucket||r.bucket),escapeHtml(r.status),_anAge(r.aging),_anMoney(r.amount)])));
+  /* ---- high value + escalations ---- */
+  const hv=live.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)).slice(0,8);
+  h+=_anSec('fa-triangle-exclamation','High-value & escalations','Step SLA: >7d = overdue (amber), >14d = escalate (red).');
+  h+=`<div style="display:flex;gap:18px;flex-wrap:wrap"><div style="flex:1;min-width:420px"><div style="font-weight:700;color:#14315E;font-size:12.5px;margin-bottom:6px">Highest value open</div>`
+   +_anTbl(['#','Bucket','Pending with','Age','Value'],hv.map(r=>[escapeHtml(r.docNumber),escapeHtml(r.hdrBucket||r.bucket),escapeHtml(String(r.pendingUser||r.vendorName||'—').slice(0,22)),_anAge(r.aging),`<b>${_anMoney(r.amount)}</b>`]),430)
+   +`</div><div style="flex:1;min-width:420px"><div style="font-weight:700;color:#14315E;font-size:12.5px;margin-bottom:6px">Escalation queue by stage</div>`;
+  const escAgg={};
+  live.forEach(r=>{const b=r.hdrBucket||r.bucket;const e=escAgg[b]||(escAgg[b]={a:0,b:0});if(r.aging!=null){if(r.aging>14)e.b++;else if(r.aging>7)e.a++;}});
+  h+=_anTbl(['Stage','7–14d overdue','>14d escalate'],Object.entries(escAgg).filter(([,e])=>e.a+e.b>0).sort((x,y)=>(y[1].a+y[1].b)-(x[1].a+x[1].b)).map(([b,e])=>[escapeHtml(b),`<b style="color:var(--amber)">${e.a}</b>`,`<b style="color:var(--red)">${e.b}</b>`]),380)+`</div></div>`;
+  /* ---- 2. JOURNEY ---- */
+  const prAll=PRR.filter(r=>!['Rejected','Cancelled'].includes(r.status));
+  const poByPR={}; PO_DATA.forEach(p=>{const k=String(p['Purchase requisition']||'').trim(); if(k)(poByPR[k]=poByPR[k]||[]).push(p);});
+  const poAllRaw=PO_DATA.filter(p=>String(p['Approval status'])!=='Rejected'&&String(p['Purchase order status'])!=='Canceled');
+  const fTot=prAll.length,
+        fRFQ=prAll.filter(r=>String(r.raw['Request for quotation case']||'').trim()).length,
+        fQuo=prAll.filter(r=>String(r.raw['Quotation reference']||'').trim()).length,
+        fPO=prAll.filter(r=>poByPR[String(r.docNumber||'').trim()]).length,
+        fSent=poAllRaw.filter(p=>String(p['Step name'])==='LPO sent/shared with supplier'||['Received','Invoiced'].includes(String(p['Purchase order status']))).length,
+        fRecv=poAllRaw.filter(p=>['Received','Invoiced'].includes(String(p['Purchase order status']))).length,
+        fInv=poAllRaw.filter(p=>String(p['Purchase order status'])==='Invoiced').length;
+  h+=_anSec('fa-route','PR-to-payment journey','PR → RFQ → quotation → PO → sent to supplier → received (GRN) → invoiced. First four counts are PR-level; last three are PO-level.');
+  const fm=Math.max(fTot,1);
+  h+=`<div style="max-width:760px">`
+   +_anBar('PRs raised (excl rej/canc)',fTot,fm,'#3b82f6',`<b>${fTot.toLocaleString()}</b>`)
+   +_anBar('RFQ issued',fRFQ,fm,'#0ea5e9',`<b>${fRFQ.toLocaleString()}</b> · ${(fRFQ/fm*100).toFixed(0)}%`)
+   +_anBar('Quotation received',fQuo,fm,'#06b6d4',`<b>${fQuo.toLocaleString()}</b> · ${(fQuo/fm*100).toFixed(0)}%`)
+   +_anBar('PO created',fPO,fm,'#14b8a6',`<b>${fPO.toLocaleString()}</b> · ${(fPO/fm*100).toFixed(0)}%`)
+   +_anBar('PO sent to supplier',fSent,Math.max(poAllRaw.length,1),'#a855f7',`<b>${fSent.toLocaleString()}</b> of ${poAllRaw.length} POs`)
+   +_anBar('Received (GRN)',fRecv,Math.max(poAllRaw.length,1),'#f59e0b',`<b>${fRecv.toLocaleString()}</b>`)
+   +_anBar('Invoiced',fInv,Math.max(poAllRaw.length,1),'#22c55e',`<b>${fInv.toLocaleString()}</b>`)+`</div>`;
+  /* exceptions */
+  const e1=prLive.filter(r=>r.hdrBucket==='Procurement'&&!String(r.raw['Request for quotation case']||'').trim()&&(r.aging||0)>7);
+  const e2=prLive.filter(r=>r.hdrBucket==='Operations to Confirm'&&(r.aging||0)>7);
+  const e3=poLive.filter(r=>['Procurement','Finance','Director','CEO'].includes(r.hdrBucket)&&['Confirmed','Approved'].includes(r.status)&&r.poStatus==='Open order');
+  const e4=poLive.filter(r=>r.hdrBucket==='Sent to Supplier'&&(()=>{const d=parseDate(r.raw['Requested receipt date']);return d&&d<TODAY;})());
+  const e5=poLive.filter(r=>r.hdrBucket==='Pending Invoicing');
+  const exs=[['No RFQ issued (PR in procurement >7d, no RFQ case)',e1,'#dc2626',r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(String(r.pendingUser||'').slice(0,20)),_anAge(r.aging),_anMoney(r.amount)]],
+             ['Operations confirmation overdue (>7d)',e2,'#c2410c',r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(String(r.pendingUser||'').slice(0,20)),_anAge(r.aging),_anMoney(r.amount)]],
+             ['Approved PO not sent to supplier',e3,'#7c3aed',r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,24)),escapeHtml(r.status+' / '+r.poStatus),_anAge(r.aging),_anMoney(r.amount)]],
+             ['Late delivery — past requested receipt date',e4,'#b45309',r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,24)),escapeHtml((typeof fmtDate==='function')?fmtDate(parseDate(r.raw['Requested receipt date'])):String(r.raw['Requested receipt date']||'')),_anAge(r.aging),_anMoney(r.amount)]],
+             ['Received but not invoiced',e5,'#ea580c',r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,24)),escapeHtml(r.department),_anAge(r.aging),_anMoney(r.amount)]]];
+  h+=_anSec('fa-circle-exclamation','Journey exceptions','Click a row group to expand the worst offenders (top 10 by age).');
+  h+=`<div class="kpi-strip">`+exs.map(([t,arr,c])=>_anCard(t.split(' (')[0],arr.length,_anMoney(arr.reduce((a,r)=>a+(r.amount||0),0)),c)).join('')+`</div>`;
+  exs.forEach(([t,arr,c,fn])=>{ h+=_anDet(t,arr.length,_anTbl(['#','Detail','Info','Age','Value'],arr.slice().sort((a,b)=>(b.aging||0)-(a.aging||0)).slice(0,10).map(fn),560)); });
+  /* ---- 3. SUPPLIER / COMMERCIAL ---- */
+  h+=_anSec('fa-handshake','Commercial & supplier intelligence','Open (live) POs only. Value share = of total open PO value.');
+  const ven={}; let venTot=0;
+  poLive.forEach(r=>{const v=String(r.vendorName||'—').trim()||'—';const e=ven[v]||(ven[v]={n:0,v:0,ages:[],late:0,rni:0});e.n++;e.v+=(r.amount||0);venTot+=(r.amount||0);if(r.aging!=null)e.ages.push(r.aging);
+    const d=parseDate(r.raw['Requested receipt date']); if(r.hdrBucket==='Sent to Supplier'&&d&&d<TODAY)e.late++; if(r.hdrBucket==='Pending Invoicing')e.rni++;});
+  const topVen=Object.entries(ven).sort((a,b)=>b[1].v-a[1].v).slice(0,8);
+  h+=`<div style="display:flex;gap:18px;flex-wrap:wrap"><div style="flex:1;min-width:440px"><div style="font-weight:700;color:#14315E;font-size:12.5px;margin-bottom:6px">Vendor concentration — open value</div><div>`;
+  const vmax=topVen.length?topVen[0][1].v:1;
+  topVen.forEach(([v,e])=>{h+=_anBar(v,e.v,vmax,'#3b82f6',`<b>${_anMoney(e.v)}</b> · ${venTot?Math.round(e.v/venTot*100):0}%`);});
+  h+=`</div></div><div style="flex:1;min-width:460px"><div style="font-weight:700;color:#14315E;font-size:12.5px;margin-bottom:6px">Supplier scorecard (open POs)</div>`;
+  h+=_anTbl(['Vendor','POs','Value','Avg age','Late','Recv not inv'],topVen.map(([v,e])=>[escapeHtml(v.slice(0,26)),String(e.n),_anMoney(e.v),_anAge(e.ages.length?e.ages.reduce((a,b)=>a+b,0)/e.ages.length:0),`<b style="color:var(--red)">${e.late}</b>`,String(e.rni)]),450)+`</div></div>`;
+  /* contract vs spot */
+  const cv={}; live.forEach(r=>{const c=String(r.contract||'').trim()||'Not specified';const e=cv[c]||(cv[c]={n:0,v:0});e.n++;e.v+=(r.amount||0);});
+  h+=`<div style="margin-top:10px;font-weight:700;color:#14315E;font-size:12.5px">Contracted vs spot purchasing</div>`;
+  h+=_anTbl(['Type','Items','Value'],Object.entries(cv).sort((a,b)=>b[1].v-a[1].v).map(([c,e])=>[escapeHtml(c),String(e.n),_anMoney(e.v)]),360);
+  h+=`<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">`+['Savings vs budget / previous purchase','Quotation comparison & price spread','Three-quote / waiver compliance','Supplier on-time delivery (GRN dates)']
+    .map(t=>`<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px">⏳ ${t} — needs F&amp;O GRN / Dataverse quote data (integration planned)</span>`).join('')+`</div>`;
+  /* ---- 4. WEEKLY ---- */
+  h+=_anSec('fa-calendar-week','Weekly performance','Derived from the current snapshot (created/step dates). True week-over-week deltas build up from the weekly snapshot archive.');
+  function wkMon(d){ if(!d)return null; const day=(d.getUTCDay()+6)%7; return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-day); }
+  const weeks=[]; { const now=wkMon(new Date()); for(let i=9;i>=0;i--) weeks.push(now-i*7*86400000); }
+  const wl=t=>{const d=new Date(t);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',timeZone:'UTC'});};
+  const wk={}; weeks.forEach(t=>wk[t]={prC:0,prV:0,prDone:0,poC:0,poInv:0});
+  PRR.forEach(r=>{const t=wkMon(r.createdDate); if(wk[t]){wk[t].prC++;wk[t].prV+=(r.amount||0);} if(r._isClosed){const t2=wkMon(r.stepDate); if(wk[t2])wk[t2].prDone++;}});
+  POR.forEach(r=>{const t=wkMon(r.createdDate); if(wk[t])wk[t].poC++; if(r._isInvoiced){const t2=wkMon(r.stepDate); if(wk[t2])wk[t2].poInv++;}});
+  const wmax=Math.max(...weeks.map(t=>Math.max(wk[t].prC,wk[t].poC,wk[t].prDone,wk[t].poInv)),1);
+  h+=_anTbl(['Week (Mon)','PRs raised','PR value','PRs closed*','POs raised','POs invoiced*'],weeks.map(t=>[wl(t),`<b>${wk[t].prC}</b>`,_anMoney(wk[t].prV),String(wk[t].prDone),`<b>${wk[t].poC}</b>`,String(wk[t].poInv)]),620);
+  h+=`<div style="font-size:11px;color:#8494ab;margin-top:4px">* approximated by the last workflow step date of Closed / Invoiced records.</div>`;
+  h+=`<div id="anWow" style="margin-top:12px;font-size:12px;color:#7688a0">Loading weekly snapshot archive…</div>`;
+  host.innerHTML=h;
+  fetch('weekly_snapshots.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(js=>{
+    const el=document.getElementById('anWow'); if(!el)return;
+    if(!js||!Array.isArray(js.snapshots)||js.snapshots.length<2){ el.innerHTML='<b style="color:#14315E">Week-over-week deltas:</b> snapshot archive has '+((js&&js.snapshots)?js.snapshots.length:0)+' snapshot(s) — the server saves one every Sunday; deltas appear once two exist.'; return; }
+    const s=js.snapshots, cur=s[s.length-1], prev=s[s.length-2];
+    const keys=Array.from(new Set([...Object.keys(cur.buckets||{}),...Object.keys(prev.buckets||{})]));
+    const rows=keys.map(k=>{const a=(prev.buckets||{})[k]||0,b=(cur.buckets||{})[k]||0,d=b-a;
+      return [escapeHtml(k),String(a),String(b),`<b style="color:${d>0?'var(--red)':d<0?'var(--green)':'#64748b'}">${d>0?'+':''}${d}</b>`];});
+    el.innerHTML=`<div style="font-weight:700;color:#14315E;font-size:12.5px;margin-bottom:6px">Week-over-week — ${escapeHtml(prev.date)} → ${escapeHtml(cur.date)}</div>`+_anTbl(['Bucket','Last week','This week','Δ'],rows,420);
+  }).catch(()=>{});
 }
 
 function rebuild(){
