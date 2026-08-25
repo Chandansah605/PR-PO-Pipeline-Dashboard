@@ -1,0 +1,1637 @@
+{
+  "meta": {
+    "schema": 1,
+    "windowStart": "2026-04-01",
+    "asOf": "2026-08-25",
+    "asOfTimestamp": "2026-08-25T09:24:05",
+    "generatedAt": "2026-08-25T09:24:05",
+    "prRows": 4266,
+    "poRows": 2894,
+    "eligiblePrs": 1291,
+    "missingTerminalTimestamp": 0,
+    "excluded": {
+      "beforeWindow": 2628,
+      "status": 347,
+      "invalidMilestones": 2
+    }
+  },
+  "headline": {
+    "completed": 698,
+    "submittedMedianWd": 0.0,
+    "poCreatedMedianWd": 9.0,
+    "lpoMedianWd": 12.0,
+    "p90Wd": 34.0,
+    "within10Pct": 43.8
+  },
+  "targets": {
+    "raisedToGoodsWd": 10,
+    "goodsToInvoiceDays": 2
+  },
+  "trend": [
+    {
+      "key": "2026-W27",
+      "label": "W27",
+      "medianWd": 14.0,
+      "n": 39,
+      "partial": false
+    },
+    {
+      "key": "2026-W28",
+      "label": "W28",
+      "medianWd": 17.0,
+      "n": 39,
+      "partial": false
+    },
+    {
+      "key": "2026-W29",
+      "label": "W29",
+      "medianWd": 15.0,
+      "n": 55,
+      "partial": false
+    },
+    {
+      "key": "2026-W30",
+      "label": "W30",
+      "medianWd": 24.0,
+      "n": 68,
+      "partial": false
+    },
+    {
+      "key": "2026-W31",
+      "label": "W31",
+      "medianWd": 16.5,
+      "n": 48,
+      "partial": false
+    },
+    {
+      "key": "2026-W32",
+      "label": "W32",
+      "medianWd": 9.0,
+      "n": 34,
+      "partial": false
+    },
+    {
+      "key": "2026-W33",
+      "label": "W33",
+      "medianWd": 9.0,
+      "n": 29,
+      "partial": false
+    },
+    {
+      "key": "2026-W34",
+      "label": "W34",
+      "medianWd": 7.0,
+      "n": 27,
+      "partial": false
+    },
+    {
+      "key": "2026-W35",
+      "label": "W35",
+      "medianWd": 3.0,
+      "n": 3,
+      "partial": true
+    }
+  ],
+  "trendDeltaWd": -2.0,
+  "live": {
+    "count": 596,
+    "medianAgeWd": 29.0,
+    "over20": 350,
+    "within10Pct": 26.2,
+    "countDelta": -2,
+    "medianAgeDelta": 1.0,
+    "over20Delta": 5,
+    "within10Delta": -2.6,
+    "finishedToday": 0,
+    "raisedToday": 1,
+    "oldest": [
+      {
+        "number": "CPR-022910",
+        "name": "Cable Pulling Work from North Reception to North B2 Store Ro",
+        "department": "Home Maintenance Services",
+        "project": "NORTH RESIDENCE",
+        "holder": "Layusha.cleatus",
+        "step": "Unit prices updated in PR lines",
+        "amount": 865.45,
+        "ageWd": 104
+      },
+      {
+        "number": "CPR-022938",
+        "name": "Supply and Installation of Solenoid Valve",
+        "department": "Landscaping Services",
+        "project": "DOMUS INDIGO",
+        "holder": "Adnan.Ullah",
+        "step": "Unit prices updated in PR lines",
+        "amount": 869.4,
+        "ageWd": 104
+      },
+      {
+        "number": "CPR-022949",
+        "name": "AC issue",
+        "department": "Home Maintenance Services",
+        "project": "ROYAL PARK SOUTH VILLAS",
+        "holder": "Layusha.cleatus",
+        "step": "Unit prices updated in PR lines",
+        "amount": 2100.0,
+        "ageWd": 104
+      },
+      {
+        "number": "PR-001168",
+        "name": "IT REQUISTION FOR VARIOUS SITES",
+        "department": "Building Services",
+        "project": "WILTON PARK RESIDENCES",
+        "holder": "arman.b",
+        "step": "Finance & Accounts_Accounting Manager",
+        "amount": 4252.5,
+        "ageWd": 104
+      },
+      {
+        "number": "PR-001174",
+        "name": "Toyota Hilux – Re-Branding Works for Accident-Damaged Vehicl",
+        "department": "Housekeeping Services",
+        "project": "SOUTH RESIDENCE",
+        "holder": "Ayman.ismail",
+        "step": "Finance & Accounts_Accounting Manager",
+        "amount": 1260.0,
+        "ageWd": 104
+      },
+      {
+        "number": "PR-001177",
+        "name": "Novo Cinema Buhairah (Chilled Water Treatment)",
+        "department": "Factory — Head Office",
+        "project": "Head Office / not specified",
+        "holder": "Unassigned",
+        "step": "No active workflow step",
+        "amount": 0.0,
+        "ageWd": 104
+      },
+      {
+        "number": "CPR-023245",
+        "name": "Supply of Bird Spikes Stainless Steel 50cm",
+        "department": "Building Services",
+        "project": "SOUTH RESIDENCE",
+        "holder": "Adnan.Ullah",
+        "step": "Unit prices updated in PR lines",
+        "amount": 630.0,
+        "ageWd": 102
+      },
+      {
+        "number": "CPR-023257",
+        "name": "Supply of Purell Hand Sanitizing Gel 1000 ml",
+        "department": "Contracted Cleaning Services",
+        "project": "SWAY RESIDENCE",
+        "holder": "Adnan.Ullah",
+        "step": "Unit prices updated in PR lines",
+        "amount": 1117.2,
+        "ageWd": 102
+      },
+      {
+        "number": "CPR-023262",
+        "name": "Domestic Water tank cleaning & testing",
+        "department": "Contracted Cleaning Services",
+        "project": "CAYAN BUSSINES CENTER",
+        "holder": "Layusha.cleatus",
+        "step": "Unit prices updated in PR lines",
+        "amount": 1344.0,
+        "ageWd": 102
+      },
+      {
+        "number": "CPR-023374",
+        "name": "Main Entrance Rectification Work at Al Tay Hills",
+        "department": "Building Services",
+        "project": "AL TAY HILLS",
+        "holder": "roderick.red",
+        "step": "PurchReqReviewTask",
+        "amount": 25725.0,
+        "ageWd": 101
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "hs-cpr",
+      "label": "HS · CPR",
+      "division": "Home Services",
+      "type": "CPR",
+      "medianWd": 6.0,
+      "p90Wd": 17.2,
+      "n": 105,
+      "within10Pct": 78.1,
+      "cumulative": {
+        "submitted": 0.0,
+        "poCreated": 4.0,
+        "lpoSent": 6.0
+      },
+      "sectors": {
+        "raisedToSubmitted": 0.0,
+        "submittedToPo": 4.0,
+        "poToLpo": 2.0
+      },
+      "liveCount": 71,
+      "liveMedianAgeWd": 9.0,
+      "drill": {
+        "projects": [
+          {
+            "name": "RESIDENCE 110",
+            "medianWd": 14.0,
+            "n": 1
+          },
+          {
+            "name": "ONE BY OMNIYAT",
+            "medianWd": 12.0,
+            "n": 1
+          },
+          {
+            "name": "ROYAL PARK SOUTH VILLAS",
+            "medianWd": 9.0,
+            "n": 3
+          },
+          {
+            "name": "AL TAY HILLS",
+            "medianWd": 9.0,
+            "n": 1
+          }
+        ],
+        "departments": [
+          {
+            "name": "Housekeeping Services",
+            "medianWd": 12.0,
+            "n": 1
+          },
+          {
+            "name": "Home Maintenance Services",
+            "medianWd": 6.0,
+            "n": 104
+          }
+        ],
+        "holders": [
+          {
+            "name": "roderick.red",
+            "count": 68,
+            "medianAgeWd": 8.5
+          },
+          {
+            "name": "Layusha.cleatus",
+            "count": 2,
+            "medianAgeWd": 104.0
+          },
+          {
+            "name": "Aparna.Pauly",
+            "count": 1,
+            "medianAgeWd": 1.0
+          }
+        ],
+        "oldest": [
+          {
+            "number": "CPR-022910",
+            "name": "Cable Pulling Work from North Reception to North B2 Store Ro",
+            "department": "Home Maintenance Services",
+            "project": "NORTH RESIDENCE",
+            "holder": "Layusha.cleatus",
+            "step": "Unit prices updated in PR lines",
+            "amount": 865.45,
+            "ageWd": 104
+          },
+          {
+            "number": "CPR-022949",
+            "name": "AC issue",
+            "department": "Home Maintenance Services",
+            "project": "ROYAL PARK SOUTH VILLAS",
+            "holder": "Layusha.cleatus",
+            "step": "Unit prices updated in PR lines",
+            "amount": 2100.0,
+            "ageWd": 104
+          },
+          {
+            "number": "CPR-025493",
+            "name": "Drain, AC and Shower Issue",
+            "department": "Home Maintenance Services",
+            "project": "GOLDEN MILE",
+            "holder": "roderick.red",
+            "step": "Unit prices updated in PR lines",
+            "amount": 3385.73,
+            "ageWd": 86
+          },
+          {
+            "number": "CPR-025572",
+            "name": "Leakage found while chipping work",
+            "department": "Home Maintenance Services",
+            "project": "SHORELINE 7AND8",
+            "holder": "roderick.red",
+            "step": "PurchReqReviewTask",
+            "amount": 78.75,
+            "ageWd": 85
+          }
+        ]
+      },
+      "position": 1
+    },
+    {
+      "id": "factory-pr",
+      "label": "FACTORY · PR",
+      "division": "Factory — Head Office",
+      "type": "PR",
+      "medianWd": 7.0,
+      "p90Wd": 24.0,
+      "n": 44,
+      "within10Pct": 68.2,
+      "cumulative": {
+        "submitted": 0.0,
+        "poCreated": 3.0,
+        "lpoSent": 7.0
+      },
+      "sectors": {
+        "raisedToSubmitted": 0.0,
+        "submittedToPo": 3.0,
+        "poToLpo": 4.0
+      },
+      "liveCount": 26,
+      "liveMedianAgeWd": 38.5,
+      "drill": {
+        "projects": [
+          {
+            "name": "Headoffice",
+            "medianWd": 7.0,
+            "n": 32
+          },
+          {
+            "name": "DOMUS INDIGO",
+            "medianWd": 7.0,
+            "n": 2
+          },
+          {
+            "name": "ARJAN ACCOMODATION",
+            "medianWd": 6.5,
+            "n": 8
+          },
+          {
+            "name": "SOUTH RESIDENCE",
+            "medianWd": 4.5,
+            "n": 2
+          }
+        ],
+        "departments": [
+          {
+            "name": "Marketing",
+            "medianWd": 14.5,
+            "n": 8
+          },
+          {
+            "name": "FinancialPlanning and Analysis",
+            "medianWd": 9.5,
+            "n": 2
+          },
+          {
+            "name": "Human Resources",
+            "medianWd": 9.5,
+            "n": 2
+          },
+          {
+            "name": "Office Support",
+            "medianWd": 7.0,
+            "n": 11
+          }
+        ],
+        "holders": [
+          {
+            "name": "Unassigned",
+            "count": 9,
+            "medianAgeWd": 57.0
+          },
+          {
+            "name": "dinesh.laxman",
+            "count": 5,
+            "medianAgeWd": 72.0
+          },
+          {
+            "name": "arman.b",
+            "count": 3,
+            "medianAgeWd": 37.0
+          },
+          {
+            "name": "Patrick.Smith",
+            "count": 3,
+            "medianAgeWd": 34.0
+          }
+        ],
+        "oldest": [
+          {
+            "number": "PR-001177",
+            "name": "Novo Cinema Buhairah (Chilled Water Treatment)",
+            "department": "Factory — Head Office",
+            "project": "Head Office / not specified",
+            "holder": "Unassigned",
+            "step": "No active workflow step",
+            "amount": 0.0,
+            "ageWd": 104
+          },
+          {
+            "number": "PR-001213",
+            "name": "Landscape Creekside Hotel Seasonal Flowers",
+            "department": "Factory — Head Office",
+            "project": "Head Office / not specified",
+            "holder": "Unassigned",
+            "step": "No active workflow step",
+            "amount": 0.0,
+            "ageWd": 97
+          },
+          {
+            "number": "PR-001216",
+            "name": "IT Request For Licence Various Team",
+            "department": "IT",
+            "project": "Headoffice",
+            "holder": "dinesh.laxman",
+            "step": "Finance & Accounts_Accounting Manager",
+            "amount": 0.0,
+            "ageWd": 97
+          },
+          {
+            "number": "PR-001313",
+            "name": "Supply & Modification od Additional Parking Bay",
+            "department": "Factory — Head Office",
+            "project": "Head Office / not specified",
+            "holder": "Unassigned",
+            "step": "No active workflow step",
+            "amount": 0.0,
+            "ageWd": 79
+          }
+        ]
+      },
+      "position": 2
+    },
+    {
+      "id": "fm-pr",
+      "label": "FM · PR",
+      "division": "Facilities Management",
+      "type": "PR",
+      "medianWd": 13.0,
+      "p90Wd": 33.0,
+      "n": 294,
+      "within10Pct": 38.8,
+      "cumulative": {
+        "submitted": 0.0,
+        "poCreated": 10.0,
+        "lpoSent": 13.0
+      },
+      "sectors": {
+        "raisedToSubmitted": 0.0,
+        "submittedToPo": 10.0,
+        "poToLpo": 3.0
+      },
+      "liveCount": 73,
+      "liveMedianAgeWd": 8.0,
+      "drill": {
+        "projects": [
+          {
+            "name": "IRISE TOWER",
+            "medianWd": 31.5,
+            "n": 20
+          },
+          {
+            "name": "ONE BY OMNIYAT",
+            "medianWd": 31.0,
+            "n": 1
+          },
+          {
+            "name": "AL MAAREF PRIVATE SCHOOL",
+            "medianWd": 29.0,
+            "n": 3
+          },
+          {
+            "name": "BARTON HOUSE 1",
+            "medianWd": 24.0,
+            "n": 3
+          }
+        ],
+        "departments": [
+          {
+            "name": "Landscaping Services",
+            "medianWd": 22.0,
+            "n": 3
+          },
+          {
+            "name": "Security Services",
+            "medianWd": 17.5,
+            "n": 2
+          },
+          {
+            "name": "Contracted Cleaning Services",
+            "medianWd": 16.0,
+            "n": 109
+          },
+          {
+            "name": "Building Services",
+            "medianWd": 11.5,
+            "n": 176
+          }
+        ],
+        "holders": [
+          {
+            "name": "arman.b",
+            "count": 29,
+            "medianAgeWd": 8.0
+          },
+          {
+            "name": "Adnan.Ullah",
+            "count": 16,
+            "medianAgeWd": 7.5
+          },
+          {
+            "name": "Aparna.Pauly",
+            "count": 11,
+            "medianAgeWd": 6.0
+          },
+          {
+            "name": "Layusha.cleatus",
+            "count": 5,
+            "medianAgeWd": 4.0
+          }
+        ],
+        "oldest": [
+          {
+            "number": "PR-001168",
+            "name": "IT REQUISTION FOR VARIOUS SITES",
+            "department": "Building Services",
+            "project": "WILTON PARK RESIDENCES",
+            "holder": "arman.b",
+            "step": "Finance & Accounts_Accounting Manager",
+            "amount": 4252.5,
+            "ageWd": 104
+          },
+          {
+            "number": "PR-001250",
+            "name": "CBC - FACADE AND GLASS CLEANING 2026",
+            "department": "Building Services",
+            "project": "CAYAN BUSSINES CENTER",
+            "holder": "arman.b",
+            "step": "Finance & Accounts_Accounting Manager",
+            "amount": 14017.5,
+            "ageWd": 92
+          },
+          {
+            "number": "PR-001261",
+            "name": "AMC Eden Renewal Garbage Chute Service",
+            "department": "Building Services",
+            "project": "EDEN APARTMENTS",
+            "holder": "Unassigned",
+            "step": "No active workflow step",
+            "amount": 0.0,
+            "ageWd": 91
+          },
+          {
+            "number": "PR-001264",
+            "name": "Walk behind machine squeegee replace",
+            "department": "Contracted Cleaning Services",
+            "project": "BALQIS RESIDENCE",
+            "holder": "arman.b",
+            "step": "Finance & Accounts_Accounting Manager",
+            "amount": 367.5,
+            "ageWd": 90
+          }
+        ]
+      },
+      "position": 3
+    },
+    {
+      "id": "fitout-cpr",
+      "label": "FITOUT · CPR",
+      "division": "FitOut Solutions",
+      "type": "CPR",
+      "medianWd": 16.5,
+      "p90Wd": 27.3,
+      "n": 20,
+      "within10Pct": 45.0,
+      "cumulative": {
+        "submitted": 0.0,
+        "poCreated": 8.5,
+        "lpoSent": 16.5
+      },
+      "sectors": {
+        "raisedToSubmitted": 0.0,
+        "submittedToPo": 8.5,
+        "poToLpo": 8.0
+      },
+      "liveCount": 8,
+      "liveMedianAgeWd": 28.5,
+      "drill": {
+        "projects": [
+          {
+            "name": "AL TAY HILLS",
+            "medianWd": 19.0,
+            "n": 6
+          },
+          {
+            "name": "BALQIS RESIDENCE",
+            "medianWd": 17.0,
+            "n": 3
+          },
+          {
+            "name": "NORTH RESIDENCE",
+            "medianWd": 14.5,
+            "n": 2
+          },
+          {
+            "name": "SOUTH RESIDENCE",
+            "medianWd": 13.5,
+            "n": 8
+          }
+        ],
+        "departments": [
+          {
+            "name": "FitOut Services",
+            "medianWd": 16.5,
+            "n": 20
+          }
+        ],
+        "holders": [
+          {
+            "name": "roderick.red",
+            "count": 8,
+            "medianAgeWd": 28.5
+          }
+        ],
+        "oldest": [
+          {
+            "number": "CPR-022970",
+            "name": "BR-2402 Fit OUT Request",
+            "department": "FitOut Services",
+            "project": "BALQIS RESIDENCE",
+            "holder": "roderick.red",
+            "step": "Unit prices updated in PR lines",
+            "amount": 1183591.51,
+            "ageWd": 95
+          },
+          {
+            "number": "CPR-026924",
+            "name": "Al Maaref American School - Flooring",
+            "department": "FitOut Services",
+            "project": "AL MAAREF PRIVATE SCHOOL",
+            "holder": "roderick.red",
+            "step": "Unit prices updated in PR lines",
+            "amount": 231420.0,
+            "ageWd": 71
+          },
+          {
+            "number": "CPR-030558",
+            "name": "Al Tay Hills - Villa Deep Cleaning (Internal & External)",
+            "department": "FitOut Services",
+            "project": "AL TAY HILLS",
+            "holder": "roderick.red",
+            "step": "PurchReqReviewTask",
+            "amount": 9450.0,
+            "ageWd": 36
+          },
+          {
+            "number": "CPR-031171",
+            "name": "IFA South Office Meeting Room, Reception Area & Work Place A",
+            "department": "FitOut Services",
+            "project": "SOUTH RESIDENCE",
+            "holder": "roderick.red",
+            "step": "Procurement sends inquiry/RFQ to suppliers",
+            "amount": 0.0,
+            "ageWd": 29
+          }
+        ]
+      },
+      "position": 4
+    },
+    {
+      "id": "fm-cpr",
+      "label": "FM · CPR",
+      "division": "Facilities Management",
+      "type": "CPR",
+      "medianWd": 17.0,
+      "p90Wd": 46.0,
+      "n": 221,
+      "within10Pct": 29.4,
+      "cumulative": {
+        "submitted": 0.0,
+        "poCreated": 15.0,
+        "lpoSent": 17.0
+      },
+      "sectors": {
+        "raisedToSubmitted": 0.0,
+        "submittedToPo": 15.0,
+        "poToLpo": 2.0
+      },
+      "liveCount": 409,
+      "liveMedianAgeWd": 38.0,
+      "drill": {
+        "projects": [
+          {
+            "name": "J ONE TOWER",
+            "medianWd": 52.0,
+            "n": 4
+          },
+          {
+            "name": "WILTON PARK RESIDENCES",
+            "medianWd": 40.0,
+            "n": 5
+          },
+          {
+            "name": "THE PAD BY OMNIYAT",
+            "medianWd": 34.0,
+            "n": 1
+          },
+          {
+            "name": "DOMUS INDIGO",
+            "medianWd": 28.5,
+            "n": 40
+          }
+        ],
+        "departments": [
+          {
+            "name": "Contracted Cleaning Services",
+            "medianWd": 19.0,
+            "n": 5
+          },
+          {
+            "name": "Building Services",
+            "medianWd": 17.0,
+            "n": 211
+          },
+          {
+            "name": "Landscaping Services",
+            "medianWd": 13.0,
+            "n": 5
+          }
+        ],
+        "holders": [
+          {
+            "name": "Adnan.Ullah",
+            "count": 219,
+            "medianAgeWd": 40.0
+          },
+          {
+            "name": "roderick.red",
+            "count": 93,
+            "medianAgeWd": 39.0
+          },
+          {
+            "name": "Aparna.Pauly",
+            "count": 73,
+            "medianAgeWd": 17.0
+          },
+          {
+            "name": "Layusha.cleatus",
+            "count": 23,
+            "medianAgeWd": 71.0
+          }
+        ],
+        "oldest": [
+          {
+            "number": "CPR-022938",
+            "name": "Supply and Installation of Solenoid Valve",
+            "department": "Landscaping Services",
+            "project": "DOMUS INDIGO",
+            "holder": "Adnan.Ullah",
+            "step": "Unit prices updated in PR lines",
+            "amount": 869.4,
+            "ageWd": 104
+          },
+          {
+            "number": "CPR-023245",
+            "name": "Supply of Bird Spikes Stainless Steel 50cm",
+            "department": "Building Services",
+            "project": "SOUTH RESIDENCE",
+            "holder": "Adnan.Ullah",
+            "step": "Unit prices updated in PR lines",
+            "amount": 630.0,
+            "ageWd": 102
+          },
+          {
+            "number": "CPR-023257",
+            "name": "Supply of Purell Hand Sanitizing Gel 1000 ml",
+            "department": "Contracted Cleaning Services",
+            "project": "SWAY RESIDENCE",
+            "holder": "Adnan.Ullah",
+            "step": "Unit prices updated in PR lines",
+            "amount": 1117.2,
+            "ageWd": 102
+          },
+          {
+            "number": "CPR-023262",
+            "name": "Domestic Water tank cleaning & testing",
+            "department": "Contracted Cleaning Services",
+            "project": "CAYAN BUSSINES CENTER",
+            "holder": "Layusha.cleatus",
+            "step": "Unit prices updated in PR lines",
+            "amount": 1344.0,
+            "ageWd": 102
+          }
+        ]
+      },
+      "position": 5
+    }
+  ],
+  "queues": [
+    {
+      "gate": "Prices Updated",
+      "count": 335,
+      "medianDays": 33.6,
+      "p90Days": 97.4,
+      "holders": [
+        {
+          "name": "Adnan.Ullah",
+          "count": 138
+        },
+        {
+          "name": "roderick.red",
+          "count": 131
+        },
+        {
+          "name": "Aparna.Pauly",
+          "count": 51
+        },
+        {
+          "name": "Layusha.cleatus",
+          "count": 15
+        }
+      ],
+      "oldest": [
+        {
+          "number": "CPR-022949",
+          "name": "AC issue",
+          "department": "Home Maintenance Services",
+          "project": "ROYAL PARK SOUTH VILLAS",
+          "holder": "Layusha.cleatus",
+          "step": "Unit prices updated in PR lines",
+          "amount": 2100.0,
+          "dwellDays": 140.6
+        },
+        {
+          "number": "CPR-023257",
+          "name": "Supply of Purell Hand Sanitizing Gel 1000 ml",
+          "department": "Contracted Cleaning Services",
+          "project": "SWAY RESIDENCE",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 1117.2,
+          "dwellDays": 140.6
+        },
+        {
+          "number": "CPR-023245",
+          "name": "Supply of Bird Spikes Stainless Steel 50cm",
+          "department": "Building Services",
+          "project": "SOUTH RESIDENCE",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 630.0,
+          "dwellDays": 139.6
+        },
+        {
+          "number": "CPR-023654",
+          "name": "Swimming Pool Glass Fence Sealant Replacement",
+          "department": "Building Services",
+          "project": "BALQIS RESIDENCE",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 5775.0,
+          "dwellDays": 138.6
+        },
+        {
+          "number": "CPR-023660",
+          "name": "Garbage door damaged new door installation or repair work",
+          "department": "Building Services",
+          "project": "LE GRAND CHATEAU",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 4410.0,
+          "dwellDays": 138.5
+        }
+      ]
+    },
+    {
+      "gate": "Ops Confirmation",
+      "count": 91,
+      "medianDays": 11.5,
+      "p90Days": 63.3,
+      "holders": [
+        {
+          "name": "Adnan.Ullah",
+          "count": 67
+        },
+        {
+          "name": "Aparna.Pauly",
+          "count": 14
+        },
+        {
+          "name": "roderick.red",
+          "count": 5
+        },
+        {
+          "name": "Layusha.cleatus",
+          "count": 3
+        }
+      ],
+      "oldest": [
+        {
+          "number": "CPR-023916",
+          "name": "Supply of WC push button with mechanism",
+          "department": "Building Services",
+          "project": "THE BINARY BY OMNIYAT",
+          "holder": "Adnan.Ullah",
+          "step": "Quotation shared to Operations for confirmation",
+          "amount": 0.0,
+          "dwellDays": 136.6
+        },
+        {
+          "number": "CPR-025168",
+          "name": "Inside the lift ceiling damage work",
+          "department": "Building Services",
+          "project": "LE GRAND CHATEAU",
+          "holder": "Adnan.Ullah",
+          "step": "Quotation shared to Operations for confirmation",
+          "amount": 0.0,
+          "dwellDays": 123.3
+        },
+        {
+          "number": "CPR-024323",
+          "name": "Supply and installation of louvered penthouse ventilator",
+          "department": "Building Services",
+          "project": "THE BINARY BY OMNIYAT",
+          "holder": "Adnan.Ullah",
+          "step": "Quotation shared to Operations for confirmation",
+          "amount": 0.0,
+          "dwellDays": 109.6
+        },
+        {
+          "number": "CPR-026263",
+          "name": "Supply of water-Saving aerator for water faucet in Washrooms",
+          "department": "Building Services",
+          "project": "I RISE TOWER",
+          "holder": "Adnan.Ullah",
+          "step": "Quotation shared to Operations for confirmation",
+          "amount": 0.0,
+          "dwellDays": 101.3
+        },
+        {
+          "number": "CPR-026592",
+          "name": "Supply & Installation of Fire-Rated Wooden Double Swing Door",
+          "department": "Building Services",
+          "project": "I RISE TOWER",
+          "holder": "Adnan.Ullah",
+          "step": "Quotation shared to Operations for confirmation",
+          "amount": 15687.0,
+          "dwellDays": 96.4
+        }
+      ]
+    },
+    {
+      "gate": "PR Review",
+      "count": 41,
+      "medianDays": 3.6,
+      "p90Days": 25.6,
+      "holders": [
+        {
+          "name": "roderick.red",
+          "count": 12
+        },
+        {
+          "name": "Adnan.Ullah",
+          "count": 10
+        },
+        {
+          "name": "Layusha.cleatus",
+          "count": 9
+        },
+        {
+          "name": "Aparna.Pauly",
+          "count": 8
+        }
+      ],
+      "oldest": [
+        {
+          "number": "CPR-028662",
+          "name": "Domus indigo 1,2,3 Supply swimming pool safety items",
+          "department": "Building Services",
+          "project": "DOMUS INDIGO",
+          "holder": "Adnan.Ullah",
+          "step": "PurchReqReviewTask",
+          "amount": 10379.25,
+          "dwellDays": 69.4
+        },
+        {
+          "number": "CPR-029477",
+          "name": "Fairmont Supply and Plantation of Areca Palm",
+          "department": "Landscaping Services",
+          "project": "FAIRMONT THE PALM",
+          "holder": "roderick.red",
+          "step": "PurchReqReviewTask",
+          "amount": 1333.5,
+          "dwellDays": 62.5
+        },
+        {
+          "number": "PR-001359",
+          "name": "Transport Additional fuel charges month of April 2026",
+          "department": "Transportation",
+          "project": "DIP2 STAFF ACCOMMODATION",
+          "holder": "dinesh.laxman",
+          "step": "PurchReqReviewTask",
+          "amount": 5793.9,
+          "dwellDays": 49.5
+        },
+        {
+          "number": "CPR-030558",
+          "name": "Al Tay Hills - Villa Deep Cleaning (Internal & External)",
+          "department": "FitOut Services",
+          "project": "AL TAY HILLS",
+          "holder": "roderick.red",
+          "step": "PurchReqReviewTask",
+          "amount": 9450.0,
+          "dwellDays": 48.4
+        },
+        {
+          "number": "CPR-032136",
+          "name": "Creekside water feature Enhancement 2",
+          "department": "Landscaping Services",
+          "project": "THE CREEKSIDE MGALLERY HOTEL",
+          "holder": "roderick.red",
+          "step": "PurchReqReviewTask",
+          "amount": 15960.0,
+          "dwellDays": 25.6
+        }
+      ]
+    },
+    {
+      "gate": "RFQ to Suppliers",
+      "count": 37,
+      "medianDays": 11.3,
+      "p90Days": 67.5,
+      "holders": [
+        {
+          "name": "Adnan.Ullah",
+          "count": 16
+        },
+        {
+          "name": "roderick.red",
+          "count": 12
+        },
+        {
+          "name": "Aparna.Pauly",
+          "count": 8
+        },
+        {
+          "name": "Layusha.cleatus",
+          "count": 1
+        }
+      ],
+      "oldest": [
+        {
+          "number": "CPR-026172",
+          "name": "Sealing of openings around air-conditioning ducts",
+          "department": "Building Services",
+          "project": "LE GRAND CHATEAU",
+          "holder": "Adnan.Ullah",
+          "step": "Procurement sends inquiry/RFQ to suppliers",
+          "amount": 0.0,
+          "dwellDays": 109.3
+        },
+        {
+          "number": "CPR-027899",
+          "name": "Supply of NRV and Butterfly Valve for Transfer Pump",
+          "department": "Building Services",
+          "project": "SEVEN PALM HOTEL AND APTS",
+          "holder": "Layusha.cleatus",
+          "step": "Procurement sends inquiry/RFQ to suppliers",
+          "amount": 0.0,
+          "dwellDays": 82.6
+        },
+        {
+          "number": "CPR-028653",
+          "name": "Block A,B,C Ceiling damage repair and painting",
+          "department": "Building Services",
+          "project": "LE GRAND CHATEAU",
+          "holder": "Adnan.Ullah",
+          "step": "Procurement sends inquiry/RFQ to suppliers",
+          "amount": 0.0,
+          "dwellDays": 68.3
+        },
+        {
+          "number": "CPR-027584",
+          "name": "Reroute the 1 inch plumbing line network HP pipeline",
+          "department": "Building Services",
+          "project": "THE BINARY BY OMNIYAT",
+          "holder": "Adnan.Ullah",
+          "step": "Procurement sends inquiry/RFQ to suppliers",
+          "amount": 0.0,
+          "dwellDays": 67.5
+        },
+        {
+          "number": "CPR-028657",
+          "name": "Staircase handrail box near gym area renovation",
+          "department": "Building Services",
+          "project": "LE GRAND CHATEAU",
+          "holder": "Adnan.Ullah",
+          "step": "Procurement sends inquiry/RFQ to suppliers",
+          "amount": 0.0,
+          "dwellDays": 67.5
+        }
+      ]
+    },
+    {
+      "gate": "Mgmt Approvals",
+      "count": 27,
+      "medianDays": 0.2,
+      "p90Days": 23.1,
+      "holders": [
+        {
+          "name": "arman.b",
+          "count": 19
+        },
+        {
+          "name": "ayman.g",
+          "count": 3
+        },
+        {
+          "name": "dinesh.laxman",
+          "count": 2
+        },
+        {
+          "name": "it.solutions",
+          "count": 1
+        }
+      ],
+      "oldest": [
+        {
+          "number": "PR-001557",
+          "name": "URM logo & branded profile PPT development",
+          "department": "Marketing",
+          "project": "Headoffice",
+          "holder": "ayman.g",
+          "step": "Commercial_Director",
+          "amount": 18900.0,
+          "dwellDays": 48.5
+        },
+        {
+          "number": "PR-001584",
+          "name": "Rectification of lifter inside office",
+          "department": "Office Support",
+          "project": "Headoffice",
+          "holder": "dinesh.laxman",
+          "step": "Finance & Accounts_Accounting Manager",
+          "amount": 2625.0,
+          "dwellDays": 40.5
+        },
+        {
+          "number": "PR-001523",
+          "name": "CS Domus Al Garhoud JUN 2026",
+          "department": "Concierge Services",
+          "project": "DOMUS AL GARHOUD",
+          "holder": "arman.b",
+          "step": "Finance & Accounts_Accounting Manager",
+          "amount": 1638.0,
+          "dwellDays": 28.6
+        },
+        {
+          "number": "PR-001330",
+          "name": "Annual Maintenance for Mitel Telephony System",
+          "department": "IT",
+          "project": "Head Office / not specified",
+          "holder": "it.solutions",
+          "step": "Commercial_Director",
+          "amount": 11277.0,
+          "dwellDays": 19.5
+        },
+        {
+          "number": "PR-001437",
+          "name": "Walk Behind battery replace",
+          "department": "Contracted Cleaning Services",
+          "project": "MAG 318",
+          "holder": "Gokul.Krishna",
+          "step": "Finance & Accounts_Accounting Manager",
+          "amount": 2719.5,
+          "dwellDays": 18.2
+        }
+      ]
+    },
+    {
+      "gate": "Quotation Received",
+      "count": 4,
+      "medianDays": 11.5,
+      "p90Days": 11.5,
+      "holders": [
+        {
+          "name": "Aparna.Pauly",
+          "count": 4
+        }
+      ],
+      "oldest": [
+        {
+          "number": "PR-001639",
+          "name": "IT Request for Sufiyan Ali - Mobile",
+          "department": "Building Services",
+          "project": "THE PRISM TOWER",
+          "holder": "Aparna.Pauly",
+          "step": "Quotation received and logged/attached",
+          "amount": 0.0,
+          "dwellDays": 11.5
+        },
+        {
+          "number": "PR-001640",
+          "name": "IT Request for CBC Sec - Mobile",
+          "department": "Security Services",
+          "project": "CAYAN BUSSINES CENTER",
+          "holder": "Aparna.Pauly",
+          "step": "Quotation received and logged/attached",
+          "amount": 0.0,
+          "dwellDays": 11.5
+        },
+        {
+          "number": "PR-001641",
+          "name": "IT Request for Nilar Candoo Housekeeping - Mobile",
+          "department": "Housekeeping Services",
+          "project": "THE8",
+          "holder": "Aparna.Pauly",
+          "step": "Quotation received and logged/attached",
+          "amount": 0.0,
+          "dwellDays": 11.5
+        },
+        {
+          "number": "PR-001642",
+          "name": "IT Request for Mari - Domus Al Garhoud - Mobile",
+          "department": "Concierge Services",
+          "project": "DOMUS AL GARHOUD",
+          "holder": "Aparna.Pauly",
+          "step": "Quotation received and logged/attached",
+          "amount": 0.0,
+          "dwellDays": 11.5
+        }
+      ]
+    }
+  ],
+  "pageTwo": {
+    "finishedYesterday": 3,
+    "raisedYesterday": 19,
+    "types": [
+      {
+        "type": "CPR",
+        "count": 489,
+        "within10Pct": 22.1,
+        "medianAgeWd": 31.0,
+        "buckets": [
+          58,
+          50,
+          74,
+          307
+        ],
+        "countDelta": -2,
+        "within10Delta": -2.1,
+        "medianAgeDelta": 1.0,
+        "completed": 346,
+        "completedMedianWd": 13.0,
+        "toPoMedianWd": 9.0,
+        "afterPoMedianWd": 1.0,
+        "afterPoP90Wd": 7.0
+      },
+      {
+        "type": "PR",
+        "count": 107,
+        "within10Pct": 44.9,
+        "medianAgeWd": 12.0,
+        "buckets": [
+          29,
+          19,
+          16,
+          43
+        ],
+        "countDelta": 0,
+        "within10Delta": -4.6,
+        "medianAgeDelta": 1.0,
+        "completed": 352,
+        "completedMedianWd": 12.0,
+        "toPoMedianWd": 8.0,
+        "afterPoMedianWd": 2.0,
+        "afterPoP90Wd": 7.0
+      }
+    ],
+    "divisions": [
+      {
+        "division": "Facilities Management",
+        "count": 482,
+        "within10Pct": 23.0,
+        "medianAgeWd": 32.0,
+        "buckets": [
+          61,
+          50,
+          70,
+          301
+        ],
+        "countDelta": 1,
+        "within10Delta": -2.2,
+        "medianAgeDelta": 1.0
+      },
+      {
+        "division": "Home Services",
+        "count": 79,
+        "within10Pct": 49.4,
+        "medianAgeWd": 11.0,
+        "buckets": [
+          23,
+          16,
+          15,
+          25
+        ],
+        "countDelta": -3,
+        "within10Delta": -3.0,
+        "medianAgeDelta": 1.5
+      },
+      {
+        "division": "FitOut Solutions",
+        "count": 8,
+        "within10Pct": 12.5,
+        "medianAgeWd": 28.5,
+        "buckets": [
+          1,
+          0,
+          2,
+          5
+        ],
+        "countDelta": 0,
+        "within10Delta": 0.0,
+        "medianAgeDelta": 1.0
+      },
+      {
+        "division": "Factory — Head Office",
+        "count": 27,
+        "within10Pct": 18.5,
+        "medianAgeWd": 39.0,
+        "buckets": [
+          2,
+          3,
+          3,
+          19
+        ],
+        "countDelta": 0,
+        "within10Delta": -7.4,
+        "medianAgeDelta": 1.0
+      }
+    ],
+    "queues": {
+      "CPR": [
+        {
+          "gate": "Prices Updated",
+          "count": 335,
+          "medianDays": 33.6
+        },
+        {
+          "gate": "Ops Confirmation",
+          "count": 76,
+          "medianDays": 13.5
+        },
+        {
+          "gate": "RFQ to Suppliers",
+          "count": 30,
+          "medianDays": 14.4
+        },
+        {
+          "gate": "PR Review",
+          "count": 26,
+          "medianDays": 5.9
+        }
+      ],
+      "PR": [
+        {
+          "gate": "Mgmt Approvals",
+          "count": 27,
+          "medianDays": 0.2
+        },
+        {
+          "gate": "Ops Confirmation",
+          "count": 15,
+          "medianDays": 6.6
+        },
+        {
+          "gate": "PR Review",
+          "count": 15,
+          "medianDays": 3.5
+        },
+        {
+          "gate": "RFQ to Suppliers",
+          "count": 7,
+          "medianDays": 7.5
+        },
+        {
+          "gate": "Quotation Received",
+          "count": 4,
+          "medianDays": 11.5
+        }
+      ]
+    },
+    "holders": {
+      "CPR": [
+        {
+          "name": "Adnan.Ullah",
+          "count": 219,
+          "medianDays": 32.6
+        },
+        {
+          "name": "roderick.red",
+          "count": 169,
+          "medianDays": 24.3
+        },
+        {
+          "name": "Aparna.Pauly",
+          "count": 74,
+          "medianDays": 16.5
+        },
+        {
+          "name": "Layusha.cleatus",
+          "count": 25,
+          "medianDays": 78.5
+        }
+      ],
+      "PR": [
+        {
+          "name": "arman.b",
+          "count": 35,
+          "medianDays": 0.6
+        },
+        {
+          "name": "Adnan.Ullah",
+          "count": 16,
+          "medianDays": 3.4
+        },
+        {
+          "name": "Aparna.Pauly",
+          "count": 13,
+          "medianDays": 7.5
+        },
+        {
+          "name": "dinesh.laxman",
+          "count": 6,
+          "medianDays": 64.0
+        }
+      ]
+    },
+    "oldest": {
+      "CPR": [
+        {
+          "number": "CPR-022910",
+          "name": "Cable Pulling Work from North Reception to North B2 Store Ro",
+          "department": "Home Maintenance Services",
+          "project": "NORTH RESIDENCE",
+          "holder": "Layusha.cleatus",
+          "step": "Unit prices updated in PR lines",
+          "amount": 865.45,
+          "ageWd": 104,
+          "dwellDays": 63.4
+        },
+        {
+          "number": "CPR-022938",
+          "name": "Supply and Installation of Solenoid Valve",
+          "department": "Landscaping Services",
+          "project": "DOMUS INDIGO",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 869.4,
+          "ageWd": 104,
+          "dwellDays": 78.5
+        },
+        {
+          "number": "CPR-022949",
+          "name": "AC issue",
+          "department": "Home Maintenance Services",
+          "project": "ROYAL PARK SOUTH VILLAS",
+          "holder": "Layusha.cleatus",
+          "step": "Unit prices updated in PR lines",
+          "amount": 2100.0,
+          "ageWd": 104,
+          "dwellDays": 140.6
+        }
+      ],
+      "PR": [
+        {
+          "number": "PR-001168",
+          "name": "IT REQUISTION FOR VARIOUS SITES",
+          "department": "Building Services",
+          "project": "WILTON PARK RESIDENCES",
+          "holder": "arman.b",
+          "step": "Finance & Accounts_Accounting Manager",
+          "amount": 4252.5,
+          "ageWd": 104,
+          "dwellDays": 140.3
+        },
+        {
+          "number": "PR-001174",
+          "name": "Toyota Hilux – Re-Branding Works for Accident-Damaged Vehicl",
+          "department": "Housekeeping Services",
+          "project": "SOUTH RESIDENCE",
+          "holder": "Ayman.ismail",
+          "step": "Finance & Accounts_Accounting Manager",
+          "amount": 1260.0,
+          "ageWd": 104,
+          "dwellDays": 118.5
+        },
+        {
+          "number": "PR-001177",
+          "name": "Novo Cinema Buhairah (Chilled Water Treatment)",
+          "department": "Factory — Head Office",
+          "project": "Head Office / not specified",
+          "holder": "Unassigned",
+          "step": "No active workflow step",
+          "amount": 0.0,
+          "ageWd": 104,
+          "dwellDays": null
+        }
+      ]
+    }
+  },
+  "pitWall": {
+    "slowestGate": {
+      "lane": "FM · CPR",
+      "sector": "submittedToPo",
+      "medianWd": 15.0
+    },
+    "deepestQueue": {
+      "gate": "Prices Updated",
+      "count": 335,
+      "medianDays": 33.6,
+      "p90Days": 97.4,
+      "holders": [
+        {
+          "name": "Adnan.Ullah",
+          "count": 138
+        },
+        {
+          "name": "roderick.red",
+          "count": 131
+        },
+        {
+          "name": "Aparna.Pauly",
+          "count": 51
+        },
+        {
+          "name": "Layusha.cleatus",
+          "count": 15
+        }
+      ],
+      "oldest": [
+        {
+          "number": "CPR-022949",
+          "name": "AC issue",
+          "department": "Home Maintenance Services",
+          "project": "ROYAL PARK SOUTH VILLAS",
+          "holder": "Layusha.cleatus",
+          "step": "Unit prices updated in PR lines",
+          "amount": 2100.0,
+          "dwellDays": 140.6
+        },
+        {
+          "number": "CPR-023257",
+          "name": "Supply of Purell Hand Sanitizing Gel 1000 ml",
+          "department": "Contracted Cleaning Services",
+          "project": "SWAY RESIDENCE",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 1117.2,
+          "dwellDays": 140.6
+        },
+        {
+          "number": "CPR-023245",
+          "name": "Supply of Bird Spikes Stainless Steel 50cm",
+          "department": "Building Services",
+          "project": "SOUTH RESIDENCE",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 630.0,
+          "dwellDays": 139.6
+        },
+        {
+          "number": "CPR-023654",
+          "name": "Swimming Pool Glass Fence Sealant Replacement",
+          "department": "Building Services",
+          "project": "BALQIS RESIDENCE",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 5775.0,
+          "dwellDays": 138.6
+        },
+        {
+          "number": "CPR-023660",
+          "name": "Garbage door damaged new door installation or repair work",
+          "department": "Building Services",
+          "project": "LE GRAND CHATEAU",
+          "holder": "Adnan.Ullah",
+          "step": "Unit prices updated in PR lines",
+          "amount": 4410.0,
+          "dwellDays": 138.5
+        }
+      ]
+    },
+    "slowestProject": {
+      "name": "IRISE TOWER",
+      "medianWd": 31.5,
+      "n": 20
+    },
+    "slowestLane": {
+      "label": "FM · CPR",
+      "medianWd": 17.0
+    },
+    "legacy": {
+      "title": "CORRECTIVE — LEGACY DATA",
+      "count": 831,
+      "text": "831 pre-April CPRs arrived from CRM without department / location (integration gap, fixed ~Apr 2026). Backfill from CRM quotes; until then they are excluded from this board."
+    }
+  }
+}

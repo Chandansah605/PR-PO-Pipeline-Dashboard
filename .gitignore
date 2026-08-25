@@ -3,3 +3,5 @@
 pr-po-proxy/
 
 .probe_b
+__pycache__/
+*.pyc

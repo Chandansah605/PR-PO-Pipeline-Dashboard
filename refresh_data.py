@@ -12,7 +12,8 @@ What it does (in plain language):
     a sheet with a 'Purchase requisition' column but no 'Purchase order' column
     is PR data; a sheet with a 'Purchase order' column is PO data.
  2. Copies the newest of each into this repo as pr.xlsx / po.xlsx.
- 3. Regenerates pr_steps.json (the step-name lookup) from the fresh PR export.
+ 3. Regenerates pr_steps.json (when PR changes), journey_board.json, and the
+    matching embedded fallback arrays in index.html.
  4. Commits and pushes, so GitHub Pages republishes the dashboard (~1 min).
 
 Usage:
@@ -151,12 +152,25 @@ def main():
             print("ERROR: gen_pr_steps.py failed - not pushing. Fix and rerun.")
             return 1
 
+    print("Regenerating Journey Board data and embedded dashboard fallbacks...")
+    r = subprocess.run([
+        sys.executable,
+        os.path.join(REPO, "gen_journey_board.py"),
+        "--pr", os.path.join(REPO, "pr.xlsx"),
+        "--po", os.path.join(REPO, "po.xlsx"),
+        "--out", os.path.join(REPO, "journey_board.json"),
+        "--sync-index", os.path.join(REPO, "index.html"),
+    ], cwd=REPO)
+    if r.returncode != 0:
+        print("ERROR: gen_journey_board.py failed - not pushing. Fix and rerun.")
+        return 1
+
     if NO_PUSH:
-        print("Done (no-push mode). Commit pr.xlsx / po.xlsx / pr_steps.json in GitHub Desktop.")
+        print("Done (no-push mode). Commit the refreshed data and generated dashboard files in GitHub Desktop.")
         return 0
 
     print("Committing and pushing to GitHub...")
-    files = updated + (["pr_steps.json"] if "pr.xlsx" in updated else [])
+    files = updated + ["journey_board.json", "index.html"] + (["pr_steps.json"] if "pr.xlsx" in updated else [])
     try:
         git(["add"] + files, check=True)
         if git(["diff", "--cached", "--quiet"]).returncode == 0:

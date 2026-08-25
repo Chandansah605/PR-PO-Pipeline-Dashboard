@@ -159,3 +159,86 @@ Screenshots are stored outside the repository and were not committed:
 - The correction adds one inline SVG, static CSS, one IntersectionObserver, and small histogram/bar HTML generated from arrays already in memory.
 - No package, image, font, script, stylesheet, request, or fetch was added. A zero-context diff search found no added `fetch(`, `src=`, or `href=` reference.
 - All correction animations are `transform`, `opacity`, or `stroke-dashoffset`; the SVG blur filter is static and never animated.
+
+## Approved two-page Journey Board replacement — 25 Aug 2026
+
+This section supersedes the rejected Analysis/Journey implementation documented above.
+
+### What changed
+
+- Replaced the Analysis tab with a scaled, isolated two-page board:
+  - Page 1: `journey-board.html` — Journey Board, five ranked circuits, animated journey line, trend, slow tail, Pit Wall, and single-open drill drawers.
+  - Page 2: `journey-live.html` — Live Race & Queues on the same 01 Apr 2026 cohort and source-derived as-of date.
+- Added `gen_journey_board.py` as the calculation source for `journey_board.json`. The two Journey pages fetch that JSON; they do not parse XLSX files in the browser.
+- Extended `refresh_data.py` so either workbook refresh regenerates the board JSON and synchronises the legacy `PR_DATA` / `PO_DATA` fallbacks in `index.html`.
+- Removed the previous Journey Circuit, slowest-laps, supplier-intelligence, and weekly-dwell Analysis code from `index.html`.
+- Kept the PR / PO page code and MSAL scripts in place. `fetch_from_onedrive.py`, `pr.xlsx`, and `po.xlsx` were not modified.
+- Committed the signed-off originals unchanged as `docs/design-reference/journey_board.html` and `docs/design-reference/journey_main.html`.
+
+### Source and regression anchors
+
+Command:
+
+```text
+python gen_journey_board.py --out journey_board.json --sync-index index.html
+```
+
+Output:
+
+```text
+Wrote journey_board.json: 698 completed journeys, median 12.0 WD, 5 lanes
+```
+
+Independent XLSX calculation (does not import the generator):
+
+```text
+python tests/reconcile_journey_board.py
+```
+
+Output:
+
+```text
+ALL n=698 submitted=0.0 po=9.0 lpo=12.0 p90=34 within10=43.8%
+HS CPR: n=105 median=6.0 within10=78.1% submitted_to_po=4.0
+Factory PR: n=44 median=7.0 within10=68.2% submitted_to_po=3.0
+FM PR: n=294 median=13.0 within10=38.8% submitted_to_po=10.0
+FitOut CPR: n=20 median=16.5 within10=45.0% submitted_to_po=8.5
+FM CPR: n=221 median=17.0 within10=29.4% submitted_to_po=15.0
+TREND W27-W34=14,17,15,24,16.5,9,9,7
+DEEPEST Prices Updated n=335 median=33.6d
+```
+
+The two source rows with Submitted timestamps before Created timestamps are rejected by chronological validation. Working-day differences themselves retain `numpy.busday_count` boundary semantics, including weekend/reverse-date cases.
+
+### Automated verification
+
+```text
+node tests/journey-board.test.js
+Journey Board tests passed { completed: 698, medianWd: 12, live: 596, deepestQueue: '335 @ 33.6d' }
+
+node --check journey-board-live.js
+node --check journey-live-data.js
+python -m py_compile gen_journey_board.py refresh_data.py tests/reconcile_journey_board.py
+git diff --check
+```
+
+The Node test covers the 01 Apr window, excluded statuses, exact pair grain, CPR/PR split, division mapping (including Surveying and blank Department), terminal rules, working-day boundaries, ISO-week trend grouping, five circuit anchors, queue anchor, generated JSON parity, and current embedded fallback row counts.
+
+### Browser verification
+
+- Served with `python -m http.server 8765` and opened in Chrome.
+- Page 1 displayed `n=698`, `12.0 WD`, `43.8%`, `P90 34`, all nine trend weeks, `596` live, all five circuits, and the `335 / 33.6d` Pit Wall queue.
+- Expanded FM · CPR and verified its dynamic drawer: `17.0 WD`, `n=221`, `15.0 WD` Submitted→PO, projects, departments, holders, and oldest-on-track rows. Clicking a lane collapses the previously open lane.
+- Clicked `2 · LIVE RACE & QUEUES`; Page 2 displayed the same `596` live total, CPR/PR split, April window, gate rail, per-type queues, holders, and oldest cars. Page 1 navigation is wired back through the header tab.
+- The normal local dashboard shell loaded the current 4,266 PR fallback and its signed-in overlay. A localhost Entra redirect was not attempted or reconfigured. MSAL files and authentication functions were not changed.
+- The normalised MSAL/auth block is byte-identical to branch head before this change (SHA-256 `5DA4478E0609530BE838D498787A1D81003345760B64368526C899E4F752EE1D`).
+- No page-level scrollbars appear in the fixed-stage captures below. At 412 px the full 1920×1080 board remains visible as a centred scaled stage, as specified.
+
+### Committed screenshot evidence
+
+| Page | 1920×1080 | 1366×768 | 412×915 mobile |
+| --- | --- | --- | --- |
+| Journey Board | `docs/evidence/journey-board-1920x1080.png` | `docs/evidence/journey-board-1366x768.png` | `docs/evidence/journey-board-412x915.png` |
+| Live Race & Queues | `docs/evidence/journey-live-1920x1080.png` | `docs/evidence/journey-live-1366x768.png` | `docs/evidence/journey-live-412x915.png` |
+
+No package was installed. This repository has no build step or package manifest.

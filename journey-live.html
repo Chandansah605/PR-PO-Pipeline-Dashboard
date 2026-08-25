@@ -1,0 +1,252 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Race Control — PR→PO · Main Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08152b;--bg2:#0d1f3c;--line:#618FB4;--ink:#eaf2fb;--mut:#8fa9c6;
+--green:#22c55e;--lime:#a3e635;--amber:#f59e0b;--red:#ef4444;--pr:#7fb2e0;--cpr:#e0b96a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{visibility:hidden}body.data-ready{visibility:visible}
+body{font-family:'Titillium Web',sans-serif;color:var(--ink);
+background:radial-gradient(1400px 600px at 78% -12%, #1b3a66 0%, transparent 55%),
+radial-gradient(1000px 500px at -5% 112%, #143054 0%, transparent 60%),
+linear-gradient(160deg,var(--bg2),var(--bg) 60%)}
+body:before{content:"";position:fixed;inset:0;opacity:.05;pointer-events:none;
+background-image:repeating-linear-gradient(115deg,#fff 0 1px,transparent 1px 110px)}
+.wall{display:grid;width:100%;height:100%;padding:16px 26px 8px;gap:12px;
+grid-template-rows:50px 78px 1fr 40px 16px;min-width:0}
+.wall>*{min-width:0}
+.hdr{display:flex;align-items:center;gap:16px;overflow:hidden}
+.hdr h1{font-family:'Chakra Petch';font-size:24px;letter-spacing:.12em;white-space:nowrap}
+.hdr .bars{display:inline-block;width:28px;height:16px;margin-right:11px;
+background:repeating-linear-gradient(105deg,var(--line) 0 6px,transparent 6px 10px);transform:skewX(-18deg)}
+.tabs{display:flex;gap:6px;margin-left:8px}
+.tab{font-family:'Chakra Petch';font-size:12px;letter-spacing:.09em;padding:6px 14px;border-radius:7px;
+border:1px solid rgba(97,143,180,.4);color:var(--mut)}
+.tab.on{background:#cfe2f5;color:#0b1830;font-weight:700;border-color:#cfe2f5}
+.bench{font-family:'Chakra Petch';font-size:12.5px;letter-spacing:.08em;color:#0b1830;
+background:linear-gradient(90deg,#cfe2f5,#9dc3e8);padding:7px 13px;border-radius:7px;font-weight:700;white-space:nowrap}
+.bench.win{background:linear-gradient(90deg,#ffe9c2,#f0b95c)}
+.alert{margin-left:auto;border:1px solid rgba(239,68,68,.55);background:rgba(239,68,68,.12);color:#ffb4b4;
+padding:8px 15px;border-radius:999px;font-family:'Chakra Petch';font-size:12.5px;white-space:nowrap}
+.alert i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:8px;box-shadow:0 0 8px var(--red);animation:pu 1.6s infinite}
+@keyframes pu{50%{opacity:.35}}
+/* rail */
+.rail{display:flex;background:rgba(255,255,255,.04);border:1px solid rgba(97,143,180,.3);border-radius:11px;padding:10px 16px 6px}
+.rk{flex:1;text-align:center;position:relative}
+.rk:not(:last-child):after{content:"";position:absolute;left:50%;top:10px;width:100%;height:2px;background:rgba(97,143,180,.35)}
+.rk .ic{position:relative;z-index:1;display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;margin-bottom:2px}
+.g-solid{width:21px;height:21px;border-radius:50%;background:#e8eef6;color:#0b1830;font:700 11px 'Chakra Petch';display:flex;align-items:center;justify-content:center;border:2px solid #28527f}
+.g-holo{width:19px;height:19px;border-radius:50%;background:var(--bg2);color:#bcd3ea;font:600 10px 'Chakra Petch';display:flex;align-items:center;justify-content:center;border:2px dashed #7c9cc0}
+.g-start{width:7px;height:22px;background:#cfe2f5;border-radius:1px}
+.g-fin{width:18px;height:18px;background:conic-gradient(#e8eef6 25%,#0b1830 0 50%,#e8eef6 0 75%,#0b1830 0);border:1px solid #9db8d6}
+.rk .nm{font-size:11.5px;line-height:1.1;color:#cfe2f5;font-weight:600}
+.rk .tp{font-size:9.5px;color:var(--mut)}
+.rk.crit .g-holo{border-color:var(--red);color:#ffb4b4;box-shadow:0 0 12px rgba(239,68,68,.55);animation:pu 1.6s infinite}
+.rk.crit .nm{color:#ffb4b4}
+/* main */
+.main{display:grid;grid-template-columns:640px 1fr;gap:14px;min-height:0}
+.main>*{min-width:0}
+.box{background:rgba(255,255,255,.035);border:1px solid rgba(97,143,180,.3);border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.box h2{font-family:'Chakra Petch';font-size:15px;letter-spacing:.14em;color:#cfe2f5}
+.box h2 .pulse{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);margin-right:10px;animation:pu 1.6s infinite}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:rgba(8,21,43,.55);border:1px solid rgba(97,143,180,.22);border-radius:10px;padding:8px 12px}
+.kpi .l{font-size:10.5px;letter-spacing:.1em;color:var(--mut);font-family:'Chakra Petch';white-space:nowrap}
+.kpi .v{font-family:'Chakra Petch';font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .v span{font-size:14px}
+.kpi .d{font-size:12px;font-weight:600}
+.bad{color:#ff9d9d}.good{color:#8ef0ae}.flat{color:var(--mut)}
+.tsplit{border:1px solid rgba(97,143,180,.25);border-radius:9px;padding:7px 12px;display:flex;flex-direction:column;gap:5px;background:rgba(8,21,43,.4)}
+.trow{display:flex;align-items:center;gap:10px;font-size:12px}
+.tb{font:700 11px 'Chakra Petch';padding:2px 8px;border-radius:5px}
+.tbpr{background:var(--pr);color:#08152b}.tbcpr{background:var(--cpr);color:#08152b}
+.tl{color:var(--mut);font-size:10.5px;letter-spacing:.04em;flex:1}
+.tf{font-family:'Chakra Petch';font-size:12px;color:#cfe2f5}.tf b{font-size:13.5px}
+.lrow{display:grid;grid-template-columns:175px 1fr 185px;gap:12px;align-items:center;padding:8px 0 0}
+.lrow .nm{font-size:14.5px;font-weight:600;line-height:1.1}
+.lrow .nm .sm{display:block;font-size:11px;color:var(--mut);font-weight:400}
+.bar{display:flex;height:26px;border-radius:6px;overflow:hidden;background:rgba(8,21,43,.6)}
+.bar div{display:flex;align-items:center;justify-content:center;font:600 12px 'Chakra Petch';color:#08152b}
+.b0{background:var(--green)}.b1{background:var(--lime)}.b2{background:var(--amber)}.b3{background:var(--red);color:#2b0505}
+.lrow .fig{text-align:right;font-family:'Chakra Petch';font-variant-numeric:tabular-nums;font-size:13px;color:#cfe2f5;line-height:1.35}
+.lrow .fig b{font-size:17px}
+.bkey{display:flex;gap:16px;font-size:11.5px;color:var(--mut);flex-wrap:wrap;margin-top:2px}
+.sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+/* stuck board */
+.stuck{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
+.scol{display:flex;flex-direction:column;gap:9px;min-width:0;background:rgba(8,21,43,.35);
+border:1px solid rgba(97,143,180,.25);border-radius:12px;padding:12px 15px}
+.scol.rev{border-color:rgba(224,185,106,.5)}
+.shead{display:flex;align-items:center;gap:10px}
+.shead .t{font-family:'Chakra Petch';font-size:14px;font-weight:700;letter-spacing:.06em}
+.shead .s{font-size:10.5px;color:var(--mut);letter-spacing:.03em}
+.crit{border-radius:9px;padding:9px 13px;font-family:'Chakra Petch'}
+.crit .cl{font-size:10px;letter-spacing:.14em;opacity:.85}
+.crit .cv{font-size:17px;font-weight:700;line-height:1.25}
+.crit.bad2{background:rgba(239,68,68,.16);border:1px solid rgba(239,68,68,.55);color:#ffd2d2;
+box-shadow:inset 0 0 30px rgba(239,68,68,.08);animation:cb 2.6s ease-in-out infinite}
+@keyframes cb{50%{box-shadow:inset 0 0 30px rgba(239,68,68,.22),0 0 18px rgba(239,68,68,.18)}}
+.crit.ok{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.5);color:#c9f5d7}
+.sh3{font:700 10.5px 'Chakra Petch';letter-spacing:.14em;color:var(--mut);margin-top:2px}
+.grow{display:grid;grid-template-columns:1fr 120px 96px;gap:8px;align-items:center;padding:4px 0;border-top:1px solid rgba(97,143,180,.14)}
+.grow .nm{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow .nm .g{font-family:'Chakra Petch';font-size:10px;color:var(--mut);margin-right:6px}
+.mini{height:13px;border-radius:3px;background:rgba(8,21,43,.7);overflow:hidden}
+.mini div{height:100%}
+.grow .fig{text-align:right;font-family:'Chakra Petch';font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:700}
+.grow .fig span{color:var(--mut);font-weight:400;font-size:10.5px}
+.who .grow .nm{font-size:13px}
+.insight{margin-top:auto;border-top:1px solid rgba(97,143,180,.2);padding-top:7px;font-size:12px;color:#cfe2f5}
+.insight b{color:#fff}
+.carrow{display:grid;grid-template-columns:118px 1fr 150px;gap:8px;align-items:center;padding:4px 0;border-top:1px solid rgba(97,143,180,.14)}
+.carrow .id{font-family:'Chakra Petch';font-size:12.5px;font-weight:700;color:#cfe2f5}
+.carrow .wh{font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.carrow .wh b{color:#eaf2fb}
+.carrow .ag{text-align:right;font-family:'Chakra Petch';font-size:12.5px;font-weight:700}
+.carrow .ag span{color:var(--mut);font-weight:400;font-size:10px}
+.wallnote{border:1px solid rgba(245,158,11,.5);background:rgba(245,158,11,.1);border-radius:8px;padding:8px 12px;font-size:12.5px;color:#ffe1ae;margin-top:auto;position:relative;overflow:hidden}
+.wallnote:after{content:"";position:absolute;top:0;bottom:0;width:110px;left:-150px;
+background:linear-gradient(105deg,transparent,rgba(255,255,255,.09),transparent);animation:sweep 7s ease-in-out infinite}
+@keyframes sweep{14%{left:110%}100%{left:110%}}
+.schips{display:flex;gap:8px;flex-wrap:wrap}
+.schip{font-family:'Chakra Petch';font-size:11px;color:#cfe2f5;border:1px solid rgba(97,143,180,.35);border-radius:6px;padding:3px 9px;background:rgba(8,21,43,.5)}
+.schip b{font-size:12px}
+/* ticker */
+.ticker{display:flex;align-items:center;gap:24px;background:rgba(8,21,43,.72);border:1px solid rgba(97,143,180,.3);
+border-radius:10px;padding:0 16px;font-family:'Chakra Petch';font-size:13px;white-space:nowrap;overflow:hidden}
+.ticker .sep{color:#31527d}
+.foot{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);white-space:nowrap;overflow:hidden}
+</style></head><body><div class="wall">
+
+ <div class="hdr"><h1><span class="bars"></span>RACE CONTROL — PR → PO JOURNEY</h1>
+  <div class="tabs"><span class="tab on">1 · MAIN SHEET</span><span class="tab">2 · STAGE ANALYSIS — CURVES BY DIVISION / DEPARTMENT</span></div>
+  <span class="bench">COMMITMENT · 10 WORKING DAYS</span>
+  <span class="bench win">01 JAN 2026 →</span>
+  <span class="alert"><i></i>CRITICAL · CPR · GATE 6 PRICES UPDATED · 349 STUCK · 35.3D</span></div>
+
+ <div class="rail" id="rail"></div>
+
+ <div class="main">
+  <div class="box">
+   <h2><span class="pulse"></span>LIVE RACE — PRs ON TRACK NOW</h2>
+   <div class="kpis">
+    <div class="kpi"><div class="l">PRs ON TRACK</div><div class="v">867</div><div class="d good">▼ 2 vs yesterday</div></div>
+    <div class="kpi"><div class="l">WITHIN BENCHMARK</div><div class="v">18.0%</div><div class="d bad">▼ 1.8 pts</div></div>
+    <div class="kpi"><div class="l">MEDIAN AGE</div><div class="v">53 <span>wd</span></div><div class="d bad">▲ 1 wd</div></div>
+   </div>
+   <div class="kpis" style="grid-template-columns:repeat(2,1fr)">
+    <div class="kpi"><div class="l">FINISHED YESTERDAY</div><div class="v">3</div><div class="d flat">crossed the line</div></div>
+    <div class="kpi"><div class="l">NEW PRs YESTERDAY</div><div class="v">1</div><div class="d flat">joined the track</div></div>
+   </div>
+   <div class="tsplit">
+    <div class="trow"><span class="tb tbcpr">CPR</span><span class="tl">REVENUE — VARIATIONS & REACTIVE JOBS · CRM QUOTE</span><span class="tf"><b>621</b> on track · <b>17.4%</b> within · med <b>45 wd</b></span></div>
+    <div class="trow"><span class="tb tbpr">PR</span><span class="tl">NON-REVENUE — CONTRACTS & BACK OFFICE · F&O</span><span class="tf"><b>246</b> on track · <b>19.5%</b> within · med <b>126 wd</b></span></div>
+   </div>
+   <div id="lrows"></div>
+   <div class="bkey"><span><span class="sw b0"></span>0–5 wd</span><span><span class="sw b1"></span>6–10 · at benchmark</span><span><span class="sw b2"></span>11–20 · over</span><span><span class="sw b3"></span>&gt;20 · badly over</span></div>
+   <div class="wallnote">🏁 <b>THE PO IS THE WALL</b> — Facilities Management runs the same race twice: <b>PR gets a PO in 14.5d, CPR waits 29.1d</b>. Same buildings, same buyers — the revenue lane waits twice as long for its PO.</div>
+  </div>
+
+  <div class="stuck">
+   <div class="scol rev">
+    <div class="shead"><span class="tb tbcpr">CPR</span><span class="t">REVENUE WORK</span><span class="s">variations & reactive jobs — this lane earns the money</span></div>
+    <div class="crit bad2"><div class="cl">CRITICAL POINT — WHERE IT GETS STUCK</div>
+     <div class="cv">GATE 6 · PRICES UPDATED — 349 PRs · 35.3d median wait</div></div>
+    <div class="sh3">STUCK BY GATE</div>
+    <div id="cg"></div>
+    <div class="schips"><span class="schip">median end-to-end <b>24.1d</b></span><span class="schip">wait for PO (gate 1→8) <b>17.7d</b></span><span class="schip">after PO (8→9) <b>0.9d</b></span></div>
+    <div class="sh3">SLOWEST TO ACTION — WHO HOLDS THE PR NOW</div>
+    <div class="who" id="cw"></div>
+    <div class="sh3">OLDEST REVENUE CARS ON TRACK</div>
+    <div id="cc"></div>
+    <div class="insight">The revenue lane is not waiting for management — it is waiting at <b>procurement desks</b>. Two desks hold <b>386 of 621</b> revenue PRs.</div>
+   </div>
+   <div class="scol">
+    <div class="shead"><span class="tb tbpr">PR</span><span class="t">NON-REVENUE WORK</span><span class="s">contracts, back office, stationery, marketing</span></div>
+    <div class="crit ok"><div class="cl">CRITICAL POINT — WHERE IT GETS STUCK</div>
+     <div class="cv">NO CRITICAL JAM — biggest queue: Gate 2 · PR Review, 41 PRs · 3.5d</div></div>
+    <div class="sh3">STUCK BY GATE</div>
+    <div id="pg"></div>
+    <div class="schips"><span class="schip">median end-to-end <b>23.6d</b></span><span class="schip">wait for PO (gate 1→8) <b>12.4d</b></span><span class="schip">after PO (8→9) <b>3.0d</b> · p90 <b>55d</b></span></div>
+    <div class="sh3">SLOWEST TO ACTION — WHO HOLDS THE PR NOW</div>
+    <div class="who" id="pw"></div>
+    <div class="sh3">OLDEST NON-REVENUE CARS ON TRACK</div>
+    <div id="pc"></div>
+    <div class="insight"><b>Approvals are not the bottleneck anywhere</b> — Mgmt Approvals median 0.2d, Accounting Manager same-day. The cost lane flows; the revenue lane queues.</div>
+   </div>
+  </div>
+ </div>
+
+ <div class="ticker"><span style="color:#8ef0ae;font-weight:700"><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);margin-right:8px;animation:pu 1.6s infinite"></i>LIVE</span>
+  <span>FACILITIES MANAGEMENT <b>532</b></span><span class="sep">|</span><span>HOME SERVICES <b>86</b></span><span class="sep">|</span>
+  <span>FITOUT SOLUTIONS <b>8</b></span><span class="sep">|</span><span>FACTORY <b>241</b></span><span class="sep">|</span>
+  <span style="color:#ffe1ae">PAGE 2 → STAGE ANALYSIS · JOURNEY CURVES BY DIVISION & DEPARTMENT</span></div>
+
+ <div class="foot"><span><b style="color:#cfe2f5">Solid gates 1·8·9</b> = timestamped · <b style="color:#cfe2f5">dashed 2–7</b> = sequence only · dwell = days at current step · benchmark measured to LPO Sent · working days Mon–Fri · window: created 01 Jan 2026 →</span><span>Strive Services Group · as of 25 Aug 2026 16:48</span></div>
+</div>
+<script>
+const GATES=[{k:'start',nm:'PR Raised',tp:'START'},{n:1,solid:1,nm:'Submitted',tp:'timestamped'},
+{n:2,nm:'PR Review',tp:'sequence only'},{n:3,nm:'RFQ to Suppliers',tp:'sequence only'},
+{n:4,nm:'Quotation Received',tp:'sequence only'},{n:5,nm:'Ops Confirmation',tp:'sequence only'},
+{n:6,nm:'Prices Updated',tp:'349 stuck · 35.3d',crit:1},{n:7,nm:'Mgmt Approvals',tp:'0.2d · fast'},
+{n:8,solid:1,nm:'PO Created',tp:'timestamped'},{n:9,solid:1,nm:'LPO Sent',tp:'timestamped'},
+{k:'fin',nm:'Received / Invoiced',tp:'not measurable'}];
+const rail=document.getElementById('rail');
+GATES.forEach(g=>{const d=document.createElement('div');d.className='rk'+(g.crit?' crit':'');
+ const ic=g.k==='start'?'<span class="g-start"></span>':g.k==='fin'?'<span class="g-fin"></span>':
+   g.solid?`<span class="g-solid">${g.n}</span>`:`<span class="g-holo">${g.n}</span>`;
+ d.innerHTML=`<span class="ic">${ic}</span><div class="nm">${g.nm}</div><div class="tp">${g.tp}</div>`;rail.appendChild(d);});
+const LIVE=[
+ {n:'Facilities Management',cars:532,pct:'20.9',dp:'▼ 1.9',dpc:'bad',med:39,dm:'▲ 1',dmc:'bad',b:[61,50,70,351]},
+ {n:'Home Services',cars:86,pct:'45.3',dp:'▼ 3.0',dpc:'bad',med:13,dm:'▲ 1',dmc:'bad',b:[23,16,15,32]},
+ {n:'FitOut Solutions',cars:8,pct:'12.5',dp:'＝',dpc:'flat',med:29,dm:'▲ 1',dmc:'bad',b:[1,0,2,5]},
+ {n:'Factory — Head Office',cars:241,pct:'2.1',dp:'▼ 0.8',dpc:'bad',med:144,dm:'▲ 1',dmc:'bad',b:[2,3,3,233]}
+];
+const lr=document.getElementById('lrows');
+LIVE.forEach(x=>{
+ const tot=x.b.reduce((a,b)=>a+b,0);
+ const segs=x.b.map((v,i)=>v?`<div class="b${i}" style="flex:${v}">${v>tot*0.07?v:''}</div>`:'').join('');
+ const r=document.createElement('div');r.className='lrow';
+ r.innerHTML=`<div class="nm">${x.n}<span class="sm">${x.cars} PRs on track</span></div><div class="bar">${segs}</div>
+ <div class="fig"><b>${x.pct}%</b> within <span class="${x.dpc}">${x.dp} pts</span><br>median <b>${x.med} wd</b> <span class="${x.dmc}">${x.dm} wd</span></div>`;
+ lr.appendChild(r);
+});
+const SEV=d=>d==null?'#7c9cc0':d<=5?'var(--green)':d<=15?'var(--amber)':'var(--red)';
+function rows(host,data,maxN){
+ data.forEach(x=>{
+  const w=Math.max(5,(x.n/maxN)*100);
+  const r=document.createElement('div');r.className='grow';
+  r.innerHTML=`<div class="nm">${x.g?'<span class="g">G'+x.g+'</span>':''}${x.n2}</div>
+  <div class="mini"><div style="width:${w}%;background:${SEV(x.d)}"></div></div>
+  <div class="fig">${x.n} <span>PRs</span> · ${x.d==null?'—':x.d+'d'}</div>`;
+  host.appendChild(r);});
+}
+rows(document.getElementById('cg'),[
+ {g:6,n2:'Prices Updated',n:349,d:35.3},{g:2,n2:'PR Review',n:87,d:6.3},
+ {g:5,n2:'Ops Confirmation',n:77,d:13.5},{g:3,n2:'RFQ to Suppliers',n:30,d:14.4}],349);
+rows(document.getElementById('cw'),[
+ {n2:'Adnan.Ullah',n:219,d:33.3},{n2:'roderick.red',n:167,d:26.3},
+ {n2:'Aparna.Pauly',n:72,d:14.9},{n2:'Layusha.cleatus',n:25,d:80.5}],219);
+rows(document.getElementById('pg'),[
+ {g:2,n2:'PR Review',n:41,d:3.5},{g:7,n2:'Mgmt Approvals',n:28,d:0.2},
+ {g:5,n2:'Ops Confirmation',n:16,d:7.1},{g:3,n2:'RFQ to Suppliers',n:7,d:7.5}],41);
+rows(document.getElementById('pw'),[
+ {n2:'arman.b',n:20,d:0.0},{n2:'Adnan.Ullah',n:16,d:3.4},
+ {n2:'Aparna.Pauly',n:13,d:7.5},{n2:'dinesh.laxman',n:5,d:49.5}],20);
+
+function cars(host,data){data.forEach(x=>{
+ const r=document.createElement('div');r.className='carrow';
+ r.innerHTML=`<span class="id">${x.id}</span>
+ <span class="wh">held by <b>${x.who}</b> · ${x.where}</span>
+ <span class="ag">${x.age} <span>wd on track · ${x.dw}d at step</span></span>`;
+ host.appendChild(r);});}
+cars(document.getElementById('cc'),[
+ {id:'CPR-018190',who:'Adnan.Ullah',where:'Monreve Tower · Building Services',age:149,dw:39.6},
+ {id:'CPR-019625',who:'roderick.red',where:'Sway Residence · Building Services',age:139,dw:76.4},
+ {id:'CPR-020861',who:'roderick.red',where:'The8 · Building Services',age:127,dw:78.5}]);
+cars(document.getElementById('pc'),[
+ {id:'PR-001145',who:'arman.b',where:'Le Grand Chateau · Building Services',age:109,dw:0.2},
+ {id:'PR-001144',who:'Layusha.cleatus',where:'iRise Tower · Building Services',age:109,dw:21.4},
+ {id:'PR-001361',who:'dinesh.laxman',where:'DIP2 Staff Accommodation · Transportation',age:72,dw:78.4}]);
+</script><script src="journey-live-data.js"></script></body></html>
