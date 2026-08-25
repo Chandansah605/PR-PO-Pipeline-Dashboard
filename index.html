@@ -84,6 +84,14 @@ html,body{margin:0;padding:0;font-family:'Aptos','Segoe UI',system-ui,-apple-sys
 .btn-clear:hover{background:#e2e8f0}
 
 .main{flex:1;padding:20px 24px;min-width:0}
+@media(max-width:760px){
+  .app{display:block;min-height:0}
+  .sidebar{position:relative;top:auto;width:100%;height:auto;max-height:none;border-right:0;border-bottom:1px solid var(--border);padding:14px 12px}
+  .main{padding:14px 12px;width:100%}
+  .topbar{position:relative;padding:12px 14px}
+  .topbar-left,.topbar-right{width:100%}
+  .global-search{width:min(100%,260px)}
+}
 .section-h{margin:18px 0 12px;font-size:15px;font-weight:700;color:var(--text);padding-bottom:6px;border-bottom:2px solid var(--accent);display:inline-block;padding-right:20px}
 .section-h i{margin-right:6px;color:var(--accent)}
 .mode-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;color:#fff;margin-left:8px}
@@ -809,7 +817,7 @@ function exitAnalysis(btn){
 }
 const AN_CSS=`
 <style>
-#analysisSection{--anNavy:#0F2A6B;--anInk:#16233a;}
+#analysisSection{--anNavy:#0F2A6B;--anInk:#16233a;--jtBrand:#145A95;--jtSteel:#618FB4;--jtSlate:#21486C;}
 .anWrap{display:flex;flex-direction:column;gap:16px;animation:anFade .35s ease;}
 @keyframes anFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .anHero{background:linear-gradient(120deg,#0F2A6B 0%,#173a8f 45%,#2f6bd8 100%);border-radius:18px;padding:22px 26px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;box-shadow:0 10px 30px rgba(15,42,107,.28);position:relative;overflow:hidden}
@@ -876,6 +884,42 @@ const AN_CSS=`
 .anLegend{display:flex;gap:14px;font-size:11px;color:#5b6f8d;margin:4px 0 8px;flex-wrap:wrap}
 .anLegend span i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
 .anDelta{font-weight:800}
+.jtPanel{border-top:4px solid var(--jtBrand);padding:20px 22px}
+.jtHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.jtHead h3{margin:0;color:var(--jtSlate);font-size:17px;display:flex;align-items:center;gap:9px}
+.jtHead h3 i{color:var(--jtBrand)}
+.jtHead .note{margin:4px 0 0;max-width:780px}
+.jtBottleneck{background:rgba(20,90,149,.09);border:1px solid rgba(20,90,149,.18);border-radius:12px;padding:8px 12px;color:var(--jtSlate);font-size:11px;font-weight:700}
+.jtBottleneck b{color:var(--jtBrand)}
+.jtKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.jtKpi{background:linear-gradient(145deg,#fff,#f4f8fc);border:1px solid #dde6f0;border-radius:13px;padding:12px 14px;min-width:0}
+.jtKpi .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.55px;color:#6b7f99;font-weight:800}
+.jtKpi .v{font-family:var(--num-font);font-size:24px;line-height:1.05;color:var(--jtSlate);font-weight:800;margin:5px 0}
+.jtKpi .s{font-size:10.5px;line-height:1.4;color:#6f8199}
+.jtTrackWrap{overflow-x:auto;padding:4px 2px 10px;margin-bottom:12px}
+.jtTrack{display:grid;grid-template-columns:132px minmax(155px,1fr) 132px minmax(155px,1fr) 132px minmax(155px,1fr) 132px minmax(155px,1fr) 150px;align-items:center;min-width:1120px}
+.jtNode{text-align:center;color:var(--jtSlate);font-size:11px;font-weight:800}
+.jtNode .dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;background:linear-gradient(145deg,var(--jtBrand),var(--jtSteel));color:#fff;font-family:var(--num-font);font-size:15px;box-shadow:0 4px 12px rgba(20,90,149,.22)}
+.jtLeg{text-align:center;padding:0 8px;min-width:0}
+.jtLeg .m{font-family:var(--num-font);font-size:18px;font-weight:800;color:var(--jtSlate)}
+.jtLeg .p{font-size:10px;color:#6f8199;line-height:1.35}
+.jtLeg .line{width:100%;border-radius:8px;margin:7px 0 5px;min-height:3px}
+.jtLeg.unavailable .line{height:3px;border-top:3px dashed #aab7c8;background:none!important}
+.jtLeg.unavailable .m{font-family:inherit;font-size:11px;color:#72839a}
+.jtBasis{background:#f7f9fc;border:1px solid #e5ebf3;border-radius:10px;padding:9px 11px;color:#65768e;font-size:10.5px;line-height:1.45;margin-bottom:14px}
+.jtSplit{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px}
+.jtMini{border:1px solid #e5ebf3;border-radius:13px;padding:13px 14px;min-width:0;background:#fff}
+.jtMini h4{margin:0;color:var(--jtSlate);font-size:12.5px;display:flex;align-items:center;gap:7px}
+.jtMini h4 i{color:var(--jtBrand)}
+.jtMini .note{margin:3px 0 9px}
+@media(max-width:1100px){.jtKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.jtSplit{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:760px){
+  .anWrap{gap:12px}.anHero{padding:18px 15px}.anHeroStats{width:100%;justify-content:space-between;gap:10px}.anHeroStat{text-align:left}
+  .anWaitRow{grid-template-columns:minmax(0,1fr)}.anPanel{padding:14px 12px}.anExGrid{grid-template-columns:minmax(0,1fr)}
+  .anBarRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 8px}.anBarRow .lbl{width:auto}.anBarRow .trk{grid-column:1/-1;grid-row:2}.anBarRow .val{width:auto}
+  .anFunStep{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 8px}.anFunStep .fl{width:auto;text-align:left}.anFunStep .fb{grid-column:1/-1;grid-row:2;max-width:100%}.anFunStep .fp{grid-column:2;grid-row:1}
+  .jtPanel{padding:16px 13px}.jtKpis{grid-template-columns:minmax(0,1fr)}.jtKpi .v{font-size:22px}.jtHead h3{font-size:15px}
+}
 </style>`;
 const AN_PALETTE=['#2f6bd8','#0ea5e9','#14b8a6','#8b5cf6','#f59e0b','#ec4899','#22c55e','#a855f7','#f97316','#64748b'];
 function _anMoney(v){ return 'AED '+(Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
@@ -887,6 +931,75 @@ function _anTbl(head,rows,empty){ if(!rows.length) return `<div style="color:#8a
 function _anPanel(ic,col,title,note,inner,style){ return `<div class="anPanel" style="${style||''}"><h3><span class="hIc" style="background:${col}"><i class="fa-solid ${ic}"></i></span>${title}</h3>${note?`<div class="note">${note}</div>`:''}${inner}</div>`; }
 function _anWaitOf(r,isPO){ if(isPO){ if(r.hdrBucket==='Sent to Supplier') return 'Supplier'; if(r.hdrBucket==='Pending Invoicing') return 'Finance'; }
   const rl=roleOf(r.pendingUser); return rl==='Procurement'?'Procurement':(rl?'Finance':'Operations'); }
+
+/* JOURNEY_TIME_START — pure calculation helpers are covered by tests/journey-time.test.js */
+function _jtParseDate(v){
+  if(v==null||v==='')return null;
+  if(v instanceof Date)return isNaN(v.getTime())?null:new Date(v.getTime());
+  if(typeof v==='number'&&isFinite(v)){const d=new Date(Math.round((v-25569)*86400000));return isNaN(d.getTime())?null:d;}
+  const s=String(v).trim();
+  const local=(y,mo,da,h=0,mi=0,se=0,ms=0)=>{const d=new Date(y,mo-1,da,h,mi,se,ms);return d.getFullYear()===y&&d.getMonth()===mo-1&&d.getDate()===da&&d.getHours()===h&&d.getMinutes()===mi&&d.getSeconds()===se?d:null;};
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?)?$/);
+  if(m)return local(+m[1],+m[2],+m[3],+(m[4]||0),+(m[5]||0),+(m[6]||0),+(m[7]||0));
+  m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if(m){const y=m[3].length===2?(+m[3]>=70?1900:2000)+(+m[3]):+m[3];return local(y,+m[1],+m[2],+(m[4]||0),+(m[5]||0),+(m[6]||0));}
+  if(/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:?\d{2})$/.test(s)){const d=new Date(s);return isNaN(d.getTime())?null:d;}
+  return null;
+}
+function _jtPercentile(values,p){
+  if(!values.length)return null;
+  const a=values.slice().sort((x,y)=>x-y),i=(a.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);
+  return lo===hi?a[lo]:a[lo]+(a[hi]-a[lo])*(i-lo);
+}
+function _jtMeasure(items,startOf,endOf){
+  const values=[];let missing=0,negative=0;
+  items.forEach(item=>{const a=_jtParseDate(startOf(item)),b=_jtParseDate(endOf(item));if(!a||!b){missing++;return;}const d=(b-a)/86400000;if(d<0){negative++;return;}values.push(d);});
+  return {total:items.length,valid:values.length,missing,negative,values,median:_jtPercentile(values,.5),p90:_jtPercentile(values,.9)};
+}
+function buildJourneyModel(prData,poData){
+  const norm=v=>String(v==null?'':v).trim().toLowerCase();
+  const prExcluded=new Set(['rejected','cancelled','canceled']);
+  const poExcluded=new Set(['canceled','cancelled']);
+  const prRows=(prData||[]).filter(r=>!prExcluded.has(norm(r['Status'])));
+  const prById={};prRows.forEach(r=>{const id=String(r['Purchase requisition']||'').trim();if(id)prById[id]=r;});
+  const poRows=(poData||[]).filter(p=>norm(p['Approval status'])!=='rejected'&&!poExcluded.has(norm(p['Purchase order status'])));
+  const pairs=[];poRows.forEach(po=>{const id=String(po['Purchase requisition']||'').trim(),pr=prById[id];if(pr)pairs.push({pr,po});});
+  const terminal=pairs.filter(x=>['received','invoiced'].includes(norm(x.po['Purchase order status']))||norm(x.po['Step name'])==='lpo sent/shared with supplier');
+  const raisedToSubmitted=_jtMeasure(prRows,r=>r['Created date'],r=>r['Submitted date']);
+  const submittedToPO=_jtMeasure(pairs,x=>x.pr['Submitted date'],x=>x.po['Created date and time']);
+  const poToLastStep=_jtMeasure(terminal,x=>x.po['Created date and time'],x=>x.po['Step date and time']);
+  const prToPO=_jtMeasure(pairs,x=>x.pr['Created date'],x=>x.po['Created date and time']);
+  const endToEnd=_jtMeasure(terminal,x=>x.pr['Created date'],x=>x.po['Step date and time']);
+  return {prRows,poRows,pairs,terminal,raisedToSubmitted,submittedToPO,poToLastStep,prToPO,endToEnd,
+    exclusions:{pr:(prData||[]).length-prRows.length,po:(poData||[]).length-poRows.length}};
+}
+/* JOURNEY_TIME_END */
+
+function _jtDays(v){return v==null?'—':`${v.toFixed(1)}d`;}
+function _jtMetricBasis(s){return `n=${s.valid.toLocaleString()} measured · ${s.missing.toLocaleString()} missing · ${s.negative.toLocaleString()} invalid`;}
+function _jtCurrentStage(live,now){
+  const valid=[],missing=[];let negative=0;
+  live.forEach(r=>{const d=_jtParseDate(r.stepDate);if(!d){missing.push(r);return;}const days=(now-d)/86400000;if(days<0){negative++;return;}valid.push({r,days});});
+  const groups={};valid.forEach(x=>{const k=`${x.r._doc} · ${x.r.hdrBucket||x.r.bucket||x.r.subBucket||'Unknown'}`;(groups[k]||(groups[k]=[])).push(x.days);});
+  const buckets=Object.entries(groups).map(([name,values])=>({name,n:values.length,median:_jtPercentile(values,.5),p90:_jtPercentile(values,.9)})).sort((a,b)=>b.median-a.median);
+  return {valid,missing:missing.length,negative,buckets,slowest:valid.slice().sort((a,b)=>b.days-a.days).slice(0,10)};
+}
+function _jtValue(r){const c=r._doc==='PO'?(r.currency||'AED'):'AED';return `${escapeHtml(c)} ${(Number(r.amount)||0).toLocaleString('en-US',{maximumFractionDigits:0})}`;}
+function _jtWeeklyApprox(js){
+  if(!js||!js.weeks)return null;const keys=Object.keys(js.weeks).sort();if(keys.length<2)return null;
+  const latest=keys[keys.length-1],groups={},lookup=keys.map(k=>{const w=js.weeks[k]||{},m={PR:{},PO:{}};['PR','PO'].forEach(type=>(w[type]||[]).forEach(row=>{m[type][row[0]]=row;}));return m;});
+  ['PR','PO'].forEach(type=>{const rows=(js.weeks[latest]&&js.weeks[latest][type])||[];rows.forEach(row=>{const doc=row[0],bucket=row[2]||'Unknown';let first=keys.length-1;
+    for(let i=keys.length-2;i>=0;i--){const prior=lookup[i][type][doc];if(!prior||prior[2]!==bucket)break;first=i;}
+    const observed=keys.length-1-first,k=`${type} · ${bucket}`;(groups[k]||(groups[k]=[])).push(observed);
+  });});
+  return {latest,weeks:keys.length,buckets:Object.entries(groups).map(([name,values])=>({name,n:values.length,median:_jtPercentile(values,.5),p90:_jtPercentile(values,.9)})).sort((a,b)=>b.median-a.median)};
+}
+function _anRenderJourneyWeekly(js){
+  const el=document.getElementById('journeyWeeklyApprox');if(!el)return;const a=_jtWeeklyApprox(js);
+  if(!a){el.innerHTML='<div style="color:#8a99b3;font-size:11px">Not shown: fewer than two usable weekly snapshots.</div>';return;}
+  const rows=a.buckets.slice(0,12).map(x=>[escapeHtml(x.name),`<b>${x.median.toFixed(1)}w</b>`,`${x.p90.toFixed(1)}w`,String(x.n)]);
+  el.innerHTML=`<div class="note" style="margin:0 0 7px">Latest snapshot ${escapeHtml(a.latest)} · ${a.weeks} weeks · minimum consecutive time observed in the same bucket.</div>`+_anTbl(['Bucket','r:Median','r:P90','r:n'],rows);
+}
 function renderAnalysis(){
   const host=document.getElementById('analysisSection');
   const PRR=buildPRRecords(PR_DATA), POR=buildPORecords(PO_DATA);
@@ -961,6 +1074,44 @@ function renderAnalysis(){
              ['Received (GRN)',fRecv,poAllRaw.length,'#f59e0b',(fRecv/Math.max(poAllRaw.length,1)*100).toFixed(0)+'% of POs'],
              ['Invoiced',fInv,poAllRaw.length,'#22c55e',(fInv/Math.max(poAllRaw.length,1)*100).toFixed(0)+'% of POs']];
   const funHtml=`<div class="anFunnel">`+fun.map(([l,n,base,c,p])=>`<div class="anFunStep"><div class="fl">${l}</div><div class="fb" style="width:${Math.max(8,n/Math.max(base,1)*72).toFixed(1)}%;background:linear-gradient(120deg,${c},${c}dd)">${n.toLocaleString()}</div><div class="fp">${p}</div></div>`).join('')+`</div>`;
+  /* Journey Circuit — exact available milestones only; unavailable history is never inferred. */
+  const jt=buildJourneyModel(PR_DATA,PO_DATA),now=new Date(),curStage=_jtCurrentStage(live,now);
+  const measuredLegs=[
+    {label:'Raised → Submitted',stats:jt.raisedToSubmitted},
+    {label:'Submitted → PO Created',stats:jt.submittedToPO},
+    {label:'PO Created → Latest PO Step',stats:jt.poToLastStep}
+  ];
+  const bottleneck=measuredLegs.filter(x=>x.stats.median!=null).sort((a,b)=>b.stats.median-a.stats.median)[0];
+  const maxMedian=Math.max(...measuredLegs.map(x=>x.stats.median||0),1);
+  const legHtml=measuredLegs.map(x=>{const ratio=(x.stats.median||0)/maxMedian,col=ratio>.66?'var(--red)':ratio>.33?'var(--amber)':'var(--green)',thick=(4+ratio*8).toFixed(0);
+    return `<div class="jtLeg"><div class="m">${_jtDays(x.stats.median)}</div><div class="p">p90 ${_jtDays(x.stats.p90)}</div><div class="line" style="height:${thick}px;background:${col}"></div><div class="p">${_jtMetricBasis(x.stats)}</div></div>`;});
+  const unavailableLeg=`<div class="jtLeg unavailable"><div class="m">Not measurable</div><div class="p">No separate GRN / invoice timestamp</div><div class="line"></div><div class="p">No duration inferred</div></div>`;
+  const track=`<div class="jtTrackWrap"><div class="jtTrack">
+    <div class="jtNode"><span class="dot">1</span>PR Raised</div>${legHtml[0]}
+    <div class="jtNode"><span class="dot">2</span>Submitted</div>${legHtml[1]}
+    <div class="jtNode"><span class="dot">3</span>PO Created</div>${legHtml[2]}
+    <div class="jtNode"><span class="dot">4</span>Sent / latest PO step</div>${unavailableLeg}
+    <div class="jtNode"><span class="dot">5</span>Received / Invoiced</div>
+  </div></div>`;
+  const coveragePct=jt.endToEnd.total?jt.endToEnd.valid/jt.endToEnd.total*100:0;
+  const kpis=`<div class="jtKpis">
+    <div class="jtKpi"><div class="l">Median end-to-end</div><div class="v">${_jtDays(jt.endToEnd.median)}</div><div class="s">Created → latest qualifying PO step · ${_jtMetricBasis(jt.endToEnd)}</div></div>
+    <div class="jtKpi"><div class="l">Median PR → PO</div><div class="v">${_jtDays(jt.prToPO.median)}</div><div class="s">PR Created → PO Created · ${_jtMetricBasis(jt.prToPO)}</div></div>
+    <div class="jtKpi"><div class="l">Completed journeys measured</div><div class="v">${jt.endToEnd.valid.toLocaleString()}</div><div class="s">Terminal milestone = sent, received or invoiced · ${jt.endToEnd.total.toLocaleString()} eligible pairs</div></div>
+    <div class="jtKpi"><div class="l">End-to-end data coverage</div><div class="v">${coveragePct.toFixed(1)}%</div><div class="s">${jt.endToEnd.valid.toLocaleString()} measured · ${jt.endToEnd.missing.toLocaleString()} missing · ${jt.endToEnd.negative.toLocaleString()} invalid</div></div>
+  </div>`;
+  const slowRows=curStage.slowest.map(x=>[`${escapeHtml(x.r._doc)} <b>${escapeHtml(x.r.docNumber)}</b>`,escapeHtml(x.r.hdrBucket||x.r.bucket||x.r.subBucket||'—'),`<b>${x.days.toFixed(1)}d</b>`,escapeHtml(x.r.pendingUser||x.r.vendorName||'—'),_jtValue(x.r)]);
+  const stageRows=curStage.buckets.map(x=>[escapeHtml(x.name),`<b>${x.median.toFixed(1)}d</b>`,`${x.p90.toFixed(1)}d`,String(x.n)]);
+  const journeyPanel=`<div class="anPanel jtPanel">
+    <div class="jtHead"><div><h3><i class="fa-solid fa-flag-checkered"></i>Journey Circuit</h3><div class="note">Actual exported milestones. Median shows the typical lap; p90 shows the slow tail. Line weight and colour scale to median dwell.</div></div>
+      <div class="jtBottleneck">Bottleneck · <b>${bottleneck?escapeHtml(bottleneck.label):'Not measurable'}</b>${bottleneck?` · median ${_jtDays(bottleneck.stats.median)} · n=${bottleneck.stats.valid.toLocaleString()}`:''}</div></div>
+    ${kpis}${track}
+    <div class="jtBasis"><b>Basis:</b> one journey per exact PR–PO link; PR Raised→Submitted is PR-level. Rejected/cancelled records excluded (${jt.exclusions.pr.toLocaleString()} PR, ${jt.exclusions.po.toLocaleString()} PO). Missing or negative timestamp pairs are excluded from that metric and counted above. “Latest PO step” uses the exported PO step date only when the PO is Received/Invoiced or the step is “LPO sent/shared with supplier”; it is not a fabricated GRN or invoice time.</div>
+    <div class="jtSplit">
+      <div class="jtMini"><h4><i class="fa-solid fa-gauge-high"></i>Slowest laps now</h4><div class="note">10 oldest live records by exact step date → now · ${curStage.valid.length.toLocaleString()} measured · ${curStage.missing.toLocaleString()} missing · ${curStage.negative.toLocaleString()} future/invalid.</div>${_anTbl(['Record','Stage','r:Days in stage','Owner','r:Value'],slowRows,'No live records have a valid current-step timestamp.')}</div>
+      <div class="jtMini"><h4><i class="fa-solid fa-stopwatch"></i>Time in current stage</h4><div class="note">Live records grouped by bucket · exact step date → now · sorted by median dwell.</div>${_anTbl(['Bucket','r:Median','r:P90','r:n'],stageRows,'No live bucket has a valid current-step timestamp.')}
+        <h4 style="margin-top:13px"><i class="fa-solid fa-camera"></i>Weekly snapshot dwell</h4><div class="note">Weekly resolution — approximate. Minimum consecutive weeks observed in the same bucket; never mixed with the exact day metrics above.</div><div id="journeyWeeklyApprox"><div style="color:#8a99b3;font-size:11px">Loading weekly snapshots…</div></div></div>
+    </div></div>`;
   /* exceptions */
   const e1=prLive.filter(r=>r.hdrBucket==='Procurement'&&!String(r.raw['Request for quotation case']||'').trim()&&(r.aging||0)>7);
   const e2=prLive.filter(r=>r.hdrBucket==='Operations to Confirm'&&(r.aging||0)>7);
@@ -978,6 +1129,7 @@ function renderAnalysis(){
       <div style="font-size:10.5px;color:#8a99b3;margin-top:2px">${sub}</div>
       ${arr.length?`<details><summary>View worst 10 ▸</summary><div style="margin-top:8px">${_anTbl(head,arr.slice().sort((a,b)=>(b.aging||0)-(a.aging||0)).slice(0,10).map(fn))}</div></details>`:''}
     </div>`).join('')+`</div>`;
+  h+=journeyPanel;
   h+=`<div class="anRow c11">`
    +_anPanel('fa-sack-dollar','#f59e0b','Highest value open','Biggest cash exposure in the live pipeline — clear these first.',hvHtml)
    +_anPanel('fa-route','#14b8a6','PR-to-payment journey','PR → RFQ → quotation → PO → sent → received (GRN) → invoiced. First four are PR-level, last three PO-level.',funHtml)
@@ -1031,6 +1183,7 @@ function renderAnalysis(){
   h+=`</div>`;
   host.innerHTML=h;
   fetch('weekly_snapshots.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(js=>{
+    _anRenderJourneyWeekly(js);
     const el=document.getElementById('anWow'); if(!el)return;
     if(!js||!Array.isArray(js.snapshots)||js.snapshots.length<2){ el.innerHTML='<i class="fa-solid fa-camera" style="margin-right:6px"></i><b style="color:var(--anNavy)">Week-over-week deltas:</b> archive has '+((js&&js.snapshots)?js.snapshots.length:0)+' snapshot(s) — the server saves one every Sunday; deltas appear once two exist.'; return; }
     const s=js.snapshots, cur=s[s.length-1], prev=s[s.length-2];
