@@ -105,3 +105,57 @@ git diff --check
 ```
 
 No build step exists for this vanilla HTML/CSS/JavaScript repository. No package was installed.
+
+## Race Control visual correction
+
+Correction base: `eea21d3` (`Add Journey Time analysis view`)
+
+This pass is presentation-only. The `JOURNEY_TIME_START` / `JOURNEY_TIME_END` calculation block is byte-identical to `eea21d3` after normalising line endings (SHA-256 `cf4b0ab69d2cb5c85e72c6d0e933631069b1d6e3404edb27d1ae02c5c247535c`). No workbook, snapshot, filter, authentication, proxy, Azure, Dataverse, workflow or deployment file changed.
+
+### What changed
+
+- Replaced the flat Journey panel with a dark Race Control broadcast panel using the Strive internal palette: night navy `#0B1B33`, deep ocean blue `#145A95`, slate blue `#21486C`, steel blue `#618FB4`, white, and the dashboard's existing SLA green/amber/red.
+- Replaced the straight track with one closed inline SVG stadium circuit. It has five numbered gates, a start/finish checker, four journey sectors, a neutral return lane, a flowing dashed direction overlay, and a static glow on the measured bottleneck sector.
+- Kept all four KPI values and basis text, but restyled them as timing-screen tiles. Coverage now has a slim gauge.
+- Added sector hover/focus/tap telemetry. Each measured leg uses the duration array already returned by `_jtMeasure` to render a maximum of 12 histogram buckets. No statistics are recalculated or redefined.
+- Kept `Not measurable` as a dashed grey locked sector with the same reason and no inferred duration.
+- Replaced the Slowest laps table presentation with a semantic timing-tower table: P1-P10 badges, owner initials, stage/SLA pills, tabular day figures, and desktop values.
+- Replaced current-stage and weekly-approximation tables with worst-first median bars and p90 whiskers. Weekly bars retain the approximate label and reduced opacity.
+- At widths below 768 px, the circuit becomes a vertical sector rail, KPIs are 2x2, the timing tower fits the available width, and dwell bars stack without page-level overflow.
+- Motion is limited to `transform`, `opacity`, and SVG `stroke-dashoffset`. The bottleneck blur is static. `prefers-reduced-motion: reduce` removes track flow and count-up/reveal movement.
+
+### Screenshot evidence
+
+Screenshots are stored outside the repository and were not committed:
+
+| View | Before (`eea21d3`) | After correction |
+| --- | --- | --- |
+| Desktop 1600x950 | `C:\Users\w.amjad\.codex\visualizations\2026\08\25\01a03865-cc4c-7ff0-9221-6bb8b329feb7\journey-race-control\before-desktop-1600x950.png` | `C:\Users\w.amjad\.codex\visualizations\2026\08\25\01a03865-cc4c-7ff0-9221-6bb8b329feb7\journey-race-control\after-desktop-1600x950.png` |
+| Mobile 375x844 | `C:\Users\w.amjad\.codex\visualizations\2026\08\25\01a03865-cc4c-7ff0-9221-6bb8b329feb7\journey-race-control\before-mobile-375x844.png` | `C:\Users\w.amjad\.codex\visualizations\2026\08\25\01a03865-cc4c-7ff0-9221-6bb8b329feb7\journey-race-control\after-mobile-375x844.png` |
+| Mobile timing and dwell detail | Not applicable | `C:\Users\w.amjad\.codex\visualizations\2026\08\25\01a03865-cc4c-7ff0-9221-6bb8b329feb7\journey-race-control\after-mobile-timing-375x844.png` |
+
+### Number parity against the pre-correction render
+
+- KPI strip before and after: `27.5d`, `16.6d`, `1,032`, `78.6%`.
+- Raised -> Submitted before and after: median `0.0d`, p90 `1.0d`, `n=3,086`, `53 missing`, `9 invalid`.
+- Submitted -> PO Created before and after: median `15.4d`, p90 `69.8d`, `n=1,360`, `0 missing`, `0 invalid`.
+- PO Created -> Latest PO Step before and after: median `2.0d`, p90 `82.5d`, `n=1,032`, `281 missing`, `0 invalid`.
+- Final sector before and after: `Not measurable`, `No separate GRN / invoice timestamp`, `No duration inferred`.
+- P1 Slowest lap before and after: `PO SCBM-PO2600218`, `Pending Invoicing`, owner `Suroor Al Madeena Air Conditioning Spare Parts LLC`, `183.0d`, `AED 0` at the verification time.
+
+### Visual and interaction verification
+
+- Desktop 1600x950: one closed circuit, five gates, four journey sectors, glowing red bottleneck, visible timing telemetry, no page-level horizontal overflow.
+- Mobile 375x844: 2x2 KPI grid, vertical rail, all four sector summaries, no page-level horizontal overflow. The timing tower shows position, record, stage, owner initials and days without internal or page overflow; value remains visible on desktop.
+- Sector tap/focus changed the telemetry card between the honest locked final sector and the Raised -> Submitted distribution. The shared `mouseenter` handler uses the same activation function for hover.
+- Count-up was observed during the 700 ms entry window and returned to the exact final values. Final values are present in the generated markup before the observer runs, so failure of the enhancement does not blank the figures or reserve new layout space.
+- Reduced-motion emulation returned `prefers-reduced-motion: true`, `.jtFlow` computed `animation-name: none`, the panel did not enter motion mode, KPI opacity remained `1`, and exact final figures remained visible.
+- Script execution was disabled after the normal client render; the panel stayed visible and all four KPI values remained unchanged. A cold no-JavaScript page load cannot initialise this dashboard's existing authentication, workbook loading or Analysis renderer in `eea21d3` either. Hard-coding a duplicate snapshot would violate the presentation-only and source-of-truth rules, so no duplicate no-JS data model was added.
+- Browser console error log was empty.
+
+### Performance and network observations
+
+- A warm local `renderAnalysis()` call, including the full existing Analysis section, measured 31.3 ms in the verification browser.
+- The correction adds one inline SVG, static CSS, one IntersectionObserver, and small histogram/bar HTML generated from arrays already in memory.
+- No package, image, font, script, stylesheet, request, or fetch was added. A zero-context diff search found no added `fetch(`, `src=`, or `href=` reference.
+- All correction animations are `transform`, `opacity`, or `stroke-dashoffset`; the SVG blur filter is static and never animated.
