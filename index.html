@@ -1034,15 +1034,50 @@ function buildJourneyCore(){
   const gateOf = r => JB_GATE_MAP[r.dispBucket] || JB_GATE_MAP[r.bucket] ||
                       JB_GATE_MAP[r.hdrBucket] || 'Mgmt Approvals';
 
+  const poLive = POR.filter(r => !r._isUnmapped && !r._isPORejected && !r._isPOCanceled && !r._isInvoiced);
+
+  /* Which leg of the journey is each live item sitting in RIGHT NOW, and for
+     how long has it been sitting there (dwell in that leg, not total age):
+       leg 0  raised → submitted : PR raised but never submitted
+       leg 1  submitted → PO     : PR submitted, no purchase order yet
+       leg 2  PO → LPO sent      : PO exists, LPO not yet issued to the supplier
+     A PR that already has a PO is represented by that PO in leg 2, so nothing
+     is counted twice. */
+  const stuck = {};                                   /* laneKey -> [3][] */
+  const bag = (laneKey, i, wd) => {
+    const s = stuck[laneKey] = stuck[laneKey] || [[], [], []];
+    if(wd != null) s[i].push(wd);
+  };
+  prLive.forEach(r => {
+    const laneKey = r.deptGroup + '|' + (r.prType === 'CPR' ? 'CPR' : 'PR');
+    const sub = parseDate(r.raw['Submitted date']);
+    const hasPO = !!(poByPR[String(r.docNumber || '').trim()] || []).length;
+    if(!sub)          bag(laneKey, 0, _jbWd(r.createdDate, TODAY));
+    else if(!hasPO)   bag(laneKey, 1, _jbWd(sub, TODAY));
+  });
+  poLive.forEach(p => {
+    if(String(p.subBucket || '') === JB_LPO_STEP) return;      /* LPO already out */
+    if(['Received', 'Invoiced'].includes(String(p.poStatus || ''))) return;
+    const laneKey = p.deptGroup + '|' + (p.prType === 'CPR' ? 'CPR' : 'PR');
+    bag(laneKey, 2, _jbWd(p.createdDate, TODAY));
+  });
+
+  const stuckOf = laneKey => (stuck[laneKey] || [[], [], []]).map(v => ({
+    n: v.length,
+    medianAgeWd: _jbR(_jbMed(v), 0),
+    oldestWd: v.length ? Math.max.apply(null, v) : 0,
+    over20: v.filter(x => x > 20).length
+  }));
+
   _jbCoreKey = key;
-  _jbCore = { PRR, POR, prAll, prLive, poByPR, jr, ageOf, gateOf };
+  _jbCore = { PRR, POR, prAll, prLive, poLive, poByPR, jr, ageOf, gateOf, stuckOf };
   return _jbCore;
 }
 
 /* ------------------------------------------------------------ the builder */
 function buildJourneyData(){
   const core = buildJourneyCore();
-  const { PRR, prAll, prLive, jr, ageOf } = core;
+  const { PRR, prAll, prLive, jr, ageOf, stuckOf } = core;
 
   const totAll = jr.map(x => x.tot);
   const headline = {
@@ -1104,6 +1139,7 @@ function buildJourneyData(){
       },
       liveCount: lv.length,
       liveMedianAgeWd: _jbR(_jbMed(lv.map(ageOf)), 0),
+      stuck: stuckOf(k),
       drill: _jbDrill(rows, lv)
     };
   }).sort((a, b) => b.n - a.n).slice(0, 5);
@@ -1188,6 +1224,7 @@ function _jbEmptyLane(i){
     cumulative: { submitted: 0, poCreated: 0, lpoSent: 0 },
     sectors: { raisedToSubmitted: 0, submittedToPo: 0, poToLpo: 0 },
     liveCount: 0, liveMedianAgeWd: 0,
+    stuck: [{n:0,medianAgeWd:0,oldestWd:0,over20:0},{n:0,medianAgeWd:0,oldestWd:0,over20:0},{n:0,medianAgeWd:0,oldestWd:0,over20:0}],
     drill: { projects: [], departments: [], holders: [], oldest: [] }
   };
 }
@@ -1720,10 +1757,15 @@ function exportJourneyExcel(){
 
     add('Lanes', [['Lane', 'Division', 'Type', 'Completed n', 'Median (wd)', 'P90 (wd)',
       '% within target', 'Live count', 'Live median age (wd)',
-      'Raised→Submitted', 'Submitted→PO', 'PO→LPO']].concat(
+      'Raised→Submitted', 'Submitted→PO', 'PO→LPO',
+      'Stuck: pre-submit (n)', 'Stuck: pre-submit dwell (wd)',
+      'Stuck: awaiting PO (n)', 'Stuck: awaiting PO dwell (wd)',
+      'Stuck: awaiting LPO (n)', 'Stuck: awaiting LPO dwell (wd)']].concat(
       jb.lanes.filter(l => l.n).map(l => [l.label, l.division, l.type, l.n, l.medianWd, l.p90Wd,
         l.within10Pct, l.liveCount, l.liveMedianAgeWd,
-        l.sectors.raisedToSubmitted, l.sectors.submittedToPo, l.sectors.poToLpo])));
+        l.sectors.raisedToSubmitted, l.sectors.submittedToPo, l.sectors.poToLpo,
+        l.stuck[0].n, l.stuck[0].medianAgeWd, l.stuck[1].n, l.stuck[1].medianAgeWd,
+        l.stuck[2].n, l.stuck[2].medianAgeWd])));
 
     add('Gate queues', [['Gate', 'Items', 'Median dwell (days)', 'Top desks']].concat(
       jb.queues.map(q => [q.gate, q.count, q.medianDays,
