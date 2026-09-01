@@ -896,11 +896,17 @@ function _anWaitOf(r,isPO){ if(isPO){ if(r.hdrBucket==='Sent to Supplier') retur
 
    Everything they display is computed HERE, from the dashboard's own
    PR_DATA / PO_DATA / WEEKLY_SNAPSHOTS, and posted in as {__jbData:...}.
+
+   Below the Journey Board wallboard we also render a native-styled analysis
+   layer (findings, cycle-time decomposition, action worklist, exports) —
+   the wallboard is a fixed-size at-a-glance view, so detail goes underneath
+   rather than being crammed into it.
    ========================================================================== */
 
 const JB_TARGET_WD = 10;          // raised -> goods received target (working days)
 const JB_INVOICE_TARGET_D = 30;   // goods -> invoice target (calendar days)
 const JB_LPO_STEP = 'LPO sent/shared with supplier';
+const JB_LEGACY_DAYS = 90;        // "raised this long ago and still open" = legacy drag
 
 /* Dashboard step-buckets -> the 6 gate names the journey rail knows about */
 const JB_GATE_MAP = {
@@ -919,6 +925,15 @@ const JB_GATE_MAP = {
   'CEO'                     : 'Mgmt Approvals',
   'Procurement'             : 'PR Review'
 };
+
+const JB_LEGS = [
+  { key: 'raisedToSubmitted', label: 'Raised → Submitted',
+    desc: 'Requester finalises the PR and submits it for review' },
+  { key: 'submittedToPo', label: 'Submitted → PO created',
+    desc: 'PR review, RFQ, quotations, ops confirmation, unit pricing and management approvals' },
+  { key: 'poToLpo', label: 'PO created → LPO sent',
+    desc: 'PO approved internally and the LPO issued to the supplier' }
+];
 
 /* ---------------------------------------------------------------- helpers */
 function _jbWd(a, b){                       /* working days (Mon-Fri) between */
@@ -949,7 +964,7 @@ function _jbPct(arr, max){
 }
 function _jbR(v, d){ return v == null ? (d === undefined ? null : d) : +Number(v).toFixed(1); }
 function _jbAbbr(name){
-  const stop = { of:1, and:1, the:1, services:0 };
+  const stop = { of: 1, and: 1, the: 1 };
   const w = String(name || '').split(/[\s&/-]+/).filter(Boolean);
   if(!w.length) return '—';
   let a = w.filter(x => !stop[x.toLowerCase()]).map(x => x[0]).join('').toUpperCase();
@@ -957,21 +972,27 @@ function _jbAbbr(name){
   return a.slice(0, 4);
 }
 function _jbDayKey(d){ return d ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : ''; }
-function _jbWeekMon(d){                     /* Monday of that date's week */
+function _jbWeekMon(d){
   const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
   return x;
 }
 const _JB_MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
-/* ------------------------------------------------------------ the builder */
-function buildJourneyData(){
+/* ============================ SHARED CORE ================================
+   Both the wallboard dataset and the detail layer need the same milestone
+   reconstruction, so do it once and memoise on the current data version. */
+let _jbCore = null, _jbCoreKey = '';
+
+function buildJourneyCore(){
+  const key = PR_DATA.length + '|' + PO_DATA.length + '|' + (WEEKLY_SNAPSHOTS ? 'w' : '-');
+  if(_jbCore && _jbCoreKey === key) return _jbCore;
+
   const PRR = buildPRRecords(PR_DATA), POR = buildPORecords(PO_DATA);
   const alive  = r => !['Rejected', 'Cancelled'].includes(r.status);
   const prAll  = PRR.filter(alive);
   const prLive = PRR.filter(r => !r._isClosed && !r._isUnmapped && alive(r));
 
-  /* --- link POs back to their PR --- */
   const poByPR = {};
   POR.forEach(p => {
     if(p._isPORejected || p._isPOCanceled) return;
@@ -979,7 +1000,7 @@ function buildJourneyData(){
     if(k) (poByPR[k] = poByPR[k] || []).push(p);
   });
 
-  /* --- completed cohort: PRs that reached a PO, with their milestones --- */
+  /* completed cohort: PRs that reached a PO, with their milestones + legs */
   const jr = [];
   prAll.forEach(r => {
     const raised = r.createdDate;
@@ -994,17 +1015,35 @@ function buildJourneyData(){
       if(sent && p.stepDate && (!lpo || p.stepDate < lpo)) lpo = p.stepDate;
     });
     if(!poCreated) return;
+    const wSub = _jbWd(raised, parseDate(r.raw['Submitted date']));
     const wPo = _jbWd(raised, poCreated), wLpo = _jbWd(raised, lpo);
     jr.push({
       division: r.deptGroup, type: r.prType === 'CPR' ? 'CPR' : 'PR',
       project: r.project || '—', department: r.department || '—',
-      wSub: _jbWd(raised, parseDate(r.raw['Submitted date'])),
-      wPo: wPo, wLpo: wLpo, tot: wLpo != null ? wLpo : wPo,
+      wSub: wSub, wPo: wPo, wLpo: wLpo, tot: wLpo != null ? wLpo : wPo,
+      legs: {
+        raisedToSubmitted: wSub,
+        submittedToPo: (wPo != null && wSub != null) ? Math.max(0, wPo - wSub) : null,
+        poToLpo: (wLpo != null && wPo != null) ? Math.max(0, wLpo - wPo) : null
+      },
       poCreated: poCreated, raised: raised
     });
   });
 
-  /* --- headline: the completed-cohort cycle time --- */
+  const ageOf = r => _jbWd(r.createdDate, TODAY);
+  const gateOf = r => JB_GATE_MAP[r.dispBucket] || JB_GATE_MAP[r.bucket] ||
+                      JB_GATE_MAP[r.hdrBucket] || 'Mgmt Approvals';
+
+  _jbCoreKey = key;
+  _jbCore = { PRR, POR, prAll, prLive, poByPR, jr, ageOf, gateOf };
+  return _jbCore;
+}
+
+/* ------------------------------------------------------------ the builder */
+function buildJourneyData(){
+  const core = buildJourneyCore();
+  const { PRR, prAll, prLive, jr, ageOf } = core;
+
   const totAll = jr.map(x => x.tot);
   const headline = {
     completed        : jr.length,
@@ -1015,8 +1054,6 @@ function buildJourneyData(){
     within10Pct      : _jbPct(totAll, JB_TARGET_WD)
   };
 
-  /* --- live pipeline --- */
-  const ageOf = r => _jbWd(r.createdDate, TODAY);
   const liveAges = prLive.map(ageOf);
   const snap = _jbSnapshotDeltas();
   const medAge = _jbR(_jbMed(liveAges), 0), within = _jbPct(liveAges, JB_TARGET_WD);
@@ -1040,7 +1077,6 @@ function buildJourneyData(){
     oldest         : _jbOldest(prLive, 10)
   };
 
-  /* --- lanes: division x type, top 5 by completed volume --- */
   const laneOf = r => r.deptGroup + '|' + (r.prType === 'CPR' ? 'CPR' : 'PR');
   const grp = {}, liveByLane = {};
   jr.forEach(x => { const k = x.division + '|' + x.type; (grp[k] = grp[k] || []).push(x); });
@@ -1072,14 +1108,11 @@ function buildJourneyData(){
     };
   }).sort((a, b) => b.n - a.n).slice(0, 5);
 
-  /* the board's circuit renderer expects exactly 5 lanes */
   while(lanes.length < 5) lanes.push(_jbEmptyLane(lanes.length));
   lanes.forEach((l, i) => l.position = i + 1);
 
-  /* --- gate queues over the live pipeline --- */
   const queues = _jbQueues(prLive);
 
-  /* --- pit wall --- */
   /* NB: `sector` must be the sector KEY — the board looks it up in a
      {raisedToSubmitted|submittedToPo|poToLpo} -> display-name map. */
   let worst = { lane: '—', sector: 'submittedToPo', medianWd: 0 };
@@ -1096,7 +1129,7 @@ function buildJourneyData(){
     .map(k => ({ name: k, medianWd: _jbR(_jbMed(projAgg[k]), 0), n: projAgg[k].length }))
     .sort((a, b) => b.medianWd - a.medianWd)[0] || { name: '—', medianWd: 0, n: 0 };
 
-  const legacyCut = new Date(TODAY); legacyCut.setDate(legacyCut.getDate() - 90);
+  const legacyCut = new Date(TODAY); legacyCut.setDate(legacyCut.getDate() - JB_LEGACY_DAYS);
   const pitWall = {
     slowestGate  : worst,
     deepestQueue : queues[0] || { gate: '—', count: 0, medianDays: 0, holders: [], oldest: [] },
@@ -1105,11 +1138,10 @@ function buildJourneyData(){
     legacy       : {
       count: prLive.filter(r => r.createdDate && r.createdDate < legacyCut).length,
       title: 'Legacy backlog',
-      text : 'Live items raised more than 90 days ago'
+      text : 'Live items raised more than ' + JB_LEGACY_DAYS + ' days ago'
     }
   };
 
-  /* --- page two aggregates --- */
   const pageTwo = {
     types            : ['CPR', 'PR'].map(t => _jbTypeAgg(t, prLive, jr, snap, ageOf)),
     divisions        : _jbDivisions(prLive, snap, ageOf),
@@ -1123,7 +1155,6 @@ function buildJourneyData(){
     raisedYesterday  : raisedOn(yesterK)
   };
 
-  /* --- 9-week trend of completed cycle time --- */
   const trend = _jbTrend(jr);
   const complete = trend.filter(t => !t.partial && t.medianWd != null);
   const trendDeltaWd = complete.length >= 2
@@ -1135,25 +1166,17 @@ function buildJourneyData(){
   return {
     meta: {
       schema: 'pr-po-journey/2',
-      asOf: TODAY.toISOString(),
-      asOfTimestamp: TODAY.toISOString(),
-      generatedAt: TODAY.toISOString(),
+      asOf: TODAY.toISOString(), asOfTimestamp: TODAY.toISOString(), generatedAt: TODAY.toISOString(),
       windowStart: _jbDayKey(windowStart),
-      prRows: PR_DATA.length, poRows: PO_DATA.length,
-      eligiblePrs: jr.length,
+      prRows: PR_DATA.length, poRows: PO_DATA.length, eligiblePrs: jr.length,
       missingTerminalTimestamp: true,
       excluded: { rejectedOrCancelled: PRR.length - prAll.length, unmapped: PRR.filter(r => r._isUnmapped).length },
       source: 'live dashboard data'
     },
     headline: headline,
     targets : { raisedToGoodsWd: JB_TARGET_WD, goodsToInvoiceDays: JB_INVOICE_TARGET_D },
-    trend: trend,
-    trendDeltaWd: trendDeltaWd,
-    live: live,
-    lanes: lanes,
-    queues: queues,
-    pageTwo: pageTwo,
-    pitWall: pitWall
+    trend: trend, trendDeltaWd: trendDeltaWd,
+    live: live, lanes: lanes, queues: queues, pageTwo: pageTwo, pitWall: pitWall
   };
 }
 
@@ -1177,20 +1200,15 @@ function _jbDrill(rows, lv){
       .map(k => ({ name: k, medianWd: _jbR(_jbMed(o[k]), 0), n: o[k].length }))
       .sort((a, b) => b.medianWd - a.medianWd).slice(0, 6);
   };
-  return {
-    projects: roll('project'),
-    departments: roll('department'),
-    holders: _jbHolders(lv, 6),
-    oldest: _jbOldest(lv, 6)
-  };
+  return { projects: roll('project'), departments: roll('department'),
+           holders: _jbHolders(lv, 6), oldest: _jbOldest(lv, 6) };
 }
 
 function _jbHolders(recs, n){
   const o = {};
   recs.forEach(r => (o[r.pendingUser || '—'] = o[r.pendingUser || '—'] || []).push(r));
   return Object.keys(o).map(k => ({
-    name: k,
-    count: o[k].length,
+    name: k, count: o[k].length,
     medianAgeWd: _jbR(_jbMed(o[k].map(r => _jbWd(r.createdDate, TODAY))), 0),
     medianDays : _jbR(_jbMed(o[k].map(r => r.aging)), 0)
   })).sort((a, b) => b.count - a.count).slice(0, n);
@@ -1198,31 +1216,22 @@ function _jbHolders(recs, n){
 
 function _jbOldest(recs, n){
   return recs.map(r => ({
-    number: r.docNumber || '—',
-    name: r.name || '',
-    department: r.department || '—',
-    project: r.project || '—',
-    holder: r.pendingUser || '—',
-    step: r.subBucket || '—',
-    amount: r.amount || 0,
-    ageWd: _jbWd(r.createdDate, TODAY) || 0,
+    number: r.docNumber || '—', name: r.name || '',
+    department: r.department || '—', project: r.project || '—',
+    holder: r.pendingUser || '—', step: r.subBucket || '—',
+    amount: r.amount || 0, ageWd: _jbWd(r.createdDate, TODAY) || 0,
     dwellDays: r.aging == null ? null : r.aging
   })).sort((a, b) => b.ageWd - a.ageWd).slice(0, n);
 }
 
 function _jbQueues(recs){
+  const gateOf = buildJourneyCore().gateOf;
   const o = {};
-  recs.forEach(r => {
-    const g = JB_GATE_MAP[r.dispBucket] || JB_GATE_MAP[r.bucket] ||
-              JB_GATE_MAP[r.hdrBucket] || 'Mgmt Approvals';
-    (o[g] = o[g] || []).push(r);
-  });
+  recs.forEach(r => { const g = gateOf(r); (o[g] = o[g] || []).push(r); });
   return Object.keys(o).map(g => ({
-    gate: g,
-    count: o[g].length,
+    gate: g, count: o[g].length,
     medianDays: _jbR(_jbMed(o[g].map(r => r.aging)), 0),
-    holders: _jbHolders(o[g], 4),
-    oldest : _jbOldest(o[g], 3)
+    holders: _jbHolders(o[g], 4), oldest: _jbOldest(o[g], 3)
   })).sort((a, b) => b.count - a.count);
 }
 
@@ -1230,12 +1239,11 @@ function _jbTypeAgg(t, prLive, jr, snap, ageOf){
   const lv = prLive.filter(r => (r.prType === 'CPR' ? 'CPR' : 'PR') === t);
   const cm = jr.filter(x => x.type === t);
   const ages = lv.map(ageOf);
-  const after = cm.filter(x => x.wLpo != null && x.wPo != null).map(x => Math.max(0, x.wLpo - x.wPo));
+  const after = cm.map(x => x.legs.poToLpo).filter(v => v != null);
   const snapT = snap && snap.byType ? snap.byType[t] : null;
   const within = _jbPct(ages, JB_TARGET_WD), med = _jbR(_jbMed(ages), 0);
   return {
-    type: t, count: lv.length,
-    within10Pct: within, medianAgeWd: med,
+    type: t, count: lv.length, within10Pct: within, medianAgeWd: med,
     buckets: _jbBuckets(ages),
     countDelta    : snapT ? lv.length - snapT.count : null,
     within10Delta : snapT ? _jbR(within - snapT.within) : null,
@@ -1265,8 +1273,7 @@ function _jbDivisions(prLive, snap, ageOf){
     const sd = snap && snap.byDiv ? snap.byDiv[d] : null;
     const within = _jbPct(ages, JB_TARGET_WD), med = _jbR(_jbMed(ages), 0);
     return {
-      division: d, count: o[d].length,
-      within10Pct: within, medianAgeWd: med,
+      division: d, count: o[d].length, within10Pct: within, medianAgeWd: med,
       buckets: _jbBuckets(ages),
       countDelta    : sd ? o[d].length - sd.count : null,
       within10Delta : sd ? _jbR(within - sd.within) : null,
@@ -1284,10 +1291,7 @@ function _jbTrend(jr){
     const v = jr.filter(x => x.poCreated >= s && x.poCreated < e).map(x => x.tot);
     weeks.push({
       label: String(s.getDate()).padStart(2, '0') + ' ' + _JB_MON[s.getMonth()],
-      weekStart: _jbDayKey(s),
-      medianWd: _jbR(_jbMed(v)),
-      n: v.length,
-      partial: i === 0
+      weekStart: _jbDayKey(s), medianWd: _jbR(_jbMed(v)), n: v.length, partial: i === 0
     });
   }
   return weeks;
@@ -1306,7 +1310,8 @@ function _jbSnapshotDeltas(){
     const asOf = parseDate(k) || TODAY;
     const wd = r => _jbWd(parseDate(r[6]), asOf);
     const all = rows.map(wd);
-    const out = { count: rows.length, med: _jbR(_jbMed(all), 0), within: _jbPct(all, JB_TARGET_WD), byType: {}, byDiv: {} };
+    const out = { weekKey: k, count: rows.length, med: _jbR(_jbMed(all), 0),
+                  within: _jbPct(all, JB_TARGET_WD), byType: {}, byDiv: {} };
     const push = (bag, key, v) => (bag[key] = bag[key] || []).push(v);
     const tBag = {}, dBag = {};
     rows.forEach(r => { push(tBag, r[8] === 'CPR' ? 'CPR' : 'PR', wd(r)); push(dBag, r[3] || 'Others', wd(r)); });
@@ -1316,6 +1321,498 @@ function _jbSnapshotDeltas(){
     fin(tBag, out.byType); fin(dBag, out.byDiv);
     return out;
   }catch(e){ console.warn('[journey] snapshot deltas unavailable', e); return null; }
+}
+
+/* ======================= DETAIL LAYER (below the board) =================== */
+
+/* Cycle-time decomposition. The internal benchmark is each leg's own p25 —
+   a pace this organisation already achieves on a quarter of its own PRs —
+   rather than an arbitrary split of the 10 wd target. */
+function _jbStages(jr){
+  const byLeg = {}, laneLeg = {};
+  JB_LEGS.forEach(l => byLeg[l.key] = []);
+  jr.forEach(x => {
+    JB_LEGS.forEach(l => {
+      const v = x.legs[l.key];
+      if(v == null) return;
+      byLeg[l.key].push(v);
+      const lk = x.division + ' · ' + x.type;
+      ((laneLeg[l.key] = laneLeg[l.key] || {})[lk] = laneLeg[l.key][lk] || []).push(v);
+    });
+  });
+  const meds = JB_LEGS.map(l => _jbMed(byLeg[l.key]) || 0);
+  const sum = meds.reduce((a, b) => a + b, 0) || 1;
+
+  /* Means DO add up, medians do not — so the proportional bar is driven by the
+     mean split while the tables lead with the (more robust) median. The gap
+     between the two is itself the signal: it measures the tail. */
+  const means = JB_LEGS.map(l => {
+    const v = byLeg[l.key];
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0;
+  });
+  const meanSum = means.reduce((a, b) => a + b, 0) || 1;
+
+  return JB_LEGS.map((l, i) => {
+    const vals = byLeg[l.key];
+    const med = meds[i], best = _jbMed(vals) == null ? 0 : (_jbP(vals, 25) || 0);
+    const lanes = Object.keys(laneLeg[l.key] || {})
+      .filter(k => (laneLeg[l.key][k] || []).length >= 5)
+      .map(k => ({ lane: k, med: _jbMed(laneLeg[l.key][k]) || 0, n: laneLeg[l.key][k].length }))
+      .sort((a, b) => b.med - a.med);
+    return {
+      key: l.key, label: l.label, desc: l.desc,
+      n: vals.length,
+      medianWd: _jbR(med, 0),
+      meanWd: _jbR(means[i], 0),
+      p90Wd: _jbR(_jbP(vals, 90), 0),
+      bestQuartileWd: _jbR(best, 0),
+      recoverableWd: _jbR(Math.max(0, med - best), 0),
+      sharePct: _jbR(means[i] / meanSum * 100, 0),      /* share of average time */
+      medianSharePct: _jbR(med / sum * 100, 0),
+      tailRatio: med > 0 ? _jbR(means[i] / med) : null,  /* mean/median = skew */
+      worstLane: lanes[0] ? lanes[0].lane : '—',
+      worstLaneWd: lanes[0] ? _jbR(lanes[0].med, 0) : 0,
+      bestLane: lanes.length ? lanes[lanes.length - 1].lane : '—',
+      bestLaneWd: lanes.length ? _jbR(lanes[lanes.length - 1].med, 0) : 0
+    };
+  });
+}
+
+/* Every live item, flattened for the action worklist. */
+function _jbWorklist(){
+  const { prLive, ageOf, gateOf } = buildJourneyCore();
+  return prLive.map(r => {
+    const age = ageOf(r) || 0;
+    return {
+      number: r.docNumber || '—', type: r.prType === 'CPR' ? 'CPR' : 'PR',
+      name: r.name || '', division: r.deptGroup || 'Others',
+      department: r.department || '—', project: r.project || '—',
+      holder: r.pendingUser || '—', gate: gateOf(r), step: r.subBucket || '—',
+      ageWd: age, dwellDays: r.aging == null ? 0 : r.aging,
+      amount: r.amount || 0,
+      flag: age > 20 ? 'Critical' : age > JB_TARGET_WD ? 'Watch' : 'On track'
+    };
+  }).sort((a, b) => b.ageWd - a.ageWd);
+}
+
+/* Plain-English findings, all computed — nothing hard-coded. */
+function _jbFindings(jb, stages, work){
+  const f = [], tot = jb.headline.lpoMedianWd || 0;
+  const money = v => 'AED ' + Math.round(v).toLocaleString('en-US');
+
+  const dom = stages.slice().sort((a, b) => b.meanWd - a.meanWd)[0];
+  if(dom && dom.meanWd > 0){
+    f.push({ sev: 'bad', title: 'Where the time actually goes',
+      text: `<b>${dom.label}</b> is the constraint: <b>${dom.sharePct}%</b> of average journey time, `
+          + `a median of <b>${dom.medianWd} wd</b> and a mean of <b>${dom.meanWd} wd</b>. `
+          + `Everything else is noise by comparison.` });
+  }
+
+  const tail = stages.slice().sort((a, b) => (b.tailRatio || 0) - (a.tailRatio || 0))[0];
+  if(tail && tail.tailRatio >= 2 && tail.n >= 20){
+    f.push({ sev: 'warn', title: 'The problem is the tail, not the typical case',
+      text: `On <b>${tail.label}</b> the mean is <b>${tail.tailRatio}×</b> the median `
+          + `(${tail.meanWd} wd vs ${tail.medianWd} wd, P90 ${tail.p90Wd} wd). Most PRs clear it quickly; `
+          + `a minority stall badly. Chasing that minority beats trying to speed up the average PR.` });
+  }
+  const recover = _jbR(stages.reduce((a, s) => a + s.recoverableWd, 0), 0);
+  if(recover > 0){
+    f.push({ sev: 'good', title: 'Realistic headroom',
+      text: `If every leg ran at its own best-quartile pace — a speed you already hit on a quarter of your PRs — `
+          + `the median would fall by <b>${recover} wd</b> to roughly <b>${_jbR(Math.max(0, tot - recover), 0)} wd</b>. `
+          + `The biggest single win is ${dom ? `<b>${dom.label}</b> (${dom.recoverableWd} wd)` : 'n/a'}.` });
+  }
+  if(dom && dom.worstLane !== '—' && dom.bestLane !== '—' && dom.bestLaneWd < dom.worstLane){
+    f.push({ sev: 'info', title: 'It is not uniform',
+      text: `On ${dom.label}, <b>${dom.worstLane}</b> takes <b>${dom.worstLaneWd} wd</b> while `
+          + `<b>${dom.bestLane}</b> clears it in <b>${dom.bestLaneWd} wd</b>. Same process, same company.` });
+  }
+
+  const q = jb.pitWall.deepestQueue;
+  if(q && q.count > 0){
+    const top = q.holders && q.holders[0];
+    f.push({ sev: 'bad', title: 'The queue to clear first',
+      text: `<b>${q.count} PRs</b> are parked at <b>${q.gate}</b> with a median dwell of <b>${q.medianDays} days</b>`
+          + (top ? `. <b>${escapeHtml(top.name)}</b> alone holds <b>${top.count}</b> of them `
+                 + `(<b>${Math.round(top.count / q.count * 100)}%</b> of the queue)` : '') + '.' });
+  }
+
+  const crit = work.filter(w => w.flag === 'Critical'), watch = work.filter(w => w.flag === 'Watch');
+  if(work.length){
+    f.push({ sev: crit.length > work.length * 0.3 ? 'bad' : 'warn', title: 'Live pipeline health',
+      text: `<b>${crit.length + watch.length}</b> of <b>${work.length}</b> live items `
+          + `(<b>${Math.round((crit.length + watch.length) / work.length * 100)}%</b>) are already past the `
+          + `${JB_TARGET_WD} wd target — <b>${crit.length}</b> of them past 20 wd.` });
+  }
+  const atRisk = crit.reduce((a, w) => a + w.amount, 0);
+  if(atRisk > 0){
+    f.push({ sev: 'warn', title: 'Value sitting still',
+      text: `<b>${money(atRisk)}</b> is committed in the ${crit.length} items older than 20 working days.` });
+  }
+
+  const done = jb.trend.filter(t => !t.partial && t.medianWd != null);
+  if(done.length >= 4){
+    const recent = done.slice(-2).map(t => t.medianWd), prior = done.slice(-4, -2).map(t => t.medianWd);
+    const a = _jbMed(prior), b = _jbMed(recent);
+    if(a != null && b != null){
+      const better = b < a;
+      f.push({ sev: better ? 'good' : 'warn', title: better ? 'Trend is improving' : 'Trend is slipping',
+        text: `Median finish time went from <b>${_jbR(a)} wd</b> to <b>${_jbR(b)} wd</b> over the last four `
+            + `complete weeks — ${better ? 'a gain of' : 'a loss of'} <b>${_jbR(Math.abs(b - a))} wd</b>.` });
+    }
+  }
+
+  const lg = jb.pitWall.legacy.count;
+  if(lg > 0 && work.length){
+    const noLegacy = work.filter(w => w.ageWd <= 60).map(w => w.ageWd);
+    f.push({ sev: 'info', title: 'Legacy drag on the average',
+      text: `<b>${lg}</b> live items were raised over ${JB_LEGACY_DAYS} days ago. Excluding the long tail, `
+          + `median live age drops from <b>${jb.live.medianAgeWd} wd</b> to <b>${_jbR(_jbMed(noLegacy), 0)} wd</b> — `
+          + `the backlog, not current throughput, is what makes the headline look bad.` });
+  }
+  return f;
+}
+
+function buildJourneyDetail(jb){
+  const core = buildJourneyCore();
+  const stages = _jbStages(core.jr);
+  const work = _jbWorklist();
+  return { stages: stages, work: work, findings: _jbFindings(jb, stages, work),
+           generatedAt: TODAY };
+}
+
+/* ------------------------------------------------------------- detail UI */
+const JB_DETAIL_CSS = `<style>
+#analysisSection .jbFind{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px}
+#analysisSection .jbF{border:1px solid #e2e8f2;border-left-width:4px;border-radius:8px;padding:11px 13px;background:#fff}
+#analysisSection .jbF.bad{border-left-color:#dc2626;background:#fef4f4}
+#analysisSection .jbF.warn{border-left-color:#f59e0b;background:#fffaf0}
+#analysisSection .jbF.good{border-left-color:#22c55e;background:#f3fdf6}
+#analysisSection .jbF.info{border-left-color:#2563eb;background:#f5f8ff}
+#analysisSection .jbF .t{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#5b6b85;margin-bottom:4px}
+#analysisSection .jbF .x{font-size:12.5px;line-height:1.55;color:#16233a}
+#analysisSection .jbBar{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:4px 0 12px;border:1px solid #e2e8f2}
+#analysisSection .jbBar div{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;min-width:2px}
+#analysisSection .jbTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+#analysisSection .jbTools input,#analysisSection .jbTools select{padding:7px 10px;border:1px solid #d8e0ec;border-radius:6px;
+  font-size:12px;font-family:inherit;color:#16233a;background:#fff}
+#analysisSection .jbTools input{min-width:230px}
+#analysisSection .jbBtn{padding:7px 13px;border:1px solid #d8e0ec;background:#fff;border-radius:6px;cursor:pointer;
+  font-size:12px;font-weight:700;color:#0F2A6B;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+#analysisSection .jbBtn:hover{background:#eef2f8;border-color:#0F2A6B}
+#analysisSection .jbSpacer{flex:1}
+#analysisSection .jbTag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:800;color:#fff}
+#analysisSection .jbTag.Critical{background:#dc2626}
+#analysisSection .jbTag.Watch{background:#f59e0b}
+#analysisSection .jbTag\\.OnTrack,#analysisSection .jbTag.ontrack{background:#22c55e}
+#analysisSection .anTbl th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+#analysisSection .anTbl th.sortable:hover{color:#2563eb}
+#analysisSection .jbCount{font-size:11.5px;color:#8a99b3;margin-top:8px}
+#analysisSection .jbScroll{max-height:520px;overflow:auto;border:1px solid #e8edf5;border-radius:8px}
+</style>`;
+
+const JB_STAGE_COLORS = ['#22c55e', '#dc2626', '#f59e0b'];
+
+function renderJourneyDetail(){
+  const host = document.getElementById('jbDetail');
+  if(!host) return;
+  if(!window.__jbData || !window.__jbDetail){
+    host.innerHTML = '<div style="color:#8a99b3;font-size:12px;padding:10px">Journey detail unavailable.</div>';
+    return;
+  }
+  const jb = window.__jbData, d = window.__jbDetail;
+
+  /* --- findings --- */
+  const findings = _anPanel('fa-lightbulb', '#2563eb', 'What the numbers are telling you',
+    'Computed from the same live pipeline as the board above — nothing here is hard-coded.',
+    `<div class="jbFind">` + d.findings.map(x =>
+      `<div class="jbF ${x.sev}"><div class="t">${escapeHtml(x.title)}</div><div class="x">${x.text}</div></div>`
+    ).join('') + `</div>`);
+
+  /* --- where the time goes ---
+     The bar is driven by MEAN time per leg, because means decompose additively
+     and medians do not. Both are shown so the tail is visible. */
+  const bar = `<div class="jbBar">` + d.stages.map((s, i) =>
+    `<div style="width:${s.sharePct.toFixed(2)}%;background:${JB_STAGE_COLORS[i]}"
+       title="${escapeHtml(s.label)}: mean ${s.meanWd} wd (${s.sharePct}% of average journey time)"
+       >${s.sharePct >= 9 ? s.sharePct + '%' : ''}</div>`
+  ).join('') + `</div>`;
+
+  const stageTbl = _anTbl(
+    ['Leg of the journey', 'r:Median', 'r:Mean', 'r:Share of mean', 'r:P90', 'r:Tail (mean÷med)',
+     'r:Best quartile', 'r:Recoverable', 'Slowest lane', 'Fastest lane', 'r:n'],
+    d.stages.map((s, i) => [
+      `<b style="color:${JB_STAGE_COLORS[i]}">■</b> <b>${escapeHtml(s.label)}</b>`
+        + `<div style="font-size:11px;color:#8a99b3;margin-top:2px">${escapeHtml(s.desc)}</div>`,
+      `<b>${s.medianWd} wd</b>`, `${s.meanWd} wd`, s.sharePct + '%', s.p90Wd + ' wd',
+      s.tailRatio == null ? '—'
+        : `<b style="color:${s.tailRatio >= 3 ? '#dc2626' : s.tailRatio >= 1.8 ? '#f59e0b' : '#22c55e'}">${s.tailRatio}×</b>`,
+      s.bestQuartileWd + ' wd',
+      s.recoverableWd > 0 ? `<b style="color:#dc2626">−${s.recoverableWd} wd</b>` : '—',
+      `${escapeHtml(s.worstLane)} <span style="color:#8a99b3">${s.worstLaneWd} wd</span>`,
+      `${escapeHtml(s.bestLane)} <span style="color:#8a99b3">${s.bestLaneWd} wd</span>`,
+      s.n.toLocaleString()
+    ]), 'No completed journeys in range.');
+
+  const recover = _jbR(d.stages.reduce((a, s) => a + s.recoverableWd, 0), 0);
+  const medSum = _jbR(d.stages.reduce((a, s) => a + s.medianWd, 0), 0);
+  const worstTail = d.stages.slice().sort((a, b) => (b.tailRatio || 0) - (a.tailRatio || 0))[0];
+
+  const timeGoes = _anPanel('fa-hourglass-half', '#dc2626', 'Where the time goes',
+    `<b>Read the median and the mean together.</b> The leg medians sum to ${medSum} wd, but the headline `
+    + `median for the whole journey is ${jb.headline.lpoMedianWd} wd — medians do not add up, because a `
+    + `different PR sits in the middle of each leg. The bar above is therefore split by <b>mean</b> time, `
+    + `which does decompose additively.`
+    + (worstTail && worstTail.tailRatio >= 2
+        ? ` The "tail" column is mean ÷ median: <b>${escapeHtml(worstTail.label)}</b> runs at `
+          + `<b>${worstTail.tailRatio}×</b>, so a typical PR clears it in ${worstTail.medianWd} wd `
+          + `while a minority take far longer and drag the average to ${worstTail.meanWd} wd.`
+        : '')
+    + ` "Best quartile" is the pace already achieved on the fastest 25% of your own PRs, so <b>recoverable `
+    + `(${recover} wd)</b> is realistic headroom rather than an aspirational target.`,
+    bar + stageTbl);
+
+  /* --- action worklist --- */
+  const divs = [...new Set(d.work.map(w => w.division))].sort();
+  const gates = [...new Set(d.work.map(w => w.gate))].sort();
+  const tools = `<div class="jbTools">
+      <input id="jbQ" type="search" placeholder="Search PR #, name, holder, project…" oninput="jbWorkRender()">
+      <select id="jbFlag" onchange="jbWorkRender()">
+        <option value="">All ages</option><option value="Critical">Critical (&gt;20 wd)</option>
+        <option value="Watch">Watch (${JB_TARGET_WD + 1}–20 wd)</option><option value="On track">On track (≤${JB_TARGET_WD} wd)</option></select>
+      <select id="jbDiv" onchange="jbWorkRender()"><option value="">All divisions</option>
+        ${divs.map(x => `<option>${escapeHtml(x)}</option>`).join('')}</select>
+      <select id="jbGate" onchange="jbWorkRender()"><option value="">All gates</option>
+        ${gates.map(x => `<option>${escapeHtml(x)}</option>`).join('')}</select>
+      <select id="jbType" onchange="jbWorkRender()"><option value="">PR + CPR</option><option>PR</option><option>CPR</option></select>
+      <div class="jbSpacer"></div>
+      <button class="jbBtn" onclick="exportJourneyExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+      <button class="jbBtn" onclick="exportJourneyPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+    </div>`;
+
+  const worklist = _anPanel('fa-list-check', '#0F2A6B', 'Action worklist — every live item',
+    'The board tells you which stage is slow; this tells you which PRs, on whose desk, and for how much. '
+    + 'Sort by any column, filter, then export.',
+    tools + `<div class="jbScroll" id="jbWorkHost"></div><div class="jbCount" id="jbWorkCount"></div>`);
+
+  host.innerHTML = JB_DETAIL_CSS + findings + timeGoes + worklist;
+  window.__jbSort = { key: 'ageWd', dir: -1 };
+  jbWorkRender();
+}
+
+const JB_COLS = [
+  { k: 'number',   h: 'PR #' },
+  { k: 'type',     h: 'Type' },
+  { k: 'name',     h: 'Description' },
+  { k: 'division', h: 'Division' },
+  { k: 'project',  h: 'Project' },
+  { k: 'gate',     h: 'Gate' },
+  { k: 'holder',   h: 'Pending with' },
+  { k: 'ageWd',    h: 'r:Age (wd)' },
+  { k: 'dwellDays',h: 'r:Dwell (d)' },
+  { k: 'amount',   h: 'r:Amount' },
+  { k: 'flag',     h: 'Status' }
+];
+
+function jbWorkFiltered(){
+  const d = window.__jbDetail;
+  if(!d) return [];
+  const g = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+  const q = g('jbQ').trim().toLowerCase(), flag = g('jbFlag'), div = g('jbDiv'),
+        gate = g('jbGate'), type = g('jbType');
+  let rows = d.work.filter(w =>
+    (!flag || w.flag === flag) && (!div || w.division === div) &&
+    (!gate || w.gate === gate) && (!type || w.type === type) &&
+    (!q || (w.number + ' ' + w.name + ' ' + w.holder + ' ' + w.project + ' ' + w.step).toLowerCase().includes(q)));
+  const s = window.__jbSort || { key: 'ageWd', dir: -1 };
+  return rows.sort((a, b) => {
+    const x = a[s.key], y = b[s.key];
+    if(typeof x === 'number' && typeof y === 'number') return (x - y) * s.dir;
+    return String(x).localeCompare(String(y)) * s.dir;
+  });
+}
+
+function jbWorkSort(key){
+  const s = window.__jbSort || {};
+  window.__jbSort = { key: key, dir: s.key === key ? -s.dir : (key === 'ageWd' || key === 'amount' || key === 'dwellDays' ? -1 : 1) };
+  jbWorkRender();
+}
+
+const JB_PAGE = 150;
+function jbWorkRender(){
+  const host = document.getElementById('jbWorkHost');
+  if(!host) return;
+  const rows = jbWorkFiltered();
+  const s = window.__jbSort || {};
+  const arrow = k => s.key === k ? (s.dir === 1 ? ' ▲' : ' ▼') : '';
+  const shown = rows.slice(0, window.__jbLimit || JB_PAGE);
+
+  const head = JB_COLS.map(c => {
+    const r = /^r:/.test(c.h);
+    return `<th class="sortable${r ? ' r' : ''}" onclick="jbWorkSort('${c.k}')">${c.h.replace(/^r:/, '')}${arrow(c.k)}</th>`;
+  }).join('');
+
+  host.innerHTML = shown.length
+    ? `<table class="anTbl"><tr>${head}</tr>` + shown.map(w => `<tr>
+        <td><b>${escapeHtml(w.number)}</b></td>
+        <td>${escapeHtml(w.type)}</td>
+        <td title="${escapeHtml(w.name)}">${escapeHtml(w.name.length > 46 ? w.name.slice(0, 46) + '…' : w.name)}</td>
+        <td>${escapeHtml(w.division)}</td>
+        <td>${escapeHtml(w.project)}</td>
+        <td>${escapeHtml(w.gate)}</td>
+        <td>${escapeHtml(w.holder)}</td>
+        <td class="r"><b>${w.ageWd}</b></td>
+        <td class="r">${w.dwellDays}</td>
+        <td class="r">${_anMoney(w.amount)}</td>
+        <td><span class="jbTag ${w.flag === 'On track' ? 'ontrack' : w.flag}">${escapeHtml(w.flag)}</span></td>
+      </tr>`).join('') + `</table>`
+    : `<div style="color:#8a99b3;font-size:12px;padding:14px">No items match these filters.</div>`;
+
+  const total = (window.__jbDetail || { work: [] }).work.length;
+  const val = rows.reduce((a, w) => a + w.amount, 0);
+  const c = document.getElementById('jbWorkCount');
+  if(c) c.innerHTML = `Showing <b>${shown.length.toLocaleString()}</b> of <b>${rows.length.toLocaleString()}</b> matching `
+    + `(${total.toLocaleString()} live in total) · <b>${_anMoney(val)}</b> in view`
+    + (rows.length > shown.length
+        ? ` · <a href="javascript:void(0)" onclick="window.__jbLimit=${shown.length + JB_PAGE};jbWorkRender()">show ${Math.min(JB_PAGE, rows.length - shown.length)} more</a>`
+        : '');
+}
+
+/* -------------------------------------------------------------- exports */
+function exportJourneyExcel(){
+  try{
+    const jb = window.__jbData, d = window.__jbDetail;
+    if(!jb || !d) return alert('Journey data not ready yet.');
+    const wb = XLSX.utils.book_new();
+    const add = (name, aoa) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), name);
+
+    add('Summary', [
+      ['PR → PO Journey', ''], ['Generated', fmtDateTime(TODAY)],
+      ['Target (raised → goods)', JB_TARGET_WD + ' wd'], [],
+      ['Completed journeys (n)', jb.headline.completed],
+      ['Median raised → LPO sent', jb.headline.lpoMedianWd],
+      ['Median raised → PO created', jb.headline.poCreatedMedianWd],
+      ['P90', jb.headline.p90Wd], ['% within target', jb.headline.within10Pct], [],
+      ['Live items now', jb.live.count], ['Live median age (wd)', jb.live.medianAgeWd],
+      ['Live % within target', jb.live.within10Pct], ['Live over 20 wd', jb.live.over20Count], [],
+      ['Deepest queue', jb.pitWall.deepestQueue.gate],
+      ['  items', jb.pitWall.deepestQueue.count],
+      ['  median dwell (days)', jb.pitWall.deepestQueue.medianDays],
+      ['Slowest project', jb.pitWall.slowestProject.name],
+      ['Legacy items (>' + JB_LEGACY_DAYS + 'd old)', jb.pitWall.legacy.count]
+    ]);
+
+    add('Findings', [['Severity', 'Finding', 'Detail']].concat(
+      d.findings.map(f => [f.sev, f.title, String(f.text).replace(/<[^>]+>/g, '')])));
+
+    add('Where the time goes', [['Leg', 'Median (wd)', 'Mean (wd)', 'Share of mean %', 'P90 (wd)',
+      'Tail (mean/median)', 'Best quartile (wd)', 'Recoverable (wd)',
+      'Slowest lane', 'Slowest (wd)', 'Fastest lane', 'Fastest (wd)', 'n']].concat(
+      d.stages.map(s => [s.label, s.medianWd, s.meanWd, s.sharePct, s.p90Wd, s.tailRatio,
+        s.bestQuartileWd, s.recoverableWd, s.worstLane, s.worstLaneWd, s.bestLane, s.bestLaneWd, s.n]))
+      .concat([[], ['Note', 'Leg medians do not sum to the end-to-end median; means do. Share % is of mean time.']]));
+
+    const rows = jbWorkFiltered();
+    add('Action worklist', [['PR #', 'Type', 'Description', 'Division', 'Department', 'Project',
+      'Gate', 'Step', 'Pending with', 'Age (wd)', 'Dwell (days)', 'Amount', 'Status']].concat(
+      rows.map(w => [w.number, w.type, w.name, w.division, w.department, w.project,
+        w.gate, w.step, w.holder, w.ageWd, w.dwellDays, w.amount, w.flag])));
+
+    add('Lanes', [['Lane', 'Division', 'Type', 'Completed n', 'Median (wd)', 'P90 (wd)',
+      '% within target', 'Live count', 'Live median age (wd)',
+      'Raised→Submitted', 'Submitted→PO', 'PO→LPO']].concat(
+      jb.lanes.filter(l => l.n).map(l => [l.label, l.division, l.type, l.n, l.medianWd, l.p90Wd,
+        l.within10Pct, l.liveCount, l.liveMedianAgeWd,
+        l.sectors.raisedToSubmitted, l.sectors.submittedToPo, l.sectors.poToLpo])));
+
+    add('Gate queues', [['Gate', 'Items', 'Median dwell (days)', 'Top desks']].concat(
+      jb.queues.map(q => [q.gate, q.count, q.medianDays,
+        q.holders.map(h => h.name + ' (' + h.count + ')').join(', ')])));
+
+    add('Weekly trend', [['Week starting', 'Label', 'Median (wd)', 'Completed n', 'Partial']].concat(
+      jb.trend.map(t => [t.weekStart, t.label, t.medianWd, t.n, t.partial ? 'yes' : ''])));
+
+    XLSX.writeFile(wb, 'PR_PO_Journey_' + TODAY.toISOString().slice(0, 10) + '.xlsx');
+  }catch(e){ console.error('[journey] excel export failed', e); alert('Excel export failed: ' + e.message); }
+}
+
+function exportJourneyPDF(){
+  try{
+    const jb = window.__jbData, d = window.__jbDetail;
+    if(!jb || !d) return alert('Journey data not ready yet.');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const W = pdf.internal.pageSize.getWidth(), H = pdf.internal.pageSize.getHeight();
+    const M = 14;
+    let y = M;
+    const nl = (h) => { y += h; if(y > H - M){ pdf.addPage(); y = M; } };
+    const txt = (s, x, size, style, col) => {
+      pdf.setFontSize(size || 10);
+      pdf.setFont('helvetica', style || 'normal');
+      pdf.setTextColor.apply(pdf, col || [22, 35, 58]);
+      pdf.text(String(s), x, y);
+    };
+
+    pdf.setFillColor(15, 42, 107); pdf.rect(0, 0, W, 24, 'F');
+    pdf.setTextColor(255, 255, 255); pdf.setFontSize(15); pdf.setFont('helvetica', 'bold');
+    pdf.text('PR → PO Journey', M, 11);
+    pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
+    pdf.text('Strive Services Group · generated ' + fmtDateTime(TODAY), M, 18);
+    y = 34;
+
+    txt('Headline', M, 12, 'bold'); nl(6);
+    [['Median raised → LPO sent', jb.headline.lpoMedianWd + ' wd  (target ' + JB_TARGET_WD + ' wd)'],
+     ['Completed journeys', jb.headline.completed.toLocaleString() + '   ·   P90 ' + jb.headline.p90Wd + ' wd   ·   ' + jb.headline.within10Pct + '% within target'],
+     ['Live items now', jb.live.count.toLocaleString() + '   ·   median age ' + jb.live.medianAgeWd + ' wd   ·   ' + jb.live.over20Count + ' past 20 wd'],
+     ['Deepest queue', jb.pitWall.deepestQueue.gate + ' — ' + jb.pitWall.deepestQueue.count + ' PRs, ' + jb.pitWall.deepestQueue.medianDays + 'd median dwell']
+    ].forEach(([k, v]) => { txt(k, M, 9, 'bold', [90, 107, 133]); txt(v, M + 52, 9); nl(5.6); });
+
+    nl(4); txt('Where the time goes', M, 12, 'bold'); nl(6);
+    txt('Leg', M, 8, 'bold', [90, 107, 133]); txt('Median', M + 58, 8, 'bold', [90, 107, 133]);
+    txt('Mean', M + 76, 8, 'bold', [90, 107, 133]); txt('Share', M + 93, 8, 'bold', [90, 107, 133]);
+    txt('Best q.', M + 109, 8, 'bold', [90, 107, 133]);
+    txt('Recoverable', M + 130, 8, 'bold', [90, 107, 133]); nl(4.5);
+    d.stages.forEach(s => {
+      txt(s.label, M, 9); txt(s.medianWd + ' wd', M + 58, 9); txt(s.meanWd + ' wd', M + 76, 9);
+      txt(s.sharePct + '%', M + 93, 9); txt(s.bestQuartileWd + ' wd', M + 109, 9);
+      txt(s.recoverableWd > 0 ? '-' + s.recoverableWd + ' wd' : '-', M + 130, 9,
+          'bold', s.recoverableWd > 0 ? [200, 30, 30] : [120, 130, 145]);
+      nl(5.4);
+    });
+    nl(1);
+    pdf.setFontSize(7.6); pdf.setFont('helvetica', 'italic'); pdf.setTextColor(120, 130, 145);
+    pdf.text('Leg medians do not sum to the end-to-end median; means do. Share % is of mean time.', M, y);
+    nl(5);
+
+    nl(4); txt('What the numbers are telling you', M, 12, 'bold'); nl(6);
+    d.findings.forEach(f => {
+      const plain = String(f.text).replace(/<[^>]+>/g, '');
+      txt('• ' + f.title, M, 9.5, 'bold'); nl(4.6);
+      pdf.setFontSize(8.6); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(60, 72, 92);
+      pdf.splitTextToSize(plain, W - M * 2 - 4).forEach(line => { pdf.text(line, M + 4, y); nl(4.1); });
+      nl(1.6);
+    });
+
+    const rows = jbWorkFiltered().slice(0, 40);
+    pdf.addPage(); y = M;
+    txt('Action worklist — oldest 40 of ' + jbWorkFiltered().length.toLocaleString(), M, 12, 'bold'); nl(7);
+    const cols = [['PR #', M], ['Division', M + 26], ['Gate', M + 62], ['Pending with', M + 100],
+                  ['Age', M + 140], ['Amount', M + 154]];
+    cols.forEach(([h, x]) => { txt(h, x, 8, 'bold', [90, 107, 133]); }); nl(4.5);
+    pdf.setDrawColor(220, 228, 240); pdf.line(M, y - 2, W - M, y - 2);
+    rows.forEach(w => {
+      const cut = (s, n) => String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s);
+      txt(cut(w.number, 14), M, 8);
+      txt(cut(w.division, 20), M + 26, 8);
+      txt(cut(w.gate, 21), M + 62, 8);
+      txt(cut(w.holder, 22), M + 100, 8);
+      txt(w.ageWd, M + 140, 8, 'bold', w.ageWd > 20 ? [200, 30, 30] : [22, 35, 58]);
+      txt(Math.round(w.amount).toLocaleString('en-US'), M + 154, 8);
+      nl(4.7);
+    });
+
+    pdf.save('PR_PO_Journey_' + TODAY.toISOString().slice(0, 10) + '.pdf');
+  }catch(e){ console.error('[journey] pdf export failed', e); alert('PDF export failed: ' + e.message); }
 }
 
 /* ====================== SUB-TAB SHELL (nav + iframes) ====================== */
@@ -1335,7 +1832,7 @@ const JB_SUB_CSS = `<style>
   border:1px solid #d8e0ec;border-radius:12px;overflow:hidden;background:#0B1B2E;
   box-shadow:0 6px 22px rgba(15,42,107,.18)}
 #analysisSection .jbFrameWrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-#analysisSection .jbHint{margin:8px 2px 0;font-size:11.5px;color:#8a99b3}
+#analysisSection .jbHint{margin:8px 2px 14px;font-size:11.5px;color:#8a99b3}
 </style>`;
 
 const JB_SUB_NAV = `
@@ -1351,7 +1848,8 @@ const JB_SUB_NAV = `
 const JB_SUB_PANES = `
 <div class="anSubPane" id="anSubBoard">
   <div class="jbFrameWrap"><iframe id="jbBoardFrame" title="PR to PO Journey Board" src="about:blank"></iframe></div>
-  <div class="jbHint">Cycle-time view of the completed cohort. Click any lane to drill into projects, departments, holders and the oldest items on track.</div>
+  <div class="jbHint">Cycle-time view of the completed cohort. Click any lane on the board to drill into projects, departments, holders and the oldest items on track.</div>
+  <div id="jbDetail"></div>
 </div>
 <div class="anSubPane" id="anSubLive">
   <div class="jbFrameWrap"><iframe id="jbLiveFrame" title="Live Race and Queues" src="about:blank"></iframe></div>
@@ -1361,6 +1859,7 @@ const JB_SUB_PANES = `
 const JB_FRAMES = { board: { id: 'jbBoardFrame', src: 'journey-board.html' },
                     live : { id: 'jbLiveFrame',  src: 'journey-live.html'  } };
 window.__jbData = null;
+window.__jbDetail = null;
 window.__jbLoaded = { board: false, live: false };
 
 function _jbPush(which){
@@ -1383,7 +1882,6 @@ function showAnalysisSub(which, btn){
   if(pane) pane.classList.add('on');
   if(which === 'current') return;
 
-  /* lazy-load the iframe the first time this sub-tab is opened */
   const cfg = JB_FRAMES[which];
   const f = document.getElementById(cfg.id);
   if(f && !window.__jbLoaded[which]){
@@ -1391,11 +1889,10 @@ function showAnalysisSub(which, btn){
     f.addEventListener('load', () => _jbPush(which));
     f.src = cfg.src;
   } else {
-    _jbPush(which);       /* already loaded — refresh with the latest numbers */
+    _jbPush(which);
   }
 }
 
-/* a frame telling us it is parsed and listening, or asking to switch sub-tab */
 addEventListener('message', function(ev){
   const d = ev.data;
   if(!d || typeof d !== 'object') return;
@@ -1407,11 +1904,19 @@ addEventListener('message', function(ev){
 });
 
 /* Called at the end of renderAnalysis(). Recomputes the journey dataset from
-   the current PR_DATA / PO_DATA and re-pushes it to any mounted frame. */
+   the current PR_DATA / PO_DATA and re-renders the detail layer. */
 function initAnalysisSubTabs(){
   window.__jbLoaded = { board: false, live: false };
-  try{ window.__jbData = buildJourneyData(); }
-  catch(e){ console.error('[journey] buildJourneyData failed', e); window.__jbData = null; }
+  window.__jbLimit = JB_PAGE;
+  try{
+    window.__jbData = buildJourneyData();
+    window.__jbDetail = buildJourneyDetail(window.__jbData);
+  }catch(e){
+    console.error('[journey] buildJourneyData failed', e);
+    window.__jbData = null; window.__jbDetail = null;
+  }
+  try{ renderJourneyDetail(); }
+  catch(e){ console.error('[journey] renderJourneyDetail failed', e); }
 }
 
 function renderAnalysis(){
