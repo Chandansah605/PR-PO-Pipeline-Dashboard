@@ -887,6 +887,533 @@ function _anTbl(head,rows,empty){ if(!rows.length) return `<div style="color:#8a
 function _anPanel(ic,col,title,note,inner,style){ return `<div class="anPanel" style="${style||''}"><h3><span class="hIc" style="background:${col}"><i class="fa-solid ${ic}"></i></span>${title}</h3>${note?`<div class="note">${note}</div>`:''}${inner}</div>`; }
 function _anWaitOf(r,isPO){ if(isPO){ if(r.hdrBucket==='Sent to Supplier') return 'Supplier'; if(r.hdrBucket==='Pending Invoicing') return 'Finance'; }
   const rl=roleOf(r.pendingUser); return rl==='Procurement'?'Procurement':(rl?'Finance':'Operations'); }
+/* ==========================================================================
+   ANALYSIS SUB-TABS — Journey Board + Live Race
+   --------------------------------------------------------------------------
+   The two journey wallboards live in sibling files (journey-board.html /
+   journey-live.html) and are mounted in iframes so their fixed 1920x1080
+   layout and global CSS resets stay fully isolated from the dashboard.
+
+   Everything they display is computed HERE, from the dashboard's own
+   PR_DATA / PO_DATA / WEEKLY_SNAPSHOTS, and posted in as {__jbData:...}.
+   ========================================================================== */
+
+const JB_TARGET_WD = 10;          // raised -> goods received target (working days)
+const JB_INVOICE_TARGET_D = 30;   // goods -> invoice target (calendar days)
+const JB_LPO_STEP = 'LPO sent/shared with supplier';
+
+/* Dashboard step-buckets -> the 6 gate names the journey rail knows about */
+const JB_GATE_MAP = {
+  'PR In Review'            : 'PR Review',
+  'Procurement (in process)': 'PR Review',
+  'Re-Assigned/Rejected'    : 'PR Review',
+  'RFQ to suppliers'        : 'RFQ to Suppliers',
+  'Qt received & Logged'    : 'Quotation Received',
+  'Qt Shared to Op'         : 'Ops Confirmation',
+  'OP confirms material'    : 'Ops Confirmation',
+  'Operations to Confirm'   : 'Ops Confirmation',
+  'Unit Price Updated'      : 'Prices Updated',
+  'Dep Managers'            : 'Mgmt Approvals',
+  'Finance'                 : 'Mgmt Approvals',
+  'Director'                : 'Mgmt Approvals',
+  'CEO'                     : 'Mgmt Approvals',
+  'Procurement'             : 'PR Review'
+};
+
+/* ---------------------------------------------------------------- helpers */
+function _jbWd(a, b){                       /* working days (Mon-Fri) between */
+  if(!a || !b) return null;
+  const d0 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const d1 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  if(d1 <= d0) return 0;
+  const days = Math.round((d1 - d0) / 86400000);
+  const sw = new Date(d0).getUTCDay();
+  let extra = 0;
+  for(let i = 1; i <= days % 7; i++){ const w = (sw + i) % 7; if(w !== 0 && w !== 6) extra++; }
+  return Math.floor(days / 7) * 5 + extra;
+}
+function _jbMed(a){
+  const s = a.filter(v => v != null).sort((x, y) => x - y);
+  if(!s.length) return null;
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+function _jbP(a, p){
+  const s = a.filter(v => v != null).sort((x, y) => x - y);
+  if(!s.length) return null;
+  return s[Math.min(s.length - 1, Math.max(0, Math.ceil(p / 100 * s.length) - 1))];
+}
+function _jbPct(arr, max){
+  const v = arr.filter(x => x != null);
+  return v.length ? +(v.filter(x => x <= max).length / v.length * 100).toFixed(1) : 0;
+}
+function _jbR(v, d){ return v == null ? (d === undefined ? null : d) : +Number(v).toFixed(1); }
+function _jbAbbr(name){
+  const stop = { of:1, and:1, the:1, services:0 };
+  const w = String(name || '').split(/[\s&/-]+/).filter(Boolean);
+  if(!w.length) return '—';
+  let a = w.filter(x => !stop[x.toLowerCase()]).map(x => x[0]).join('').toUpperCase();
+  if(a.length < 2) a = String(name).slice(0, 3).toUpperCase();
+  return a.slice(0, 4);
+}
+function _jbDayKey(d){ return d ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : ''; }
+function _jbWeekMon(d){                     /* Monday of that date's week */
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+const _JB_MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+/* ------------------------------------------------------------ the builder */
+function buildJourneyData(){
+  const PRR = buildPRRecords(PR_DATA), POR = buildPORecords(PO_DATA);
+  const alive  = r => !['Rejected', 'Cancelled'].includes(r.status);
+  const prAll  = PRR.filter(alive);
+  const prLive = PRR.filter(r => !r._isClosed && !r._isUnmapped && alive(r));
+
+  /* --- link POs back to their PR --- */
+  const poByPR = {};
+  POR.forEach(p => {
+    if(p._isPORejected || p._isPOCanceled) return;
+    const k = String(p.linkedPR || '').trim();
+    if(k) (poByPR[k] = poByPR[k] || []).push(p);
+  });
+
+  /* --- completed cohort: PRs that reached a PO, with their milestones --- */
+  const jr = [];
+  prAll.forEach(r => {
+    const raised = r.createdDate;
+    if(!raised) return;
+    const pos = poByPR[String(r.docNumber || '').trim()];
+    if(!pos || !pos.length) return;
+    let poCreated = null, lpo = null;
+    pos.forEach(p => {
+      if(p.createdDate && (!poCreated || p.createdDate < poCreated)) poCreated = p.createdDate;
+      const sent = String(p.subBucket || '') === JB_LPO_STEP ||
+                   ['Received', 'Invoiced'].includes(String(p.poStatus || ''));
+      if(sent && p.stepDate && (!lpo || p.stepDate < lpo)) lpo = p.stepDate;
+    });
+    if(!poCreated) return;
+    const wPo = _jbWd(raised, poCreated), wLpo = _jbWd(raised, lpo);
+    jr.push({
+      division: r.deptGroup, type: r.prType === 'CPR' ? 'CPR' : 'PR',
+      project: r.project || '—', department: r.department || '—',
+      wSub: _jbWd(raised, parseDate(r.raw['Submitted date'])),
+      wPo: wPo, wLpo: wLpo, tot: wLpo != null ? wLpo : wPo,
+      poCreated: poCreated, raised: raised
+    });
+  });
+
+  /* --- headline: the completed-cohort cycle time --- */
+  const totAll = jr.map(x => x.tot);
+  const headline = {
+    completed        : jr.length,
+    submittedMedianWd: _jbR(_jbMed(jr.map(x => x.wSub)), 0),
+    poCreatedMedianWd: _jbR(_jbMed(jr.map(x => x.wPo)), 0),
+    lpoMedianWd      : _jbR(_jbMed(jr.map(x => x.wLpo)), 0),
+    p90Wd            : _jbR(_jbP(totAll, 90), 0),
+    within10Pct      : _jbPct(totAll, JB_TARGET_WD)
+  };
+
+  /* --- live pipeline --- */
+  const ageOf = r => _jbWd(r.createdDate, TODAY);
+  const liveAges = prLive.map(ageOf);
+  const snap = _jbSnapshotDeltas();
+  const medAge = _jbR(_jbMed(liveAges), 0), within = _jbPct(liveAges, JB_TARGET_WD);
+
+  const todayK = _jbDayKey(TODAY);
+  const yK = new Date(TODAY); yK.setDate(yK.getDate() - 1);
+  const yesterK = _jbDayKey(yK);
+  const raisedOn   = k => prAll.filter(r => _jbDayKey(r.createdDate) === k).length;
+  const finishedOn = k => jr.filter(x => _jbDayKey(x.poCreated) === k).length;
+
+  const live = {
+    count          : prLive.length,
+    countDelta     : snap ? prLive.length - snap.count : null,
+    within10Pct    : within,
+    within10Delta  : snap ? _jbR(within - snap.within) : null,
+    medianAgeWd    : medAge,
+    medianAgeDelta : snap ? _jbR(medAge - snap.med) : null,
+    over20Count    : liveAges.filter(v => v != null && v > 20).length,
+    finishedToday  : finishedOn(todayK),
+    raisedToday    : raisedOn(todayK),
+    oldest         : _jbOldest(prLive, 10)
+  };
+
+  /* --- lanes: division x type, top 5 by completed volume --- */
+  const laneOf = r => r.deptGroup + '|' + (r.prType === 'CPR' ? 'CPR' : 'PR');
+  const grp = {}, liveByLane = {};
+  jr.forEach(x => { const k = x.division + '|' + x.type; (grp[k] = grp[k] || []).push(x); });
+  prLive.forEach(r => { const k = laneOf(r); (liveByLane[k] = liveByLane[k] || []).push(r); });
+
+  let lanes = Object.keys(grp).map(k => {
+    const rows = grp[k], lv = liveByLane[k] || [];
+    const [division, type] = k.split('|');
+    const sub = _jbR(_jbMed(rows.map(x => x.wSub)), 0);
+    const po  = _jbR(_jbMed(rows.map(x => x.wPo)), 0);
+    const lpoM = _jbMed(rows.map(x => x.wLpo));
+    const lpo = _jbR(lpoM == null ? po : lpoM, 0);
+    const tots = rows.map(x => x.tot);
+    return {
+      id: k.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      label: _jbAbbr(division) + ' · ' + type,
+      division: division, type: type,
+      medianWd: lpo, p90Wd: _jbR(_jbP(tots, 90), 0), n: rows.length,
+      within10Pct: _jbPct(tots, JB_TARGET_WD),
+      cumulative: { submitted: sub, poCreated: po, lpoSent: lpo },
+      sectors: {
+        raisedToSubmitted: sub,
+        submittedToPo: _jbR(Math.max(0, po - sub), 0),
+        poToLpo: _jbR(Math.max(0, lpo - po), 0)
+      },
+      liveCount: lv.length,
+      liveMedianAgeWd: _jbR(_jbMed(lv.map(ageOf)), 0),
+      drill: _jbDrill(rows, lv)
+    };
+  }).sort((a, b) => b.n - a.n).slice(0, 5);
+
+  /* the board's circuit renderer expects exactly 5 lanes */
+  while(lanes.length < 5) lanes.push(_jbEmptyLane(lanes.length));
+  lanes.forEach((l, i) => l.position = i + 1);
+
+  /* --- gate queues over the live pipeline --- */
+  const queues = _jbQueues(prLive);
+
+  /* --- pit wall --- */
+  /* NB: `sector` must be the sector KEY — the board looks it up in a
+     {raisedToSubmitted|submittedToPo|poToLpo} -> display-name map. */
+  let worst = { lane: '—', sector: 'submittedToPo', medianWd: 0 };
+  lanes.forEach(l => {
+    ['raisedToSubmitted', 'submittedToPo', 'poToLpo'].forEach(key => {
+      const v = l.sectors[key];
+      if(v > worst.medianWd) worst = { lane: l.label, sector: key, medianWd: v };
+    });
+  });
+  const projAgg = {};
+  jr.forEach(x => (projAgg[x.project] = projAgg[x.project] || []).push(x.tot));
+  const slowestProject = Object.keys(projAgg)
+    .filter(k => k !== '—' && projAgg[k].length >= 3)
+    .map(k => ({ name: k, medianWd: _jbR(_jbMed(projAgg[k]), 0), n: projAgg[k].length }))
+    .sort((a, b) => b.medianWd - a.medianWd)[0] || { name: '—', medianWd: 0, n: 0 };
+
+  const legacyCut = new Date(TODAY); legacyCut.setDate(legacyCut.getDate() - 90);
+  const pitWall = {
+    slowestGate  : worst,
+    deepestQueue : queues[0] || { gate: '—', count: 0, medianDays: 0, holders: [], oldest: [] },
+    slowestProject: slowestProject,
+    slowestLane  : lanes.slice().sort((a, b) => b.medianWd - a.medianWd)[0] || null,
+    legacy       : {
+      count: prLive.filter(r => r.createdDate && r.createdDate < legacyCut).length,
+      title: 'Legacy backlog',
+      text : 'Live items raised more than 90 days ago'
+    }
+  };
+
+  /* --- page two aggregates --- */
+  const pageTwo = {
+    types            : ['CPR', 'PR'].map(t => _jbTypeAgg(t, prLive, jr, snap, ageOf)),
+    divisions        : _jbDivisions(prLive, snap, ageOf),
+    queues           : { CPR: _jbQueues(prLive.filter(r => r.prType === 'CPR')).slice(0, 5),
+                         PR : _jbQueues(prLive.filter(r => r.prType !== 'CPR')).slice(0, 5) },
+    holders          : { CPR: _jbHolders(prLive.filter(r => r.prType === 'CPR'), 4),
+                         PR : _jbHolders(prLive.filter(r => r.prType !== 'CPR'), 4) },
+    oldest           : { CPR: _jbOldest(prLive.filter(r => r.prType === 'CPR'), 3),
+                         PR : _jbOldest(prLive.filter(r => r.prType !== 'CPR'), 3) },
+    finishedYesterday: finishedOn(yesterK),
+    raisedYesterday  : raisedOn(yesterK)
+  };
+
+  /* --- 9-week trend of completed cycle time --- */
+  const trend = _jbTrend(jr);
+  const complete = trend.filter(t => !t.partial && t.medianWd != null);
+  const trendDeltaWd = complete.length >= 2
+    ? _jbR(complete[complete.length - 1].medianWd - complete[complete.length - 2].medianWd) : 0;
+
+  const windowStart = jr.length
+    ? new Date(Math.min.apply(null, jr.map(x => x.raised.getTime()))) : TODAY;
+
+  return {
+    meta: {
+      schema: 'pr-po-journey/2',
+      asOf: TODAY.toISOString(),
+      asOfTimestamp: TODAY.toISOString(),
+      generatedAt: TODAY.toISOString(),
+      windowStart: _jbDayKey(windowStart),
+      prRows: PR_DATA.length, poRows: PO_DATA.length,
+      eligiblePrs: jr.length,
+      missingTerminalTimestamp: true,
+      excluded: { rejectedOrCancelled: PRR.length - prAll.length, unmapped: PRR.filter(r => r._isUnmapped).length },
+      source: 'live dashboard data'
+    },
+    headline: headline,
+    targets : { raisedToGoodsWd: JB_TARGET_WD, goodsToInvoiceDays: JB_INVOICE_TARGET_D },
+    trend: trend,
+    trendDeltaWd: trendDeltaWd,
+    live: live,
+    lanes: lanes,
+    queues: queues,
+    pageTwo: pageTwo,
+    pitWall: pitWall
+  };
+}
+
+/* ------------------------------------------------------------- sub-builders */
+function _jbEmptyLane(i){
+  return {
+    id: 'empty-' + i, label: '—', division: '—', type: 'PR',
+    medianWd: 0, p90Wd: 0, n: 0, within10Pct: 0,
+    cumulative: { submitted: 0, poCreated: 0, lpoSent: 0 },
+    sectors: { raisedToSubmitted: 0, submittedToPo: 0, poToLpo: 0 },
+    liveCount: 0, liveMedianAgeWd: 0,
+    drill: { projects: [], departments: [], holders: [], oldest: [] }
+  };
+}
+
+function _jbDrill(rows, lv){
+  const roll = key => {
+    const o = {};
+    rows.forEach(x => (o[x[key]] = o[x[key]] || []).push(x.tot));
+    return Object.keys(o).filter(k => k && k !== '—')
+      .map(k => ({ name: k, medianWd: _jbR(_jbMed(o[k]), 0), n: o[k].length }))
+      .sort((a, b) => b.medianWd - a.medianWd).slice(0, 6);
+  };
+  return {
+    projects: roll('project'),
+    departments: roll('department'),
+    holders: _jbHolders(lv, 6),
+    oldest: _jbOldest(lv, 6)
+  };
+}
+
+function _jbHolders(recs, n){
+  const o = {};
+  recs.forEach(r => (o[r.pendingUser || '—'] = o[r.pendingUser || '—'] || []).push(r));
+  return Object.keys(o).map(k => ({
+    name: k,
+    count: o[k].length,
+    medianAgeWd: _jbR(_jbMed(o[k].map(r => _jbWd(r.createdDate, TODAY))), 0),
+    medianDays : _jbR(_jbMed(o[k].map(r => r.aging)), 0)
+  })).sort((a, b) => b.count - a.count).slice(0, n);
+}
+
+function _jbOldest(recs, n){
+  return recs.map(r => ({
+    number: r.docNumber || '—',
+    name: r.name || '',
+    department: r.department || '—',
+    project: r.project || '—',
+    holder: r.pendingUser || '—',
+    step: r.subBucket || '—',
+    amount: r.amount || 0,
+    ageWd: _jbWd(r.createdDate, TODAY) || 0,
+    dwellDays: r.aging == null ? null : r.aging
+  })).sort((a, b) => b.ageWd - a.ageWd).slice(0, n);
+}
+
+function _jbQueues(recs){
+  const o = {};
+  recs.forEach(r => {
+    const g = JB_GATE_MAP[r.dispBucket] || JB_GATE_MAP[r.bucket] ||
+              JB_GATE_MAP[r.hdrBucket] || 'Mgmt Approvals';
+    (o[g] = o[g] || []).push(r);
+  });
+  return Object.keys(o).map(g => ({
+    gate: g,
+    count: o[g].length,
+    medianDays: _jbR(_jbMed(o[g].map(r => r.aging)), 0),
+    holders: _jbHolders(o[g], 4),
+    oldest : _jbOldest(o[g], 3)
+  })).sort((a, b) => b.count - a.count);
+}
+
+function _jbTypeAgg(t, prLive, jr, snap, ageOf){
+  const lv = prLive.filter(r => (r.prType === 'CPR' ? 'CPR' : 'PR') === t);
+  const cm = jr.filter(x => x.type === t);
+  const ages = lv.map(ageOf);
+  const after = cm.filter(x => x.wLpo != null && x.wPo != null).map(x => Math.max(0, x.wLpo - x.wPo));
+  const snapT = snap && snap.byType ? snap.byType[t] : null;
+  const within = _jbPct(ages, JB_TARGET_WD), med = _jbR(_jbMed(ages), 0);
+  return {
+    type: t, count: lv.length,
+    within10Pct: within, medianAgeWd: med,
+    buckets: _jbBuckets(ages),
+    countDelta    : snapT ? lv.length - snapT.count : null,
+    within10Delta : snapT ? _jbR(within - snapT.within) : null,
+    medianAgeDelta: snapT ? _jbR(med - snapT.med) : null,
+    completed: cm.length,
+    completedMedianWd: _jbR(_jbMed(cm.map(x => x.tot)), 0),
+    toPoMedianWd     : _jbR(_jbMed(cm.map(x => x.wPo)), 0),
+    afterPoMedianWd  : _jbR(_jbMed(after), 0),
+    afterPoP90Wd     : _jbR(_jbP(after, 90), 0)
+  };
+}
+
+function _jbBuckets(ages){
+  const b = [0, 0, 0, 0];
+  ages.forEach(a => {
+    if(a == null) return;
+    if(a <= 5) b[0]++; else if(a <= 10) b[1]++; else if(a <= 20) b[2]++; else b[3]++;
+  });
+  return b;
+}
+
+function _jbDivisions(prLive, snap, ageOf){
+  const o = {};
+  prLive.forEach(r => (o[r.deptGroup] = o[r.deptGroup] || []).push(r));
+  return Object.keys(o).map(d => {
+    const ages = o[d].map(ageOf);
+    const sd = snap && snap.byDiv ? snap.byDiv[d] : null;
+    const within = _jbPct(ages, JB_TARGET_WD), med = _jbR(_jbMed(ages), 0);
+    return {
+      division: d, count: o[d].length,
+      within10Pct: within, medianAgeWd: med,
+      buckets: _jbBuckets(ages),
+      countDelta    : sd ? o[d].length - sd.count : null,
+      within10Delta : sd ? _jbR(within - sd.within) : null,
+      medianAgeDelta: sd ? _jbR(med - sd.med) : null
+    };
+  }).sort((a, b) => b.count - a.count).slice(0, 5);
+}
+
+function _jbTrend(jr){
+  const weeks = [];
+  const cur = _jbWeekMon(TODAY);
+  for(let i = 8; i >= 0; i--){
+    const s = new Date(cur); s.setDate(s.getDate() - i * 7);
+    const e = new Date(s);   e.setDate(e.getDate() + 7);
+    const v = jr.filter(x => x.poCreated >= s && x.poCreated < e).map(x => x.tot);
+    weeks.push({
+      label: String(s.getDate()).padStart(2, '0') + ' ' + _JB_MON[s.getMonth()],
+      weekStart: _jbDayKey(s),
+      medianWd: _jbR(_jbMed(v)),
+      n: v.length,
+      partial: i === 0
+    });
+  }
+  return weeks;
+}
+
+/* Week-over-week deltas from the weekly snapshot archive.
+   Rows are [doc, step, bucket, dept, project, status, created, aging, prType]. */
+function _jbSnapshotDeltas(){
+  try{
+    if(!WEEKLY_SNAPSHOTS || !WEEKLY_SNAPSHOTS.weeks) return null;
+    const keys = Object.keys(WEEKLY_SNAPSHOTS.weeks).sort();
+    if(keys.length < 1) return null;
+    const k = keys[keys.length - 1];
+    const rows = (WEEKLY_SNAPSHOTS.weeks[k] || {}).PR || [];
+    if(!rows.length) return null;
+    const asOf = parseDate(k) || TODAY;
+    const wd = r => _jbWd(parseDate(r[6]), asOf);
+    const all = rows.map(wd);
+    const out = { count: rows.length, med: _jbR(_jbMed(all), 0), within: _jbPct(all, JB_TARGET_WD), byType: {}, byDiv: {} };
+    const push = (bag, key, v) => (bag[key] = bag[key] || []).push(v);
+    const tBag = {}, dBag = {};
+    rows.forEach(r => { push(tBag, r[8] === 'CPR' ? 'CPR' : 'PR', wd(r)); push(dBag, r[3] || 'Others', wd(r)); });
+    const fin = (bag, dest) => Object.keys(bag).forEach(key => {
+      dest[key] = { count: bag[key].length, med: _jbR(_jbMed(bag[key]), 0), within: _jbPct(bag[key], JB_TARGET_WD) };
+    });
+    fin(tBag, out.byType); fin(dBag, out.byDiv);
+    return out;
+  }catch(e){ console.warn('[journey] snapshot deltas unavailable', e); return null; }
+}
+
+/* ====================== SUB-TAB SHELL (nav + iframes) ====================== */
+const JB_SUB_CSS = `<style>
+#analysisSection .anSubNav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;padding:6px;
+  background:#eef2f8;border:1px solid #d8e0ec;border-radius:10px}
+#analysisSection .anSubBtn{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;
+  padding:9px 16px;border:1px solid transparent;background:transparent;border-radius:7px;
+  cursor:pointer;font-size:12.5px;font-weight:700;letter-spacing:.3px;color:#5b6b85;
+  font-family:inherit;transition:all .15s}
+#analysisSection .anSubBtn:hover{background:#fff;color:#1e3a8a}
+#analysisSection .anSubBtn.on{background:linear-gradient(120deg,#0F2A6B,#2563eb);color:#fff;
+  border-color:#0F2A6B;box-shadow:0 2px 8px rgba(37,99,235,.28)}
+#analysisSection .anSubPane{display:none}
+#analysisSection .anSubPane.on{display:block;animation:anFade .25s ease both}
+#analysisSection .jbFrameWrap{position:relative;width:100%;aspect-ratio:16/9;min-height:520px;
+  border:1px solid #d8e0ec;border-radius:12px;overflow:hidden;background:#0B1B2E;
+  box-shadow:0 6px 22px rgba(15,42,107,.18)}
+#analysisSection .jbFrameWrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+#analysisSection .jbHint{margin:8px 2px 0;font-size:11.5px;color:#8a99b3}
+</style>`;
+
+const JB_SUB_NAV = `
+<div class="anSubNav" role="tablist">
+  <button class="anSubBtn on" data-sub="current" onclick="showAnalysisSub('current',this)">
+    <i class="fa-solid fa-magnifying-glass-chart"></i> Current Analysis</button>
+  <button class="anSubBtn" data-sub="board" onclick="showAnalysisSub('board',this)">
+    <i class="fa-solid fa-flag-checkered"></i> Journey Board</button>
+  <button class="anSubBtn" data-sub="live" onclick="showAnalysisSub('live',this)">
+    <i class="fa-solid fa-tower-broadcast"></i> Live Race &amp; Queues</button>
+</div>`;
+
+const JB_SUB_PANES = `
+<div class="anSubPane" id="anSubBoard">
+  <div class="jbFrameWrap"><iframe id="jbBoardFrame" title="PR to PO Journey Board" src="about:blank"></iframe></div>
+  <div class="jbHint">Cycle-time view of the completed cohort. Click any lane to drill into projects, departments, holders and the oldest items on track.</div>
+</div>
+<div class="anSubPane" id="anSubLive">
+  <div class="jbFrameWrap"><iframe id="jbLiveFrame" title="Live Race and Queues" src="about:blank"></iframe></div>
+  <div class="jbHint">Live pipeline: who is holding what right now, and which gate has the deepest queue.</div>
+</div>`;
+
+const JB_FRAMES = { board: { id: 'jbBoardFrame', src: 'journey-board.html' },
+                    live : { id: 'jbLiveFrame',  src: 'journey-live.html'  } };
+window.__jbData = null;
+window.__jbLoaded = { board: false, live: false };
+
+function _jbPush(which){
+  const f = document.getElementById(JB_FRAMES[which].id);
+  if(!f || !f.contentWindow || !window.__jbData) return;
+  try{ f.contentWindow.postMessage({ __jbData: window.__jbData }, '*'); }
+  catch(e){ console.warn('[journey] could not post data to ' + which, e); }
+}
+
+function showAnalysisSub(which, btn){
+  document.querySelectorAll('#analysisSection .anSubBtn').forEach(b => b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  else {
+    const t = document.querySelector('#analysisSection .anSubBtn[data-sub="' + which + '"]');
+    if(t) t.classList.add('on');
+  }
+  document.querySelectorAll('#analysisSection .anSubPane').forEach(p => p.classList.remove('on'));
+  const pane = document.getElementById(
+    which === 'current' ? 'anSubCurrent' : which === 'board' ? 'anSubBoard' : 'anSubLive');
+  if(pane) pane.classList.add('on');
+  if(which === 'current') return;
+
+  /* lazy-load the iframe the first time this sub-tab is opened */
+  const cfg = JB_FRAMES[which];
+  const f = document.getElementById(cfg.id);
+  if(f && !window.__jbLoaded[which]){
+    window.__jbLoaded[which] = true;
+    f.addEventListener('load', () => _jbPush(which));
+    f.src = cfg.src;
+  } else {
+    _jbPush(which);       /* already loaded — refresh with the latest numbers */
+  }
+}
+
+/* a frame telling us it is parsed and listening, or asking to switch sub-tab */
+addEventListener('message', function(ev){
+  const d = ev.data;
+  if(!d || typeof d !== 'object') return;
+  if(d.__jbReady){ ['board', 'live'].forEach(k => {
+      const f = document.getElementById(JB_FRAMES[k].id);
+      if(f && f.contentWindow === ev.source) _jbPush(k);
+    }); }
+  if(d.__jbNav === 'board' || d.__jbNav === 'live') showAnalysisSub(d.__jbNav);
+});
+
+/* Called at the end of renderAnalysis(). Recomputes the journey dataset from
+   the current PR_DATA / PO_DATA and re-pushes it to any mounted frame. */
+function initAnalysisSubTabs(){
+  window.__jbLoaded = { board: false, live: false };
+  try{ window.__jbData = buildJourneyData(); }
+  catch(e){ console.error('[journey] buildJourneyData failed', e); window.__jbData = null; }
+}
+
 function renderAnalysis(){
   const host=document.getElementById('analysisSection');
   const PRR=buildPRRecords(PR_DATA), POR=buildPORecords(PO_DATA);
@@ -895,7 +1422,7 @@ function renderAnalysis(){
   const live=prLive.map(r=>({...r,_doc:'PR'})).concat(poLive.map(r=>({...r,_doc:'PO'})));
   const totV=live.reduce((a,r)=>a+(r.amount||0),0);
   const br7=live.filter(r=>(r.aging||0)>7).length;
-  let h=AN_CSS+`<div class="anWrap">`;
+  let h=AN_CSS+JB_SUB_CSS+JB_SUB_NAV+`<div class="anSubPane on" id="anSubCurrent"><div class="anWrap">`;
   /* ---------- HERO ---------- */
   h+=`<div class="anHero"><div><h2><i class="fa-solid fa-magnifying-glass-chart" style="color:#FAC775;margin-right:10px"></i>Procurement Action Centre</h2>
       <div class="sub">Who must act today, where the pipeline leaks, and how suppliers perform — computed with the approver-based logic (same as the daily division emails). Live pipeline only.</div></div>
@@ -1028,8 +1555,9 @@ function renderAnalysis(){
     weeks.map(t=>[wl(t),`<b>${wk[t].prC}</b>`,_anMoney(wk[t].prV),String(wk[t].prDone),`<b>${wk[t].poC}</b>`,String(wk[t].poInv)]));
   h+=_anPanel('fa-calendar-week','#2f6bd8','Weekly performance','Derived from created / step dates in today\'s snapshot. * = approximated by the last workflow step date of Closed / Invoiced records.',
     wkCols+`<div style="margin-top:12px">`+wkTbl+`</div><div id="anWow" style="margin-top:14px;font-size:12px;color:#8a99b3">Loading weekly snapshot archive…</div>`);
-  h+=`</div>`;
+  h+=`</div></div>`+JB_SUB_PANES;
   host.innerHTML=h;
+  initAnalysisSubTabs();
   fetch('weekly_snapshots.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(js=>{
     const el=document.getElementById('anWow'); if(!el)return;
     if(!js||!Array.isArray(js.snapshots)||js.snapshots.length<2){ el.innerHTML='<i class="fa-solid fa-camera" style="margin-right:6px"></i><b style="color:var(--anNavy)">Week-over-week deltas:</b> archive has '+((js&&js.snapshots)?js.snapshots.length:0)+' snapshot(s) — the server saves one every Sunday; deltas appear once two exist.'; return; }
