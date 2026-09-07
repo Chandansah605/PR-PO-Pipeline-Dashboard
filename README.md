@@ -4,6 +4,10 @@ Live dashboard for Strive Services Group showing the purchase requisition (PR) a
 
 **Live site:** https://strive-services-group.github.io/PR-PO-Pipeline-Dashboard/ (sign in with your Microsoft work account)
 
+## Workbook retirement status
+
+The 7 September 2026 read-only reconciliation concluded **cannot retire**. Live F&O and the development approval capture do not deterministically separate `PR in review` from `Sourcing`; measured PR stage agreement was 85.64%, below the 95% gate. The workbook overlay, jobs and fallback therefore remain the production source for workflow detail. See `evidence/workbook-retirement-report.md` for the full measured verdict.
+
 ## This is one of two repos (same project)
 | Repo | Purpose | Deploys to |
 |---|---|---|
@@ -30,5 +34,6 @@ Edit files (GitHub web pencil for small changes, or GitHub Desktop for full edit
 ## To refresh the workflow steps
 Export the *All purchase requisitions* list from D365 → save as `pr.xlsx` → run `python gen_pr_steps.py pr.xlsx` → commit `pr_steps.json` → push.
 
-## Pending improvement (makes steps fully live, no exports)
-Have the F&O developer expose the `IFAHR*` fields (esp. `IFAHRPendingStep`) on the OData entity. Once done, the dashboard reads the step live and `pr_steps.json` is no longer needed.
+## Retirement gate
+
+Do not remove `pr.xlsx`, `po.xlsx`, `pr_steps.json` or their jobs until Waqas approves a deterministic `PR in review` versus `Sourcing` rule and a fresh reconciliation passes every cutover threshold. No F&O development is assumed or requested.
