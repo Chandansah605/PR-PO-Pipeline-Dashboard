@@ -1,6 +1,6 @@
 {
   "provedAt": "2026-09-07T17:17:50Z",
-  "proxyCommit": "45caaa4b78ec2ef35a7b8ff9f2094bd802f5c6f2",
+  "proxyCommit": "1dfb69be2c58c458a40d6697f9268554547b3a4b",
   "deployment": {
     "target": "ssg-prpo-proxy",
     "method": "Azure Functions Core Tools",
@@ -34,5 +34,12 @@
     "sentAll": false,
     "divisionSummaries": 2,
     "personalSummaries": 19
+  },
+  "browser": {
+    "pagesOriginAllowed": true,
+    "legacyConfiguredOriginPreserved": true,
+    "divisionViewLoadedLive": true,
+    "staleOrFailureWarningShown": false,
+    "visibleSeededClockLabels": 12
   }
 }

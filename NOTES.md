@@ -6181,7 +6181,7 @@ Every seed below records the workbook value and the export timestamp `2026-09-07
 ## Production same-revision and failure proof
 
 - Pre-seed local proof: dashboard revision and email dry-run revision both `c96917d99719d6316aad038a82fdf57de012bffc1da9bf21e95e142b1b2a7cd3`; 4,413 PR headers, 3,188 PO headers, 983 open POs, 1,805 email open items; zero sends.
-- Production proof after seed: proxy commit `45caaa4b78ec2ef35a7b8ff9f2094bd802f5c6f2`; dashboard and email dry-run both returned revision `cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5`; source state `LIVE`; 4,413 PRs; 3,188 POs; 983 open POs; zero unevidenced stages; zero pending observation writes.
+- Production proof after seed: proxy commit `1dfb69be2c58c458a40d6697f9268554547b3a4b`; dashboard and email dry-run both returned revision `cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5`; source state `LIVE`; 4,413 PRs; 3,188 POs; 983 open POs; zero unevidenced stages; zero pending observation writes.
 - The production email dry-run returned `sentAll = false`, two active division summaries and 19 personal summaries; no email was sent.
 - Unit proof forces the loader to fail: a prior revision returns `sourceState = STALE`; with no last-good revision the same failure propagates. There is no workbook fallback.
 - Browser cache is rendered immediately while refresh runs; stale state remains visibly labelled.
@@ -6203,6 +6203,7 @@ Every seed below records the workbook value and the export timestamp `2026-09-07
 ## Problems and risks
 
 - The GitHub proxy deploy workflow lacks `AZURE_FUNCTIONAPP_PUBLISH_PROFILE_SSG_PRPO_PROXY`; run 34146527247 stopped before deployment. The authorised Azure Functions CLI deployment succeeded instead.
+- The first production browser proof exposed a missing GitHub Pages CORS origin. Proxy commit `1dfb69b` added it while preserving Chandan's configured origin, and the corrected deployment passed the browser proof.
 - 67 open POs initially show `since — not recorded`; their next observed stage change starts our own clock.
 - The non-reportable proof row is retained because the approved role deliberately has no Delete permission.
 - The package audit reports two moderate and one high transitive dependency advisory; no forced/breaking dependency upgrade was mixed into this cutover.
@@ -6231,10 +6232,11 @@ Every seed below records the workbook value and the export timestamp `2026-09-07
 ## Testing performed
 
 - Correction-04 reconciliation: P1a/P2 and settled-gate assertions passed against all F&O companies.
-- Proxy syntax and seven focused stage/clock/cache tests passed.
+- Proxy syntax and nine focused stage/clock/cache/email/CORS tests passed.
 - Dashboard data-client and Race Control tests passed; both HTML inline-script sets parse under Node `vm.Script`.
 - Seed dry-run, apply and exact post-seed comparison passed.
 - Production `/api/dataset`, `/api/pr`, `/api/po` and function-key email dry-run returned the same live revision/count model.
+- The public Procurement division loaded 1,287 live items, explicit excl.-VAT values and all 12 seeded-clock labels with no stale/failure warning.
 - Live development Dataverse stage-change proof passed.
 - Post-removal search confirmed no runtime workbook URL, file, overlay generator or retired workflow remains.
 
