@@ -2,7 +2,7 @@
 
 Live dashboard for Strive Services Group showing the purchase requisition (PR) and purchase order (PO) pipeline from D365 Finance & Operations.
 
-**Live site:** https://chandansah605.github.io/PR-PO-Pipeline-Dashboard/ (sign in with your Microsoft work account)
+**Live site:** https://strive-services-group.github.io/PR-PO-Pipeline-Dashboard/ (sign in with your Microsoft work account)
 
 ## This is one of two repos (same project)
 | Repo | Purpose | Deploys to |

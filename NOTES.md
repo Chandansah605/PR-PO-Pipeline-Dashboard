@@ -205,11 +205,23 @@ The unchanged journey-board logic measured 1,329 completed PR → PO journeys. M
 
 Screenshot evidence: [desktop](evidence/race-control-desktop.png) and [412 × 915 mobile](evidence/race-control-mobile.png).
 
+## Production verification
+
+- GitHub Pages run `34112020617` deployed commit `23a4d1b0b0d9012919b7372e75101884f7f27b59` successfully to `https://strive-services-group.github.io/PR-PO-Pipeline-Dashboard/`.
+- A fresh Chrome visit rendered the official Strive sign-in screen. The real Microsoft `SIGN IN` flow completed using the existing work session and the screen changed to `Live Dataverse`.
+- At the production screen's displayed data date of 7 September 2026 09:06, Race Control showed 1,475 included live action items, 87.0-day average, 76.0-day median and 1,290 items over seven days.
+- The production holder rows showed dinesh.laxman 360, shijil.c 56, Gokul.Krishna 44, roderick.red 39, Aparna.Pauly 32 and Adnan.Ullah 17. These were read from the authenticated page, not the file fallback.
+- The production stage rows showed PR 5 / 97 / 459 / 11 / 2 and PO 30 / 21 / 1 / 615 / 234 in the protected display order.
+- The production stuck lane showed all six maintained records plus automatic live no-line item `PR-001216`. Five maintained records and that automatic record were active exclusions; `PR-000104` was correctly labelled `Not in live queue`.
+- The production week-on-week board rendered 30 August, 6 September and Live now for overall, holders and stages. Missing historical holder cells rendered as dashes.
+- The authenticated production page had no desktop-level horizontal overflow: document and viewport widths were both 1,905 px within the 1,920 px browser viewport.
+- The production values changed slightly from the immediately preceding read-only payload replay because Dataverse was active during verification. The source label, timestamp and browser evidence distinguish the two observations.
+
 ## Remaining risks
 
 - Current-step dates still use the published workflow overlay when Dataverse has no authoritative current dated work item; this is the protected 87516e3 design.
 - Holder and stage figures can change between an email, Sunday snapshot and meeting because Dataverse is operationally active. Each screen position therefore labels its source and snapshot date.
-- Production GitHub Pages and browser-side signed-in verification are recorded below after publication.
+- Live authentication depends on the user's Microsoft session and existing Dataverse permissions; no anonymous data path was added.
 
 ## Recommended next step
 
