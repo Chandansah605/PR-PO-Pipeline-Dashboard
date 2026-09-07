@@ -6,7 +6,7 @@ Live dashboard for Strive Services Group showing the purchase requisition (PR) a
 
 ## Workbook retirement status
 
-The 7 September 2026 read-only reconciliation concluded **cannot retire**. Live F&O and the development approval capture do not deterministically separate `PR in review` from `Sourcing`; measured PR stage agreement was 85.64%, below the 95% gate. The workbook overlay, jobs and fallback therefore remain the production source for workflow detail. See `evidence/workbook-retirement-report.md` for the full measured verdict.
+Correction 01 merges `PR in review` into `Sourcing`, uses live line amounts excluding VAT and follows live PO events. The corrected 7 September 2026 reconciliation still concludes **cannot retire**: PR stage agreement is 89.67%, PO stage agreement is 43.68% and PR amount agreement is 81.04%, all below their 95% gates. The workbook overlay, jobs and fallback remain in production. See `evidence/workbook-retirement-correction-01.md`.
 
 ## This is one of two repos (same project)
 | Repo | Purpose | Deploys to |
@@ -36,4 +36,4 @@ Export the *All purchase requisitions* list from D365 → save as `pr.xlsx` → 
 
 ## Retirement gate
 
-Do not remove `pr.xlsx`, `po.xlsx`, `pr_steps.json` or their jobs until Waqas approves a deterministic `PR in review` versus `Sourcing` rule and a fresh reconciliation passes every cutover threshold. No F&O development is assumed or requested.
+Do not remove `pr.xlsx`, `po.xlsx`, `pr_steps.json` or their jobs until a fresh reconciliation passes every cutover threshold. The Sourcing, ex-VAT amount and PO lifecycle rules are settled; no further business decision is pending. No F&O development is assumed or requested.

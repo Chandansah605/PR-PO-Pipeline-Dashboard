@@ -1,41 +1,48 @@
 # PR/PO reporting change note — draft, not approved for issue
 
-Status: **Blocked. Do not publish or forward yet.** The live evidence cannot separate `PR in review` from `Sourcing`. Waqas must decide that reporting rule before this note can become final.
+Status: **Blocked. Do not publish or forward yet.** The business decisions are settled, but the corrected live reconciliation still fails the PR stage, PO stage and PR amount gates. Production remains unchanged.
 
-## Proposed bucket names
+## Exact bucket changes
 
-| Exact current display/source label | Proposed live label |
+| Current dashboard/email bucket | Proposed live bucket |
 |---|---|
-| PR In Review | PR in review — blocked pending separability decision |
+| PR In Review | Sourcing |
 | RFQ to suppliers | Sourcing |
 | Qt received & Logged | Sourcing |
 | Qt Shared to Op | Sourcing |
 | OP confirms material | Sourcing |
 | Unit Price Updated | Priced — awaiting approval |
-| Department manager names | Dep Managers |
-| Finance & Accounts_Accounting Manager | Finance |
-| Facilities Management_Director / Commercial_Director | Director |
-| Executive Management_CEO | CEO |
-| Advance payment request submitted / Procurement Manager | Procurement |
-| Accounting Manager | Finance |
-| Finance and Accounts Director | Director |
-| LPO sent/shared with supplier, before receipt | Sent to Supplier |
-| Posted packing slip | Receipt posted |
+| Sent to Supplier | Sent to supplier |
+| Pending Invoicing | Receipt posted or Invoiced, from the live event |
+
+Approval stages remain Procurement, Dep Managers, Finance, Director and CEO. Any approval element without an unambiguous versioned mapping is shown as `Approval — unmapped element` and flagged for data quality.
 
 ## What Sourcing contains
 
-`Sourcing` combines supplier inquiry/RFQ, quotation receipt/logging, quotation sharing to Operations and Operations material/scope confirmation. Those four sub-steps are removed because no exposed live source distinguishes them. The live sources can tell whether all active lines have a positive purchase price, which separates `Priced — awaiting approval` from the unpriced population. They cannot currently tell whether an unpriced document is still `PR in review` or has entered `Sourcing` when both use the same workflow element.
+`Sourcing` means **with Procurement, lines not yet priced**. It includes the former PR review, supplier inquiry/RFQ, quotation receipt and logging, quotation sharing to Operations, and Operations material or scope confirmation stages. These stages become one because the exposed live system does not distinguish them. `Priced — awaiting approval` means every active PR line has a positive purchase price.
+
+## Amount basis
+
+Every dashboard and email amount will use live F&O line values **excl. VAT**. Familiar totals will normally read about 5% lower because the old workbook values included 5% VAT. The new reporting will not gross amounts up. Every displayed amount must carry the label `excl. VAT`.
+
+## PO stages
+
+- **Sent to supplier** — the PO is confirmed or sent.
+- **Receipt posted** — a packing slip has been posted.
+- **Invoiced** — the purchase order is invoiced where that status is exposed.
+
+`Posted on` is the packing-slip document date. It is a receipt-posting date, never a delivery date.
 
 ## What each clock means
 
-- **Assigned since** — the earliest captured assignment for the current approval stage. Several active approvals in one stage use the earliest assignment.
-- **Observed in stage since** — the preserved first observation of a procurement stage. At initial cutover only, the F&O header modified time seeds records already open; it is not claimed as the exact stage-change time.
-- **Posted on** — the packing-slip document date. It is a receipt-posting date, never a promised or actual delivery date.
+- **Assigned since** — the earliest captured assignment for the current approval stage.
+- **Observed in stage since** — the preserved first observation of Sourcing or Priced. The F&O header modified time only seeds records already open at cutover.
+- **Posted on** — the packing-slip document date for Receipt posted.
 
-The dataset time must be the oldest required source timestamp. The screen must show `Dataset generated`, `F&O read` and `Approval capture reconciled` separately in Dubai time, while the dataset stores UTC. A cached value means an earlier Dataverse-derived dataset, never workbook data.
+The dataset time is the oldest required source timestamp. The screen shows `Dataset generated`, `F&O read` and `Approval capture reconciled` separately in Dubai time, while the dataset stores UTC. Cached means an earlier Dataverse-derived dataset, never workbook data.
 
-## Forwardable paragraph — hold until the blocker is decided
+## Forwardable paragraph — hold until every gate passes
 
-PR/PO reporting will move from emailed workbooks to automatically refreshed Dataverse data. Supplier inquiry, quotation logging, quotation sharing and Operations confirmation will be reported together as Sourcing because the live system does not expose those sub-steps separately. Priced — awaiting approval will mean every active PR line has a positive purchase price. Approval clocks will start from the captured assignment, procurement clocks will use the preserved first time observed in that stage, and receipt posted will use the packing-slip posting date, not a delivery date. The dashboard and daily emails will use the same dated dataset and will show unresolved or unmapped workflow items separately instead of guessing.
+PR/PO reporting will move from emailed workbooks to automatically refreshed Dataverse data. PR review, supplier inquiry, quotation logging, quotation sharing and Operations confirmation will appear together as Sourcing, meaning with Procurement and not yet priced. Priced — awaiting approval will mean every active PR line has a positive purchase price. All amounts will come from live F&O lines and will be labelled excl. VAT, so familiar totals will normally be about 5% lower than the VAT-inclusive workbook totals. PO reporting will follow live events from Sent to supplier to Receipt posted and then Invoiced. Approval clocks will use captured assignment times, procurement clocks will use the preserved first observation in the stage, and Posted on will be the packing-slip posting date, never a delivery date. The dashboard and daily emails will use the same dated dataset and will show unresolved or unmapped workflow items separately instead of guessing.
 
-This paragraph is not approved for issue until the `PR in review` versus `Sourcing` rule is decided and the failed reconciliation gate is rerun.
+This paragraph is not approved for issue until every retirement gate passes and the live cutover is verified.

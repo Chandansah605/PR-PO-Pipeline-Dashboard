@@ -14,7 +14,7 @@
 
 ## Retirement gate
 
-The 7 September 2026 reconciliation could not separate workbook `PR in review` from `Sourcing` for shared workflow elements. It also measured PR stage agreement below 95% and material PO stage differences. Do not remove the workbook path or deploy a Dataverse-only replacement until Waqas approves a deterministic mapping and a fresh reconciliation passes every stated gate.
+Correction 01 approves merging `PR in review` into `Sourcing`, makes live line amounts excluding VAT authoritative and uses live PO lifecycle events. The corrected 7 September 2026 run still failed PR stage (89.67%), PO stage (43.68%) and PR amount (81.04%) gates. Do not remove the workbook path or deploy a Dataverse-only replacement until a fresh reconciliation passes every stated gate.
 
 ## Protected systems
 
@@ -27,4 +27,6 @@ The 7 September 2026 reconciliation could not separate workbook `PR in review` f
 
 - Human-readable verdict: `evidence/workbook-retirement-report.md`
 - Machine reconciliation: `evidence/workbook-retirement-reconciliation.json`
+- Correction 01 report: `evidence/workbook-retirement-correction-01.md`
+- Correction 01 machine evidence: `evidence/workbook-retirement-correction-01.json`
 - Reproduction script: `tests/reconcile_workbook_retirement.py`
