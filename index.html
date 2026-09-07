@@ -19,6 +19,7 @@
 <!-- Self-hosted (same origin) so it always loads even when a corporate network blocks Microsoft's CDN.
      Falls back to Microsoft's CDN only if the local copy is missing. -->
 <script src="msal-browser.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js';document.head.appendChild(s);"></script>
+<script src="dataverse-live.js"></script>
 
 <style>
 :root{
@@ -54,7 +55,15 @@ html,body{margin:0;padding:0;font-family:'Aptos','Segoe UI',system-ui,-apple-sys
 .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .btn-ghost{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
 .btn-ghost:hover{background:rgba(255,255,255,.25)}
-.last-refresh{font-size:11px;color:rgba(255,255,255,.85)}
+.data-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;max-width:430px}
+.source-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:5px 9px;border-radius:14px;letter-spacing:.35px;text-transform:uppercase;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:#fff;white-space:nowrap}
+.source-tag.live{background:rgba(16,185,129,.22);border-color:rgba(16,185,129,.45);color:#d1fae5}
+.source-tag.file{background:rgba(255,255,255,.14);color:#fff}
+.source-tag.loading i{animation:source-spin .9s linear infinite}
+@keyframes source-spin{to{transform:rotate(360deg)}}
+.last-refresh{font-size:11px;color:rgba(255,255,255,.92);white-space:nowrap}
+.data-warning{display:none;width:100%;font-size:10.5px;font-weight:700;color:#fff3c4;background:rgba(120,53,15,.42);border:1px solid rgba(251,191,36,.52);border-radius:7px;padding:4px 8px;line-height:1.25}
+.data-warning.visible{display:block}
 .cache-tag{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:14px;background:rgba(16,185,129,.25);color:#bbf7d0;letter-spacing:.4px;text-transform:uppercase;border:1px solid rgba(16,185,129,.35)}
 .global-search{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:7px 12px;color:#fff;font-size:12px;width:200px;outline:none}
 .global-search::placeholder{color:rgba(255,255,255,.6)}
@@ -313,7 +322,12 @@ table.dataTable thead{background:#f8fafc}
 .login-footer .motto{color:#618FB4;letter-spacing:3px;font-weight:700;margin-top:4px;font-size:11px}
 .login-user{margin-top:12px;text-align:center;color:#94a8c2;font-size:12px}
 .login-err{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:8px 12px;color:#fca5a5;font-size:12px;margin-top:12px;text-align:center}
-@media (max-width:600px){.login-card{padding:30px 24px}.login-title{font-size:24px}}
+@media (max-width:600px){
+  .login-card{padding:30px 24px}.login-title{font-size:24px}
+  .topbar{padding:12px 16px}.topbar-right{width:100%}.data-meta{order:-1;width:100%;max-width:none}.data-warning{width:auto;flex:1;min-width:210px}.global-search{width:100%}
+  .app{display:block}.sidebar{position:static;width:100%;height:auto;overflow:visible;border-right:0;border-bottom:1px solid var(--border);padding:14px 16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+  .sidebar>h3,.sidebar>.actions,.sidebar>div:last-child{grid-column:1/-1}.sidebar .filter-group{margin-bottom:0}.sidebar .actions{margin-top:0;flex-direction:row}.sidebar .actions button{flex:1}.main{padding:16px 12px}.kpi-strip{grid-template-columns:1fr}.section-h{max-width:100%;line-height:1.35}.wk-strip{grid-template-columns:1fr}
+}
 
 /* ====== Falling lines graphic simulation ====== */
 .falling-lines{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
@@ -384,7 +398,11 @@ table.dataTable thead{background:#f8fafc}
   <div class="topbar-right">
     <span id="cacheTag" class="cache-tag" style="display:none"><i class="fa-solid fa-database"></i> Cached upload active</span>
     <input type="text" id="globalSearch" class="global-search" placeholder="🔍 Global search..."/>
-    <span class="last-refresh" id="lastRefresh">Last refresh: —</span>
+    <div class="data-meta" aria-live="polite">
+      <span class="source-tag file" id="dataSource"><i class="fa-solid fa-file-excel"></i> File fallback</span>
+      <span class="last-refresh" id="lastRefresh">Data date: —</span>
+      <span class="data-warning" id="dataWarning"></span>
+    </div>
     <button class="btn" onclick="window.loadLive ? loadLive() : refreshDashboard()" title="Pull the latest live data from D365 now"><i class="fa-solid fa-rotate"></i> Refresh</button>
     <button class="btn btn-ghost" onclick="document.getElementById('refreshFile').click()" title="Fallback only — load PR/PO Excel manually if the live D365 feed is unavailable"><i class="fa-solid fa-upload"></i> Excel (fallback)</button>
     <button class="btn btn-ghost" onclick="resetCachedData()" title="Clear any manual Excel upload and return to the live D365 feed"><i class="fa-solid fa-arrow-rotate-left"></i> Reset</button>
@@ -649,6 +667,15 @@ let currentDrillSubset=[];
 let currentDrillTitle='';
 let activeFilters={prtype:'all',bucket:'',step:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:''};
 let WEEKLY_SNAPSHOTS=null;   // weekly_snapshots.json — week-end (Sunday) live-pipeline snapshots
+let PUBLISHED_PR_DATA=PR_DATA.slice();
+let PUBLISHED_PO_DATA=PO_DATA.slice();
+let MANUAL_PR_DATA=null;
+let MANUAL_PO_DATA=null;
+let DATA_STATE={source:'file',detail:'embedded workbook snapshot',checking:false,error:null};
+const LIVE_CACHE_MS=3*60*1000;
+let publishedFilePromise=null;
+let supportingDataPromise=null;
+let liveRequest=null;
 
 function showLoader(t='Loading...'){document.getElementById('loaderText').innerText=t;document.getElementById('loader').classList.add('active');}
 function hideLoader(){document.getElementById('loader').classList.remove('active');}
@@ -663,6 +690,58 @@ function uniqueSorted(arr){return Array.from(new Set(arr.filter(x=>x!=null&&x!==
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function normalizeDept(d){if(!d)return 'Others';return DEPARTMENTS.includes(d)?d:'Others';}
 function prType(docNumber){if(!docNumber)return'';const s=String(docNumber).toUpperCase();if(s.startsWith('CPR'))return'CPR';if(s.startsWith('PR'))return'PR';return'OTHER';}
+
+function replaceRows(target,rows){target.length=0;(rows||[]).forEach(r=>target.push(r));}
+function sourceLabel(source){
+  if(source==='live')return 'Live Dataverse';
+  if(source==='live-cache')return 'Cached live Dataverse';
+  if(source==='manual')return 'Manual file';
+  return 'File fallback';
+}
+function newestLoadedDate(){
+  if(window.PRPO_DATAVERSE)return PRPO_DATAVERSE.newestDataDate(PR_DATA,PO_DATA);
+  let newest=null;
+  PR_DATA.concat(PO_DATA).forEach(r=>{
+    ['Step date and time','Created date','Created date and time'].forEach(k=>{
+      const d=parseDate(r[k]);if(d&&(!newest||d>newest))newest=d;
+    });
+  });
+  return newest;
+}
+function friendlyLiveError(error){
+  const msg=String(error&&error.message||error||'').toLowerCase();
+  if(msg.includes('interaction_required')||msg.includes('consent_required')||msg.includes('user_impersonation'))return 'Dataverse permission is unavailable';
+  if(msg.includes('timed out')||msg.includes('abort'))return 'Live Dataverse read timed out';
+  if(msg.includes('token')||msg.includes('account'))return 'Dataverse sign-in is unavailable';
+  return 'Live Dataverse read failed';
+}
+function updateDataStatus(patch){
+  if(patch)DATA_STATE=Object.assign({},DATA_STATE,patch);
+  const date=newestLoadedDate();
+  const label=sourceLabel(DATA_STATE.source);
+  const dateText=date?date.toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Dubai'}):'unavailable';
+  const dateEl=document.getElementById('lastRefresh');
+  const sourceEl=document.getElementById('dataSource');
+  const warningEl=document.getElementById('dataWarning');
+  if(dateEl)dateEl.innerText='Data date: '+dateText+' · '+label;
+  if(sourceEl){
+    const live=DATA_STATE.source==='live'||DATA_STATE.source==='live-cache';
+    sourceEl.className='source-tag '+(live?'live':'file')+(DATA_STATE.checking?' loading':'');
+    sourceEl.innerHTML='<i class="fa-solid '+(DATA_STATE.checking?'fa-spinner':live?'fa-circle-check':'fa-file-excel')+'"></i> '+(DATA_STATE.checking?'Checking live data':label);
+    sourceEl.title=DATA_STATE.detail||label;
+  }
+  const warnings=[];
+  if(DATA_STATE.error)warnings.push(DATA_STATE.error+' — '+label+' is shown.');
+  if(!date)warnings.push('The data date is unavailable.');
+  else{
+    const age=window.PRPO_DATAVERSE?PRPO_DATAVERSE.workingDaysOld(date,new Date()):null;
+    if(age>1)warnings.push('Warning: this data is '+age+' working days old.');
+  }
+  if(warningEl){
+    warningEl.innerText=warnings.join(' ');
+    warningEl.classList.toggle('visible',warnings.length>0);
+  }
+}
 
 /* ============ Build records ============ */
 function buildPRRecords(prData){
@@ -2710,10 +2789,140 @@ function idbDel(key){
 }
 function idbMeta(){return idbGet('__meta__').catch(()=>null);}
 
+async function workbookRows(blob){
+  const bytes=new Uint8Array(await blob.arrayBuffer());
+  const wb=XLSX.read(bytes,{type:'array',cellDates:true});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws,{defval:null,raw:false,dateNF:'yyyy-mm-dd hh:mm:ss'});
+}
+function ensurePublishedFileData(){
+  if(publishedFilePromise)return publishedFilePromise;
+  publishedFilePromise=(async()=>{
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),20000);
+    try{
+      const bust='?t='+Date.now();
+      const responses=await Promise.all(['pr.xlsx','po.xlsx'].map(name=>fetch(name+bust,{cache:'no-store',signal:controller.signal})));
+      if(!responses[0].ok||!responses[1].ok)throw new Error('Published workbook download failed');
+      const rows=await Promise.all(responses.map(r=>r.blob().then(workbookRows)));
+      if(!rows[0].length||!rows[1].length)throw new Error('Published workbook is empty');
+      return {pr:rows[0],po:rows[1]};
+    }finally{clearTimeout(timer);}
+  })().catch(error=>{publishedFilePromise=null;throw error;});
+  return publishedFilePromise;
+}
+function ensureSupportingData(){
+  if(supportingDataPromise)return supportingDataPromise;
+  supportingDataPromise=(async()=>{
+    const bust='?t='+Date.now();
+    const names=['pr_steps.json','stepMap.json','poStepMap.json'];
+    const responses=await Promise.all(names.map(name=>fetch(name+bust,{cache:'no-store'})));
+    const failed=responses.findIndex(r=>!r.ok);
+    if(failed>=0)throw new Error(names[failed]+' could not be loaded');
+    const data=await Promise.all(responses.map(r=>r.json()));
+    return {prWorkflow:data[0],prStepMap:data[1],poStepMap:data[2]};
+  })().catch(error=>{supportingDataPromise=null;throw error;});
+  return supportingDataPromise;
+}
+function poWorkflowLookup(rows){
+  const result={};
+  function assign(key,candidate){
+    if(!key)return;
+    const current=result[key];
+    const currentDate=current&&parseDate(current.stepDate);
+    const candidateDate=parseDate(candidate.stepDate);
+    if(!current||(candidateDate&&(!currentDate||candidateDate>currentDate)))result[key]=candidate;
+  }
+  (rows||[]).forEach(row=>{
+    const number=String(row['Purchase order']||'').trim();
+    if(!number)return;
+    const candidate={step:row['Step name']||null,stepDate:row['Step date and time']||null,pendingUser:row['Pending Approver/User']||null};
+    const vendorAccount=String(row['Vendor account']||'').trim().toLowerCase();
+    const vendorName=String(row['Vendor name']||'').trim().toLowerCase();
+    if(vendorAccount)assign(number+'|'+vendorAccount,candidate);
+    if(vendorName)assign(number+'|'+vendorName,candidate);
+    if(!vendorAccount&&!vendorName)assign(number,candidate);
+  });
+  return result;
+}
+function applyDataRows(pr,po,state){
+  replaceRows(PR_DATA,pr);
+  replaceRows(PO_DATA,po);
+  rebuild();
+  updateDataStatus(Object.assign({checking:false,error:null},state||{}));
+}
+function applyAutomaticFallback(reason){
+  const manual=Array.isArray(MANUAL_PR_DATA)&&MANUAL_PR_DATA.length&&Array.isArray(MANUAL_PO_DATA)&&MANUAL_PO_DATA.length;
+  applyDataRows(manual?MANUAL_PR_DATA:PUBLISHED_PR_DATA,manual?MANUAL_PO_DATA:PUBLISHED_PO_DATA,{
+    source:manual?'manual':'file',
+    detail:manual?'manual Excel upload':'published pr.xlsx / po.xlsx',
+    error:reason||null
+  });
+}
+async function acquireDataverseToken(){
+  if(!isMsalConfigured())throw new Error('Dataverse account is unavailable');
+  if(!msalInstance)msalInstance=new msal.PublicClientApplication(MSAL_CONFIG);
+  const account=msalInstance.getActiveAccount&&msalInstance.getActiveAccount()||msalInstance.getAllAccounts()[0];
+  if(!account)throw new Error('Dataverse account is unavailable');
+  const response=await msalInstance.acquireTokenSilent({account,scopes:[PRPO_DATAVERSE.SCOPE]});
+  return response.accessToken;
+}
+async function freshLiveCache(){
+  try{
+    const cached=await idbGet('__live_bundle__');
+    if(!cached||!cached.savedAt||!Array.isArray(cached.pr)||!Array.isArray(cached.po))return null;
+    if(Date.now()-new Date(cached.savedAt).getTime()>LIVE_CACHE_MS)return null;
+    return cached;
+  }catch(e){return null;}
+}
+async function loadLive(options){
+  options=options||{};
+  if(liveRequest)return liveRequest;
+  liveRequest=(async()=>{
+    updateDataStatus({checking:true,error:null});
+    try{
+      if(!options.force){
+        const cached=await freshLiveCache();
+        if(cached){
+          applyDataRows(cached.pr,cached.po,{source:'live-cache',detail:'Dataverse cache saved '+new Date(cached.savedAt).toLocaleString()});
+          return cached;
+        }
+      }
+      if(!window.PRPO_DATAVERSE)throw new Error('Dataverse data layer is unavailable');
+      const support=await ensureSupportingData();
+      const token=await acquireDataverseToken();
+      const result=await PRPO_DATAVERSE.load({
+        accessToken:token,
+        timeoutMs:120000,
+        prStepMap:support.prStepMap,
+        poStepMap:support.poStepMap,
+        prWorkflowLookup:support.prWorkflow,
+        poWorkflowLookup:poWorkflowLookup(PUBLISHED_PO_DATA)
+      });
+      const guardedPR=result.pr.filter(r=>r._workflowGuarded).length;
+      const guardedPO=result.po.filter(r=>r._workflowGuarded).length;
+      applyDataRows(result.pr,result.po,{source:'live',detail:'Read directly from Dataverse as the signed-in user'});
+      const cached={savedAt:result.fetchedAt,pr:result.pr,po:result.po,counts:result.counts,guardedPR,guardedPO};
+      idbPut('__live_bundle__',cached).catch(e=>console.warn('Live cache save failed:',e));
+      console.info('Dataverse live data loaded',result.counts,{guardedPR,guardedPO});
+      return cached;
+    }catch(error){
+      console.warn('Dataverse live read unavailable; file fallback remains active.',error);
+      applyAutomaticFallback(friendlyLiveError(error));
+      return null;
+    }finally{
+      liveRequest=null;
+    }
+  })();
+  return liveRequest;
+}
+window.loadLive=loadLive;
+
 /* Replace in-memory dataset with cached upload if present */
 async function hydrateFromCache(){
   try{
     const [pr,po,meta] = await Promise.all([idbGet('PR'), idbGet('PO'), idbMeta()]);
+    if(!meta||meta.source!=='manual')return false;
     let used = false;
     if(Array.isArray(pr) && pr.length){
       PR_DATA.length = 0; pr.forEach(r=>PR_DATA.push(r)); used=true;
@@ -2722,6 +2931,8 @@ async function hydrateFromCache(){
       PO_DATA.length = 0; po.forEach(r=>PO_DATA.push(r)); used=true;
     }
     if(used && meta){
+      MANUAL_PR_DATA=Array.isArray(pr)?pr.slice():null;
+      MANUAL_PO_DATA=Array.isArray(po)?po.slice():null;
       const ts = new Date(meta.savedAt);
       const tag = document.getElementById('cacheTag');
       if(tag){
@@ -2769,10 +2980,15 @@ function handleFileUpload(e){
       }catch(err){console.error(err); errors.push(file.name+': '+err.message);}
       remaining--;
       if(remaining === 0){
+        // Keep a complete file pair; never mix a manual file with live rows.
+        if(prUpdated&&!poUpdated){replaceRows(PO_DATA,PUBLISHED_PO_DATA);await idbPut('PO',PUBLISHED_PO_DATA);}
+        if(poUpdated&&!prUpdated){replaceRows(PR_DATA,PUBLISHED_PR_DATA);await idbPut('PR',PUBLISHED_PR_DATA);}
         // Save metadata and finish
-        await idbPut('__meta__', {savedAt:new Date().toISOString(),prUpdated,poUpdated});
+        await idbPut('__meta__', {savedAt:new Date().toISOString(),source:'manual',prUpdated,poUpdated});
+        MANUAL_PR_DATA=PR_DATA.slice();
+        MANUAL_PO_DATA=PO_DATA.slice();
         rebuild();
-        updateLastRefresh();
+        updateDataStatus({source:'manual',detail:'manual Excel upload',checking:false,error:null});
         const tag = document.getElementById('cacheTag');
         if(tag){tag.style.display='inline-flex'; tag.title=`Last uploaded: ${new Date().toLocaleString()}`;}
         hideLoader();
@@ -2802,8 +3018,8 @@ async function resetCachedData(){
   setTimeout(()=>{ location.reload(); }, 300);
 }
 
-function refreshDashboard(){showLoader('Refreshing...');setTimeout(()=>{rebuild();updateLastRefresh();hideLoader();},400);}
-function updateLastRefresh(){document.getElementById('lastRefresh').innerText='Last refresh: '+new Date().toLocaleString();}
+function refreshDashboard(){return loadLive({force:true});}
+function updateLastRefresh(){updateDataStatus();}
 
 /* ============ Smart Analysis Suggestions (5 bullets) ============ */
 function renderSuggestions(records){
@@ -2983,6 +3199,7 @@ function signIn(){
       if(!msalInstance) msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
       msalInstance.loginPopup({ scopes: MSAL_SCOPES })
         .then(response=>{
+          if(msalInstance.setActiveAccount)msalInstance.setActiveAccount(response.account);
           sessionStorage.setItem('strive_auth','true');
           sessionStorage.setItem('strive_user', response.account.username || response.account.name || '');
           enterDashboard(response.account.name || response.account.username);
@@ -3028,15 +3245,26 @@ function signOut(){
 
 async function bootDashboard(){
   showLoader('Initializing dashboard...');
+  let manual=false;
   try{
-    // Restore cached uploads (if any) BEFORE first render
-    await hydrateFromCache();
+    manual=await hydrateFromCache();
   }catch(e){console.warn('Hydration error:',e);}
-  setTimeout(()=>{
-    rebuild();
-    updateLastRefresh();
-    hideLoader();
-  },200);
+  rebuild();
+  updateDataStatus({source:manual?'manual':'file',detail:manual?'manual Excel upload':'embedded workbook snapshot',checking:false,error:null});
+  hideLoader();
+
+  try{
+    const published=await ensurePublishedFileData();
+    PUBLISHED_PR_DATA=published.pr.slice();
+    PUBLISHED_PO_DATA=published.po.slice();
+    if(!manual&&DATA_STATE.source!=='live'&&DATA_STATE.source!=='live-cache'){
+      applyDataRows(PUBLISHED_PR_DATA,PUBLISHED_PO_DATA,{source:'file',detail:'published pr.xlsx / po.xlsx'});
+    }
+  }catch(error){
+    console.warn('Published workbook fallback could not be refreshed.',error);
+    updateDataStatus({error:'Published workbook download failed'});
+  }
+  await loadLive();
 }
 
 /* Spawn falling lines on the login overlay */
@@ -3082,19 +3310,13 @@ function spawnFallingLines(){
 })();
 </script>
 <script>
-/* Data loader: reads pr.xlsx / po.xlsx committed to this repo folder so everyone sees the
-   same data on refresh. Cache-busted to always fetch the latest committed files. The Step
-   name — and therefore all bucket logic — comes straight from these Excel files. */
+/* Warm the published workbook fallback and load weekly comparison history. The dashboard
+   renders its embedded snapshot immediately; bootDashboard applies these files before the
+   non-blocking Dataverse read. */
 window.addEventListener('load', function () {
   try {
     var bust = '?t=' + Date.now();
-    function grab(n){ return fetch(n + bust).then(function(r){ return r.ok ? r.blob() : null; }).catch(function(){ return null; }); }
-    Promise.all([grab('pr.xlsx'), grab('po.xlsx')]).then(function (bl) {
-      var files = [];
-      if (bl[0]) files.push(new File([bl[0]], 'pr.xlsx'));
-      if (bl[1]) files.push(new File([bl[1]], 'po.xlsx'));
-      if (files.length && typeof handleFileUpload === 'function') { handleFileUpload({ target: { files: files } }); }
-    });
+    ensurePublishedFileData().catch(function(){});
     // Week-end snapshots for the Sub-bucket Weekly Comparison section
     fetch('weekly_snapshots.json' + bust)
       .then(function(r){ return r.ok ? r.json() : null; })
