@@ -24,7 +24,7 @@ const pr = [
 ];
 const po = [
   row('PO-REVIEW', 'Aparna.Pauly', 3, 'Procurement', 0, { 'Approval status': 'In review', 'Total amount': '1,250.50' }),
-  row('PO-SENT', 'Vendor', 12, 'Sent to Supplier', 80, { 'Approval status': 'Confirmed' }),
+  row('PO-SENT', 'Vendor', 12, 'Sent to supplier', 80, { 'Approval status': 'Confirmed' }),
   row('PO-SETTLED', 'Layusha.cleatus', 8, 'Procurement', 70, { 'Approval status': 'Confirmed' })
 ];
 const stuckConfig = [{ documentNumber: 'PR-STUCK', reason: 'Known issue', reportedBy: 'IT', reportedDate: '2026-08-13' }];

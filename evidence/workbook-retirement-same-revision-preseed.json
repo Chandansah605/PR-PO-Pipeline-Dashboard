@@ -1,0 +1,14 @@
+{
+  "provedAt": "2026-09-07T17:06:03.817Z",
+  "dashboardDatasetRevision": "c96917d99719d6316aad038a82fdf57de012bffc1da9bf21e95e142b1b2a7cd3",
+  "emailDryRunDatasetRevision": "c96917d99719d6316aad038a82fdf57de012bffc1da9bf21e95e142b1b2a7cd3",
+  "sameRevision": true,
+  "counts": {
+    "prHeaders": 4413,
+    "poHeaders": 3188,
+    "poOpen": 983,
+    "emailOpenItems": 1805
+  },
+  "sourceState": "LIVE",
+  "sendsPerformed": 0
+}

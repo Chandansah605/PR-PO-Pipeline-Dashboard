@@ -1,0 +1,16 @@
+{
+  "provedAt": "2026-09-07T17:16:15.306Z",
+  "key": "ifahr-live|PO|proof|C04-STAGE-CHANGE-PROOF",
+  "reportable": false,
+  "before": {
+    "stage": "Sent to supplier",
+    "provenance": "NOT_RECORDED"
+  },
+  "after": {
+    "stage": "Receipt posted",
+    "observedSince": "2026-09-07T17:16:15Z",
+    "provenance": "PENDING_SINCE_FIRST_OBSERVED",
+    "liveEvent": "first observed after cutover"
+  },
+  "passed": true
+}

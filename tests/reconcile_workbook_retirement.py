@@ -1,0 +1,1019 @@
+"""Read-only workbook-retirement reconciliation for the PR/PO dashboard.
+
+The script never writes to Dataverse. It reads the last committed workbooks,
+the F&O virtual entities in operations-ifahr-live, and the PR/PO approval
+capture in operations-ifahr-dev. Access tokens are supplied through process
+environment variables and are never persisted in the report.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import os
+import re
+import urllib.parse
+import urllib.request
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+
+import pandas as pd
+
+
+LIVE = "https://operations-ifahr-live.crm15.dynamics.com"
+DEV = "https://operations-ifahr-dev.crm15.dynamics.com"
+FORMATTED = "@OData.Community.Display.V1.FormattedValue"
+GUID_RE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
+
+PR_APPROVAL = {
+    "Building Services_Facilities Manager": "Dep Managers",
+    "Building Services_Asst. Facility Managers 1": "Dep Managers",
+    "Building Services_Asst. Facility Managers 2": "Dep Managers",
+    "Home Services_Operations Manager": "Dep Managers",
+    "PAC Services_Manager": "Dep Managers",
+    "Housekeeping_Asst. Manager": "Dep Managers",
+    "Security Services_Manager": "Dep Managers",
+    "Handyman Services_Manager": "Dep Managers",
+    "Concierge Services_Manager": "Dep Managers",
+    "Landscaping_Manager": "Dep Managers",
+    "Finance & Accounts_Accounting Manager": "Finance",
+    "Facilities Management_Director": "Director",
+    "Commercial_Director": "Director",
+    "Executive Management_CEO": "CEO",
+}
+PR_PROCUREMENT = {
+    "PurchReqReviewTask": "Sourcing",
+    "PurchReqReviewApproval": "Sourcing",
+    "Procurement sends inquiry/RFQ to suppliers": "Sourcing",
+    "Quotation received and logged/attached": "Sourcing",
+    "Quotation shared to Operations for confirmation": "Sourcing",
+    "Operations confirms material/scope": "Sourcing",
+    "Unit prices updated in PR lines": "Priced — awaiting approval",
+}
+PO_APPROVAL = {
+    "Advance payment request submitted (if applicable)": "Procurement",
+    "Procurement Manager": "Procurement",
+    "Accounting Manager": "Finance",
+    "Finance and Accounts Director": "Director",
+    "CEO": "CEO",
+}
+WORKBOOK_EXPORT_CUTOFF = datetime(2026, 9, 7, 5, 30, tzinfo=timezone.utc)
+PR_STAGE_ORDER = {
+    "Sourcing": 0,
+    "Priced — awaiting approval": 1,
+    "Dep Managers": 2,
+    "Finance": 3,
+    "Director": 4,
+    "CEO": 5,
+}
+PO_STAGE_ORDER = {
+    "Procurement": 0,
+    "Finance": 1,
+    "Director": 2,
+    "CEO": 3,
+    "Sent to supplier": 4,
+    "Receipt posted": 5,
+    "Invoiced": 6,
+}
+
+
+def clean(value):
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def norm(value):
+    return re.sub(r"\s+", " ", clean(value) or "").casefold()
+
+
+def doc(value):
+    return (clean(value) or "").upper()
+
+
+def parse_dt(value):
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return None
+    stamp = pd.to_datetime(value, utc=True, errors="coerce")
+    if pd.isna(stamp):
+        return None
+    return stamp.to_pydatetime()
+
+
+def iso(value):
+    dt = parse_dt(value)
+    return dt.isoformat().replace("+00:00", "Z") if dt else None
+
+
+def earliest(values):
+    parsed = [parse_dt(value) for value in values]
+    parsed = [value for value in parsed if value]
+    return min(parsed) if parsed else None
+
+
+def formatted(row, field):
+    return clean(row.get(field + FORMATTED)) or clean(row.get(field + "name")) or clean(row.get(field))
+
+
+def api_all(origin, token, entity, select, filter_text=None):
+    params = {"$select": ",".join(select)}
+    if filter_text:
+        params["$filter"] = filter_text
+    url = f"{origin}/api/data/v9.2/{entity}?{urllib.parse.urlencode(params)}"
+    rows = []
+    pages = 0
+    while url:
+        pages += 1
+        if pages > 200:
+            raise RuntimeError(f"paging guard exceeded for {entity}")
+        request = urllib.request.Request(
+            url,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json",
+                "Prefer": 'odata.maxpagesize=5000,odata.include-annotations="OData.Community.Display.V1.FormattedValue"',
+            },
+        )
+        with urllib.request.urlopen(request, timeout=180) as response:
+            payload = json.load(response)
+        rows.extend(payload.get("value", []))
+        url = payload.get("@odata.nextLink")
+    return rows
+
+
+def parse_dimension(value):
+    parts = [part.strip() for part in str(value or "").split("-")]
+    return {
+        "Contract": parts[1] if len(parts) > 1 and parts[1] else None,
+        "Department": parts[3] if len(parts) > 3 and parts[3] else None,
+        "Location": parts[5] if len(parts) > 5 and parts[5] else None,
+    }
+
+
+def compare_string(workbook, live):
+    return norm(workbook) == norm(live)
+
+
+def compare_date(workbook, live, tolerance_days=0):
+    left, right = parse_dt(workbook), parse_dt(live)
+    if not left or not right:
+        return False
+    return abs((left - right).total_seconds()) <= tolerance_days * 86400
+
+
+def compare_amount(workbook, live):
+    try:
+        return abs(float(workbook) - float(live)) <= 0.01
+    except (TypeError, ValueError):
+        return False
+
+
+def amount_comparison(workbook, live, tax_basis):
+    try:
+        workbook_value = float(workbook)
+        live_value = float(live)
+    except (TypeError, ValueError):
+        return {"comparedWorkbookExVat": None, "matched": False, "matchRule": "INVALID_AMOUNT"}
+    raw = round(workbook_value, 2)
+    if abs(raw - live_value) <= 0.01:
+        return {"comparedWorkbookExVat": raw, "matched": True, "matchRule": "EXACT_EQUALITY"}
+    adjusted = round(workbook_value / 1.05, 2)
+    if tax_basis in {"standard-rate VAT", "mixed VAT basis", "unknown"} and abs(adjusted - live_value) <= 0.02:
+        return {"comparedWorkbookExVat": adjusted, "matched": True, "matchRule": "VAT_ADJUSTED"}
+    if tax_basis == "non-VAT":
+        compared = raw
+    elif tax_basis in {"standard-rate VAT", "mixed VAT basis", "unknown"}:
+        compared = adjusted
+    else:
+        compared = None
+    return {"comparedWorkbookExVat": compared, "matched": False, "matchRule": "AMOUNT_DIFFERENCE"}
+
+
+def amount_match(workbook, live, tax_basis):
+    result = amount_comparison(workbook, live, tax_basis)
+    return result["comparedWorkbookExVat"], result["matched"]
+
+
+def column_result(rows, workbook_column, source, comparator, live_getter, affected=None):
+    eligible = [row for row in rows if clean(row["workbook"].get(workbook_column)) is not None]
+    compared = [row for row in eligible if live_getter(row) is not None]
+    matched = sum(1 for row in compared if comparator(row["workbook"].get(workbook_column), live_getter(row)))
+    return {
+        "column": workbook_column,
+        "liveSource": source,
+        "workbookNonBlank": len(eligible) if affected is None else affected,
+        "compared": len(compared),
+        "matched": matched,
+        "agreementPercent": round(100 * matched / len(compared), 2) if compared else None,
+        "noLiveEquivalent": False,
+    }
+
+
+def no_equivalent(frame, column, reason):
+    return {
+        "column": column,
+        "liveSource": reason,
+        "workbookNonBlank": int(frame[column].notna().sum()),
+        "compared": 0,
+        "matched": 0,
+        "agreementPercent": None,
+        "noLiveEquivalent": True,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--repo", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--out", type=Path)
+    args = parser.parse_args()
+    live_token = os.environ.get("PRPO_LIVE_TOKEN")
+    dev_token = os.environ.get("PRPO_DEV_TOKEN")
+    if not live_token or not dev_token:
+        raise SystemExit("PRPO_LIVE_TOKEN and PRPO_DEV_TOKEN are required")
+
+    pr_book = pd.read_excel(args.repo / "pr.xlsx")
+    po_book = pd.read_excel(args.repo / "po.xlsx")
+    pr_book_by = {doc(row["Purchase requisition"]): row.to_dict() for _, row in pr_book.iterrows()}
+    po_book_by = {doc(row["Purchase order"]): row.to_dict() for _, row in po_book.iterrows()}
+
+    pr_headers = api_all(LIVE, live_token, "mserp_purchaserequisitionheaderv2entities", [
+        "mserp_requisitionnumber", "mserp_requisitionname", "mserp_requisitionstatus",
+        "mserp_requisitionpurpose", "mserp_preparerpersonnelnumber", "mserp_defaultprojectid",
+        "mserp_defaultaccountingdate", "mserp_defaultrequesteddate", "mserp_ifahrquotationreference",
+        "mserp_projectbuyinglegalentityid",
+    ])
+    pr_lines = api_all(LIVE, live_token, "mserp_purchaserequisitionlinev2entities", [
+        "mserp_requisitionnumber", "mserp_lineamount", "mserp_purchaseprice", "mserp_linestatus",
+        "mserp_defaultledgerdimensiondisplayvalue", "mserp_deliveryaddressname", "mserp_projectid",
+        "mserp_buyinglegalentityid", "mserp_salestaxgroupcode", "mserp_salestaxitemgroupcode",
+        "mserp_projecttaxgroupcode", "mserp_projecttaxitemgroupcode",
+    ])
+    pr_bi = api_all(LIVE, live_token, "mserp_purchreqtablebientities", [
+        "mserp_purchreqid", "mserp_transdate", "mserp_submitteddatetime", "mserp_submittedby",
+        "mserp_sysmodifieddatetime", "mserp_requisitionstatus", "mserp_onhold",
+    ])
+    po_headers = api_all(LIVE, live_token, "mserp_purchpurchaseorderheaderv2entities", [
+        "mserp_purchaseordernumber", "mserp_ordervendoraccountnumber", "mserp_invoicevendoraccountnumber",
+        "mserp_purchaseordername", "mserp_purchaseorderstatus", "mserp_documentapprovalstatus",
+        "mserp_dataareaid", "mserp_currencycode", "mserp_accountingdate", "mserp_requesteddeliverydate",
+        "mserp_deliveryaddressname", "mserp_projectid", "mserp_defaultledgerdimensiondisplayvalue",
+        "mserp_ordererpersonnelnumber",
+    ])
+    po_lines = api_all(LIVE, live_token, "mserp_purchpurchaseorderlinev2entities", [
+        "mserp_purchaseordernumber", "mserp_lineamount", "mserp_defaultledgerdimensiondisplayvalue",
+        "mserp_deliveryaddressname", "mserp_projectid", "mserp_purchaserequisitionid", "mserp_dataareaid",
+        "mserp_purchaseorderlinestatus", "mserp_salestaxgroupcode", "mserp_salestaxitemgroupcode",
+        "mserp_projecttaxgroupcode", "mserp_projecttaxitemgroupcode",
+    ])
+    packing = api_all(LIVE, live_token, "mserp_vendpackingslipjourbientities", [
+        "mserp_purchid", "mserp_packingslipid", "mserp_documentdate", "mserp_dataareaid",
+    ])
+    confirmations = api_all(LIVE, live_token, "mserp_vrmpurchaseorderconfirmationheaderentities", [
+        "mserp_purchaseordernumber", "mserp_confirmationdatetime", "mserp_dataareaid",
+    ])
+    invoices = api_all(LIVE, live_token, "mserp_vendinvoicejourbientities", [
+        "mserp_purchid", "mserp_invoiceid", "mserp_invoicedate", "mserp_sysmodifieddatetime", "mserp_dataareaid",
+    ])
+    snapshots = api_all(DEV, dev_token, "ssg_prpocurrentapprovalsnapshots", [
+        "ssg_documentnumber", "ssg_documenttype", "ssg_pendingapprovercount", "ssg_pendingapprovernames",
+        "ssg_pendinguserids", "ssg_pendingstepnames", "ssg_lastreconciledon", "ssg_oldestpendingsince",
+        "ssg_dataqualitystatus", "ssg_unresolvedcount",
+    ])
+    instances = api_all(DEV, dev_token, "ssg_prpoapprovalinstances", [
+        "ssg_prpoapprovalinstanceid", "ssg_documentnumber", "ssg_documenttype", "ssg_lastreconciledon",
+        "ssg_dataqualitystatus", "ssg_parentrecordid",
+    ])
+    workitems = api_all(DEV, dev_token, "ssg_prpoapprovalworkitems", [
+        "ssg_prpoapprovalworkitemid", "_ssg_approvalinstance_value", "ssg_approveruserid", "ssg_approvername",
+        "ssg_assignedon", "ssg_firstobservedon", "ssg_iscurrent", "ssg_isunresolved",
+        "ssg_stepelementid", "ssg_stepname", "ssg_delegatedfromuserid", "ssg_delegatedfromname",
+        "ssg_dataqualitystatus", "ssg_lastobservedon",
+    ], "ssg_iscurrent eq true")
+
+    pr_header_by = {doc(row.get("mserp_requisitionnumber")): row for row in pr_headers}
+    pr_bi_by = {doc(row.get("mserp_purchreqid")): row for row in pr_bi}
+    po_header_by = {doc(row.get("mserp_purchaseordernumber")): row for row in po_headers}
+    instance_by = {row["ssg_prpoapprovalinstanceid"]: row for row in instances}
+    capture_by = defaultdict(list)
+    unresolved_items = []
+    for item in workitems:
+        instance = instance_by.get(item.get("_ssg_approvalinstance_value"), {})
+        number = doc(instance.get("ssg_documentnumber"))
+        enriched = dict(item)
+        enriched["documentNumber"] = number
+        enriched["documentType"] = clean(instance.get("ssg_documenttype"))
+        if not number or number.startswith("UNRESOLVED-"):
+            unresolved_items.append(enriched)
+        else:
+            capture_by[number].append(enriched)
+
+    snapshot_by = {}
+    for snapshot in snapshots:
+        number = doc(snapshot.get("ssg_documentnumber"))
+        if number and not number.startswith("UNRESOLVED-") and int(snapshot.get("ssg_pendingapprovercount") or 0) > 0:
+            snapshot_by[number] = snapshot
+
+    def snapshot_users(number):
+        value = clean(snapshot_by.get(number, {}).get("ssg_pendinguserids")) or clean(snapshot_by.get(number, {}).get("ssg_pendingapprovernames"))
+        return {clean(part) for part in re.split(r"[;,\n]+", value or "") if clean(part)}
+
+    def snapshot_elements(number):
+        value = clean(snapshot_by.get(number, {}).get("ssg_pendingstepnames")) or ""
+        return {match.group(0).casefold() for match in GUID_RE.finditer(value)}
+
+    pr_line_by = defaultdict(list)
+    for line in pr_lines:
+        pr_line_by[doc(line.get("mserp_requisitionnumber"))].append(line)
+    po_line_by = defaultdict(list)
+    for line in po_lines:
+        po_line_by[doc(line.get("mserp_purchaseordernumber"))].append(line)
+    packing_by = defaultdict(list)
+    for row in packing:
+        packing_by[doc(row.get("mserp_purchid"))].append(row)
+    confirmation_by = defaultdict(list)
+    for row in confirmations:
+        confirmation_by[doc(row.get("mserp_purchaseordernumber"))].append(row)
+    invoice_by = defaultdict(list)
+    for row in invoices:
+        invoice_by[doc(row.get("mserp_purchid"))].append(row)
+
+    def line_summary(lines, pr=False):
+        status_field = "mserp_linestatus" if pr else "mserp_purchaseorderlinestatus"
+        active = [line for line in lines if "cancel" not in norm(formatted(line, status_field))]
+        first = active[0] if active else (lines[0] if lines else {})
+        dims = parse_dimension(first.get("mserp_defaultledgerdimensiondisplayvalue"))
+        material = [line for line in active if abs(float(line.get("mserp_lineamount") or 0)) > 0.01]
+        tax_classes = []
+        tax_codes = set()
+        for line in material:
+            group = clean(line.get("mserp_salestaxgroupcode")) or clean(line.get("mserp_projecttaxgroupcode"))
+            item = clean(line.get("mserp_salestaxitemgroupcode")) or clean(line.get("mserp_projecttaxitemgroupcode"))
+            tax_codes.add(f"{group or '(blank)'}/{item or '(blank)'}")
+            group_key = norm(group)
+            item_key = norm(item)
+            if not group_key or not item_key:
+                tax_classes.append("unknown")
+            elif group_key.startswith(("os", "zr")) or item_key.startswith(("os", "zr")):
+                tax_classes.append("non-VAT")
+            elif group_key.startswith("sr-") and item_key.startswith("sr-"):
+                tax_classes.append("standard-rate VAT")
+            else:
+                tax_classes.append("unknown")
+        unique_tax_classes = set(tax_classes)
+        if not material:
+            tax_basis = "zero amount"
+        elif unique_tax_classes == {"standard-rate VAT"}:
+            tax_basis = "standard-rate VAT"
+        elif unique_tax_classes == {"non-VAT"}:
+            tax_basis = "non-VAT"
+        elif "unknown" in unique_tax_classes:
+            tax_basis = "unknown"
+        else:
+            tax_basis = "mixed VAT basis"
+        result = {
+            "count": len(active),
+            "amount": round(sum(float(line.get("mserp_lineamount") or 0) for line in active), 2),
+            "dimension": dims,
+            "location": dims["Location"] or clean(first.get("mserp_projectid")) or clean(first.get("mserp_deliveryaddressname")),
+            "linkedPR": clean(first.get("mserp_purchaserequisitionid")),
+            "taxBasis": tax_basis,
+            "taxCodes": sorted(tax_codes),
+        }
+        if pr:
+            result["allPriced"] = bool(active) and all(float(line.get("mserp_purchaseprice") or 0) > 0 for line in active)
+            result["zeroPriceLines"] = sum(float(line.get("mserp_purchaseprice") or 0) <= 0 for line in active)
+        return result
+
+    element_steps_pr = defaultdict(Counter)
+    element_steps_po = defaultdict(Counter)
+    for number, snapshot in snapshot_by.items():
+        workbook = pr_book_by.get(number) or po_book_by.get(number)
+        if not workbook:
+            continue
+        step = clean(workbook.get("Step name"))
+        if not step:
+            continue
+        target = element_steps_pr if number in pr_book_by else element_steps_po
+        for element in snapshot_elements(number):
+            if element:
+                target[element][step] += 1
+
+    def unambiguous_approval_map(distributions, allowed):
+        mapped, ambiguous = {}, {}
+        for element, counts in distributions.items():
+            stages = {allowed[name] for name in counts if name in allowed}
+            nonapproval = {name for name in counts if name not in allowed}
+            if len(stages) == 1 and not nonapproval:
+                mapped[element] = next(iter(stages))
+            elif stages or nonapproval:
+                ambiguous[element] = dict(counts)
+        return mapped, ambiguous
+
+    pr_approval_map, pr_ambiguous = unambiguous_approval_map(element_steps_pr, PR_APPROVAL)
+    po_approval_map, po_ambiguous = unambiguous_approval_map(element_steps_po, PO_APPROVAL)
+    procurement_elements = {
+        element for element, counts in element_steps_pr.items()
+        if any(name in PR_PROCUREMENT for name in counts)
+    }
+
+    def pr_live_stage(number):
+        items = capture_by.get(number, [])
+        elements = snapshot_elements(number) or {norm(item.get("ssg_stepelementid")) for item in items if clean(item.get("ssg_stepelementid"))}
+        approval_stages = {pr_approval_map[element] for element in elements if element in pr_approval_map}
+        if approval_stages:
+            return (next(iter(approval_stages)), [] if len(approval_stages) == 1 else ["CONFLICTING_APPROVAL_STAGES"])
+        if elements & procurement_elements:
+            lines = line_summary(pr_line_by.get(number, []), pr=True)
+            flags = []
+            if not lines["count"]:
+                flags.append("ZERO_ACTIVE_LINES")
+                return "Approval — unmapped element", flags
+            if lines["allPriced"]:
+                return "Priced — awaiting approval", flags
+            if lines["zeroPriceLines"]:
+                flags.append("ZERO_PRICE_LINES")
+            return "Sourcing", flags
+        if number in snapshot_by or items:
+            return "Approval — unmapped element", ["UNMAPPED_ELEMENT"]
+        return None, ["NO_CURRENT_WORK_ITEM"]
+
+    def po_live_stage(number):
+        items = capture_by.get(number, [])
+        elements = snapshot_elements(number) or {norm(item.get("ssg_stepelementid")) for item in items if clean(item.get("ssg_stepelementid"))}
+        approval_stages = {po_approval_map[element] for element in elements if element in po_approval_map}
+        if approval_stages:
+            return next(iter(approval_stages)), [] if len(approval_stages) == 1 else ["CONFLICTING_APPROVAL_STAGES"]
+        header = po_header_by.get(number, {})
+        po_status = formatted(header, "mserp_purchaseorderstatus")
+        approval = formatted(header, "mserp_documentapprovalstatus")
+        if norm(po_status) == "invoiced":
+            return "Invoiced", []
+        if packing_by.get(number):
+            return "Receipt posted", []
+        if norm(approval) == "confirmed" and norm(po_status) == "open order":
+            return "Sent to supplier", []
+        if number in snapshot_by or items:
+            return "Approval — unmapped element", ["UNMAPPED_ELEMENT"]
+        return None, ["NO_CURRENT_WORK_ITEM_OR_OPEN_STAGE"]
+
+    def pr_is_dashboard_open(number):
+        status = norm(formatted(pr_header_by.get(number, {}), "mserp_requisitionstatus"))
+        return status in {"in review", "approved"}
+
+    def po_is_dashboard_open(number):
+        header = po_header_by.get(number, {})
+        po_status = norm(formatted(header, "mserp_purchaseorderstatus"))
+        approval_status = norm(formatted(header, "mserp_documentapprovalstatus"))
+        return po_status not in {"invoiced", "closed", "cancelled", "canceled"} and approval_status != "rejected"
+
+    def stage_evidence(kind, number, live_stage):
+        if kind == "PR":
+            if live_stage == "Priced — awaiting approval":
+                value = pr_bi_by.get(number, {}).get("mserp_sysmodifieddatetime")
+                source = "PR header modified time after line pricing"
+            elif live_stage in set(PR_APPROVAL.values()):
+                value = snapshot_by.get(number, {}).get("ssg_oldestpendingsince")
+                source = "approval capture assignment"
+            else:
+                value, source = None, None
+        elif live_stage == "Sent to supplier":
+            value = earliest(row.get("mserp_confirmationdatetime") for row in confirmation_by.get(number, []))
+            source = "PO confirmation event"
+        elif live_stage == "Receipt posted":
+            value = earliest(row.get("mserp_documentdate") for row in packing_by.get(number, []))
+            source = "packing-slip posting"
+        elif live_stage == "Invoiced":
+            value = earliest(
+                row.get("mserp_sysmodifieddatetime") or row.get("mserp_invoicedate")
+                for row in invoice_by.get(number, [])
+            )
+            source = "vendor-invoice posting"
+        elif live_stage in set(PO_APPROVAL.values()):
+            value = snapshot_by.get(number, {}).get("ssg_oldestpendingsince")
+            source = "approval capture assignment"
+        else:
+            value, source = None, None
+        parsed = parse_dt(value)
+        return {"source": source, "timestamp": parsed}
+
+    def compare_stage(kind, number, expected, actual):
+        if expected == actual:
+            return {"matched": True, "reasonCode": "EXACT_STAGE", "progression": None}
+        order = PR_STAGE_ORDER if kind == "PR" else PO_STAGE_ORDER
+        if expected not in order or actual not in order or order[actual] <= order[expected]:
+            return {"matched": False, "reasonCode": "REGRESSION_OR_UNMAPPED", "progression": None}
+        evidence = stage_evidence(kind, number, actual)
+        if not evidence["timestamp"]:
+            return {"matched": False, "reasonCode": "PROGRESSION_TIMESTAMP_UNAVAILABLE", "progression": None}
+        progression = {
+            "document": number,
+            "workbookStage": expected,
+            "liveStage": actual,
+            "workbookExportTimestamp": WORKBOOK_EXPORT_CUTOFF.isoformat().replace("+00:00", "Z"),
+            "liveEvidenceTimestamp": iso(evidence["timestamp"]),
+            "liveEvidenceSource": evidence["source"],
+            "reasonCode": "PROGRESSED_AFTER_EXPORT",
+        }
+        if evidence["timestamp"] > WORKBOOK_EXPORT_CUTOFF:
+            return {"matched": True, "reasonCode": "PROGRESSED_AFTER_EXPORT", "progression": progression}
+        return {"matched": False, "reasonCode": "PROGRESSION_NOT_AFTER_EXPORT", "progression": progression}
+
+    pr_stage_rows, pr_stage_differences, pr_progressions = [], [], []
+    pr_stage_dashboard_rows, pr_stage_dashboard_differences = [], []
+    pr_clock_rows, pr_clock_differences = [], []
+    pr_clock_dashboard_rows, pr_clock_dashboard_differences = [], []
+    pr_clock_not_comparable = []
+    for number, workbook in pr_book_by.items():
+        old_step = clean(workbook.get("Step name"))
+        expected = PR_APPROVAL.get(old_step) or PR_PROCUREMENT.get(old_step)
+        if not expected or number not in pr_header_by:
+            continue
+        actual, flags = pr_live_stage(number)
+        if not actual:
+            continue
+        comparison = compare_stage("PR", number, expected, actual)
+        row = {
+            "document": number, "workbookStep": old_step, "expectedStage": expected,
+            "liveStage": actual, "matched": comparison["matched"],
+            "reasonCode": comparison["reasonCode"], "flags": flags,
+            "inDashboardPopulation": pr_is_dashboard_open(number),
+        }
+        pr_stage_rows.append(row)
+        if not comparison["matched"]:
+            pr_stage_differences.append(row)
+        elif comparison["progression"]:
+            pr_progressions.append(comparison["progression"])
+        if row["inDashboardPopulation"]:
+            pr_stage_dashboard_rows.append(row)
+            if not comparison["matched"]:
+                pr_stage_dashboard_differences.append(row)
+        if expected in {"Sourcing", "Priced — awaiting approval"} and actual == expected:
+            modified = pr_bi_by.get(number, {}).get("mserp_sysmodifieddatetime")
+            within = compare_date(workbook.get("Step date and time"), modified, 1)
+            clock = {"document": number, "stage": expected, "workbookClock": iso(workbook.get("Step date and time")), "liveSeedClock": iso(modified), "withinOneDay": within}
+            pr_clock_rows.append(clock)
+            if not within:
+                pr_clock_differences.append(clock)
+            if row["inDashboardPopulation"]:
+                pr_clock_dashboard_rows.append(clock)
+                if not within:
+                    pr_clock_dashboard_differences.append(clock)
+        elif expected in {"Sourcing", "Priced — awaiting approval"} and comparison["matched"]:
+            pr_clock_not_comparable.append({
+                "document": number, "workbookStage": expected, "liveStage": actual,
+                "reason": "different procurement/approval stage after export",
+            })
+
+    po_stage_rows, po_stage_differences, po_progressions = [], [], []
+    po_stage_dashboard_rows, po_stage_dashboard_differences = [], []
+    po_clock_rows, po_clock_differences, po_clock_not_comparable = [], [], []
+    po_clock_dashboard_rows, po_clock_dashboard_differences = [], []
+    for number, workbook in po_book_by.items():
+        old_step = clean(workbook.get("Step name"))
+        if not old_step or number not in po_header_by:
+            continue
+        actual, flags = po_live_stage(number)
+        if not actual:
+            continue
+        if old_step == "LPO sent/shared with supplier":
+            expected = "Sent to supplier"
+            comparison = compare_stage("PO", number, expected, actual)
+        elif old_step == "PurchTableApproval":
+            expected = "PO approval (generic)"
+            if actual in set(PO_APPROVAL.values()) | {"Approval — unmapped element"}:
+                comparison = {"matched": True, "reasonCode": "CAPTURE_MAP_OR_UNMAPPED", "progression": None}
+            else:
+                comparison = compare_stage("PO", number, "CEO", actual)
+                if comparison["progression"]:
+                    comparison["progression"]["workbookStage"] = expected
+        else:
+            expected = PO_APPROVAL.get(old_step)
+            comparison = compare_stage("PO", number, expected, actual) if expected else None
+        if not expected:
+            continue
+        row = {
+            "document": number, "workbookStep": old_step, "expectedStage": expected,
+            "liveStage": actual, "matched": comparison["matched"],
+            "reasonCode": comparison["reasonCode"], "flags": flags,
+            "inDashboardPopulation": po_is_dashboard_open(number),
+        }
+        po_stage_rows.append(row)
+        if not comparison["matched"]:
+            po_stage_differences.append(row)
+        elif comparison["progression"]:
+            po_progressions.append(comparison["progression"])
+        if row["inDashboardPopulation"]:
+            po_stage_dashboard_rows.append(row)
+            if not comparison["matched"]:
+                po_stage_dashboard_differences.append(row)
+        if old_step in PO_APPROVAL and actual == expected:
+            assigned = snapshot_by.get(number, {}).get("ssg_oldestpendingsince")
+            within = compare_date(workbook.get("Step date and time"), assigned, 1)
+            clock = {"document": number, "stage": expected, "workbookClock": iso(workbook.get("Step date and time")), "liveClock": iso(assigned), "clockSource": "capture assignment", "withinOneDay": within}
+            if assigned:
+                po_clock_rows.append(clock)
+                if not within:
+                    po_clock_differences.append(clock)
+                if row["inDashboardPopulation"]:
+                    po_clock_dashboard_rows.append(clock)
+                    if not within:
+                        po_clock_dashboard_differences.append(clock)
+        elif old_step == "LPO sent/shared with supplier":
+            pack_date = earliest(item.get("mserp_documentdate") for item in packing_by.get(number, []))
+            po_clock_not_comparable.append({
+                "document": number,
+                "liveStage": actual,
+                "workbookLpoSentClock": iso(workbook.get("Step date and time")),
+                "postedOn": iso(pack_date),
+                "reason": "workbook LPO-sent time and receipt-posting time are different events" if pack_date else "no exposed PO sent timestamp",
+            })
+
+    approver_classes = Counter()
+    approver_details = []
+    for number, workbook in {**pr_book_by, **po_book_by}.items():
+        workbook_user = clean(workbook.get("Pending Approver/User"))
+        if not workbook_user or number not in snapshot_by:
+            continue
+        items = capture_by.get(number, [])
+        users = sorted(snapshot_users(number), key=lambda value: value.casefold())
+        delegated = {norm(item.get("ssg_delegatedfromuserid")) for item in items if clean(item.get("ssg_delegatedfromuserid"))}
+        if norm(workbook_user) in {norm(user) for user in users}:
+            category = "matched"
+        elif norm(workbook_user) in delegated or any(clean(item.get("ssg_delegatedfromuserid")) for item in items):
+            category = "delegated/reassigned"
+        elif len(users) > 1:
+            category = "parallel approvers"
+        else:
+            assigned = parse_dt(snapshot_by[number].get("ssg_oldestpendingsince"))
+            book_date = parse_dt(workbook.get("Step date and time"))
+            category = "workbook older than capture" if assigned and book_date and book_date < assigned else "unexplained"
+        approver_classes[category] += 1
+        if category != "matched":
+            approver_details.append({"document": number, "workbookUser": workbook_user, "captureUsers": users, "category": category})
+
+    pr_rows = []
+    for number, workbook in pr_book_by.items():
+        header = pr_header_by.get(number)
+        if not header:
+            continue
+        lines = line_summary(pr_line_by.get(number, []), pr=True)
+        bi = pr_bi_by.get(number, {})
+        cap = capture_by.get(number, [])
+        stage, _ = pr_live_stage(number)
+        assigned = parse_dt(snapshot_by.get(number, {}).get("ssg_oldestpendingsince"))
+        live = {
+            "number": number,
+            "quotation": clean(header.get("mserp_ifahrquotationreference")),
+            "name": clean(header.get("mserp_requisitionname")),
+            "preparer": clean(header.get("mserp_preparerpersonnelnumber")),
+            "status": formatted(header, "mserp_requisitionstatus"),
+            "created": clean(bi.get("mserp_transdate")) or clean(header.get("mserp_defaultaccountingdate")) or clean(header.get("mserp_defaultrequesteddate")),
+            "submitted": clean(bi.get("mserp_submitteddatetime")),
+            "purpose": formatted(header, "mserp_requisitionpurpose"),
+            "department": lines["dimension"]["Department"],
+            "location": lines["location"],
+            "contract": lines["dimension"]["Contract"],
+            "amount": lines["amount"],
+            "taxBasis": lines["taxBasis"],
+            "taxCodes": lines["taxCodes"],
+            "users": {norm(user) for user in snapshot_users(number)},
+            "stage": stage,
+            "clock": clean(bi.get("mserp_sysmodifieddatetime")) if stage in {"Sourcing", "Priced — awaiting approval"} else assigned,
+            "inDashboardPopulation": pr_is_dashboard_open(number) and bool(PR_APPROVAL.get(clean(workbook.get("Step name"))) or PR_PROCUREMENT.get(clean(workbook.get("Step name")))),
+        }
+        pr_rows.append({"workbook": workbook, "live": live})
+
+    po_rows = []
+    for number, workbook in po_book_by.items():
+        header = po_header_by.get(number)
+        if not header:
+            continue
+        lines = line_summary(po_line_by.get(number, []))
+        cap = capture_by.get(number, [])
+        stage, _ = po_live_stage(number)
+        assigned = parse_dt(snapshot_by.get(number, {}).get("ssg_oldestpendingsince"))
+        pack_date = earliest(item.get("mserp_documentdate") for item in packing_by.get(number, []))
+        confirmation_date = earliest(item.get("mserp_confirmationdatetime") for item in confirmation_by.get(number, []))
+        invoice_date = earliest(
+            item.get("mserp_sysmodifieddatetime") or item.get("mserp_invoicedate")
+            for item in invoice_by.get(number, [])
+        )
+        live = {
+            "number": number,
+            "vendorAccount": clean(header.get("mserp_ordervendoraccountnumber")),
+            "invoiceAccount": clean(header.get("mserp_invoicevendoraccountnumber")),
+            "vendorNameCandidate": clean(header.get("mserp_purchaseordername")),
+            "purchaseType": "Purchase order",
+            "approvalStatus": formatted(header, "mserp_documentapprovalstatus"),
+            "poStatus": formatted(header, "mserp_purchaseorderstatus"),
+            "currency": clean(header.get("mserp_currencycode")),
+            "requested": clean(header.get("mserp_requesteddeliverydate")),
+            "created": clean(header.get("mserp_accountingdate")),
+            "linkedPR": clean(lines["linkedPR"]),
+            "amount": lines["amount"],
+            "taxBasis": lines["taxBasis"],
+            "taxCodes": lines["taxCodes"],
+            "department": lines["dimension"]["Department"],
+            "location": lines["location"] or clean(header.get("mserp_deliveryaddressname")) or clean(header.get("mserp_projectid")),
+            "contract": lines["dimension"]["Contract"],
+            "users": {norm(user) for user in snapshot_users(number)},
+            "stage": stage,
+            "clock": pack_date if stage == "Receipt posted" else invoice_date if stage == "Invoiced" else confirmation_date if stage == "Sent to supplier" else assigned,
+            "confirmationDate": confirmation_date,
+            "postedOn": pack_date,
+            "invoiceDate": invoice_date,
+            "createdByCandidate": clean(header.get("mserp_ordererpersonnelnumber")),
+            "inDashboardPopulation": po_is_dashboard_open(number) and bool(
+                clean(workbook.get("Step name")) in set(PO_APPROVAL) | {"LPO sent/shared with supplier", "PurchTableApproval"}
+            ),
+        }
+        po_rows.append({"workbook": workbook, "live": live})
+
+    s = compare_string
+    d1 = lambda left, right: compare_date(left, right, 1)
+    users = lambda row: row["live"]["users"] if row["live"]["users"] else None
+    stage_cmp = lambda left, right: (PR_APPROVAL.get(clean(left)) or PR_PROCUREMENT.get(clean(left))) == right
+    pr_columns = [
+        column_result(pr_rows, "Purchase requisition", "F&O PR header", s, lambda r: r["live"]["number"]),
+        column_result(pr_rows, "Quotation reference", "F&O PR header", s, lambda r: r["live"]["quotation"]),
+        column_result(pr_rows, "Name", "F&O PR header", s, lambda r: r["live"]["name"]),
+        column_result(pr_rows, "Preparer", "F&O PR header", s, lambda r: r["live"]["preparer"]),
+        column_result(pr_rows, "Status", "F&O PR header", s, lambda r: r["live"]["status"]),
+        column_result(pr_rows, "Created date", "F&O PR BI header", d1, lambda r: r["live"]["created"]),
+        column_result(pr_rows, "Submitted date", "F&O PR BI header", d1, lambda r: r["live"]["submitted"]),
+        column_result(pr_rows, "Requisition purpose", "F&O PR header", s, lambda r: r["live"]["purpose"]),
+        no_equivalent(pr_book, "Submission Status", "no exposed live equivalent"),
+        no_equivalent(pr_book, "Accepted By/Assign To", "capture has current approvers, not accepted-by"),
+        column_result(pr_rows, "Department", "F&O line financial dimension", s, lambda r: r["live"]["department"]),
+        column_result(pr_rows, "Location", "F&O line dimension/address/project", s, lambda r: r["live"]["location"]),
+        column_result(pr_rows, "Contract", "F&O line financial dimension", s, lambda r: r["live"]["contract"]),
+        no_equivalent(pr_book, "Request for quotation case", "no general exposed live equivalent"),
+        column_result(pr_rows, "Total amount", "VAT-adjusted workbook amount versus F&O line amount excl. VAT", lambda left, right: right[1], lambda r: (r["live"]["amount"], amount_match(r["workbook"].get("Total amount"), r["live"]["amount"], r["live"]["taxBasis"])[1])),
+        column_result(pr_rows, "Pending Approver/User", "approval capture current work items", lambda left, right: norm(left) in right, users),
+        column_result(pr_rows, "Step name", "derived live stage; approved sourcing consolidation", stage_cmp, lambda r: r["live"]["stage"]),
+        column_result(pr_rows, "Step date and time", "F&O header modified seed or capture assignment", d1, lambda r: r["live"]["clock"]),
+    ]
+    po_columns = [
+        column_result(po_rows, "Purchase order", "F&O PO header", s, lambda r: r["live"]["number"]),
+        column_result(po_rows, "Vendor account", "F&O PO header", s, lambda r: r["live"]["vendorAccount"]),
+        column_result(po_rows, "Invoice account", "F&O PO header", s, lambda r: r["live"]["invoiceAccount"]),
+        column_result(po_rows, "Vendor name", "F&O purchase-order name candidate", s, lambda r: r["live"]["vendorNameCandidate"]),
+        column_result(po_rows, "Purchase type", "constant for PO header entity", s, lambda r: r["live"]["purchaseType"]),
+        column_result(po_rows, "Approval status", "F&O PO header", s, lambda r: r["live"]["approvalStatus"]),
+        column_result(po_rows, "Purchase order status", "F&O PO header", s, lambda r: r["live"]["poStatus"]),
+        column_result(po_rows, "Currency", "F&O PO header", s, lambda r: r["live"]["currency"]),
+        column_result(po_rows, "Requested receipt date", "F&O PO header", d1, lambda r: r["live"]["requested"]),
+        column_result(po_rows, "Created date and time", "F&O accounting date", d1, lambda r: r["live"]["created"]),
+        column_result(po_rows, "Purchase requisition", "F&O PO line", s, lambda r: r["live"]["linkedPR"]),
+        no_equivalent(po_book, "RFQ number", "no exposed live equivalent"),
+        column_result(po_rows, "Total amount", "VAT-adjusted workbook amount versus F&O line amount excl. VAT", lambda left, right: right[1], lambda r: (r["live"]["amount"], amount_match(r["workbook"].get("Total amount"), r["live"]["amount"], r["live"]["taxBasis"])[1])),
+        column_result(po_rows, "Department", "F&O line financial dimension", s, lambda r: r["live"]["department"]),
+        column_result(po_rows, "Location", "F&O line dimension/address/project", s, lambda r: r["live"]["location"]),
+        column_result(po_rows, "Contract", "F&O line financial dimension", s, lambda r: r["live"]["contract"]),
+        column_result(po_rows, "Pending Approver/User", "approval capture current work items", lambda left, right: norm(left) in right, users),
+        column_result(po_rows, "Step name", "capture approval map plus F&O confirmed/packing-slip/invoiced events", lambda left, right: (PO_APPROVAL.get(clean(left)) == right) or (clean(left) == "LPO sent/shared with supplier" and right in {"Sent to supplier", "Receipt posted"}) or (clean(left) == "PurchTableApproval" and right in set(PO_APPROVAL.values()) | {"Approval — unmapped element"}), lambda r: r["live"]["stage"]),
+        column_result(po_rows, "Step date and time", "capture assignment or packing-slip document date", d1, lambda r: r["live"]["clock"]),
+        no_equivalent(po_book, "Created by", "orderer personnel number is not created-by"),
+    ]
+
+    review_elements = {}
+    for element, counts in element_steps_pr.items():
+        review = sum(count for name, count in counts.items() if PR_PROCUREMENT.get(name) == "PR in review")
+        sourcing = sum(count for name, count in counts.items() if PR_PROCUREMENT.get(name) == "Sourcing")
+        priced = sum(count for name, count in counts.items() if PR_PROCUREMENT.get(name) == "Priced — awaiting approval")
+        if review or sourcing or priced:
+            review_elements[element] = {"PR in review": review, "Sourcing": sourcing, "Priced": priced, "workbookSteps": dict(counts)}
+
+    resolved_current = set(snapshot_by)
+    snapshot_dates = [parse_dt(row.get("ssg_lastreconciledon")) for row in snapshots]
+    snapshot_dates = [date for date in snapshot_dates if date]
+    workitem_dates = [parse_dt(row.get("ssg_lastobservedon")) for row in workitems]
+    workitem_dates = [date for date in workitem_dates if date]
+    generated = datetime.now(timezone.utc)
+    latest_capture = max(snapshot_dates + workitem_dates) if snapshot_dates or workitem_dates else None
+    effective_data_time = min(generated, latest_capture) if latest_capture else generated
+    stage_counts = Counter()
+    stageable_documents = 0
+    unmapped_documents = 0
+    missing_live_headers = 0
+    for number in sorted(snapshot_by):
+        if number in pr_header_by:
+            stage, _ = pr_live_stage(number)
+            kind = "PR"
+        elif number in po_header_by:
+            stage, _ = po_live_stage(number)
+            kind = "PO"
+        else:
+            missing_live_headers += 1
+            continue
+        if stage:
+            stage_counts[f"{kind}|{stage}"] += 1
+            stageable_documents += 1
+            if stage == "Approval — unmapped element":
+                unmapped_documents += 1
+
+    def amount_summary(rows, column):
+        details = []
+        basis_counts = Counter()
+        match_rule_counts = Counter()
+        adjusted_total = 0.0
+        adjusted_count = 0
+        matched = 0
+        for row in rows:
+            workbook_value = float(row["workbook"].get(column) or 0)
+            live_value = float(row["live"].get("amount") or 0)
+            basis = row["live"]["taxBasis"]
+            comparison = amount_comparison(workbook_value, live_value, basis)
+            adjusted = comparison["comparedWorkbookExVat"]
+            is_match = comparison["matched"]
+            basis_counts[basis] += 1
+            match_rule_counts[comparison["matchRule"]] += 1
+            if adjusted is not None:
+                adjusted_total += adjusted
+                adjusted_count += 1
+            if is_match:
+                matched += 1
+            else:
+                details.append({
+                    "document": row["live"]["number"],
+                    "taxBasis": basis,
+                    "taxCodes": row["live"]["taxCodes"],
+                    "workbookAmount": round(workbook_value, 2),
+                    "adjustedWorkbookExVat": adjusted,
+                    "liveLineAmountExVat": round(live_value, 2),
+                    "difference": round(adjusted - live_value, 2) if adjusted is not None else None,
+                    "reasonCode": comparison["matchRule"],
+                })
+        return {
+            "documentsCompared": len(rows),
+            "workbookTotalIncludingVat": round(sum(float(row["workbook"].get(column) or 0) for row in rows), 2),
+            "adjustedWorkbookTotalExVat": round(adjusted_total, 2),
+            "documentsWithDeterministicTaxBasis": adjusted_count,
+            "liveLineTotalExVat": round(sum(float(row["live"].get("amount") or 0) for row in rows), 2),
+            "matchedDocuments": matched,
+            "agreementPercent": round(100 * matched / len(rows), 2) if rows else None,
+            "taxBasisCounts": dict(basis_counts),
+            "matchRuleCounts": dict(match_rule_counts),
+            "differences": details,
+        }
+
+    pr_dashboard_rows = [row for row in pr_rows if row["live"]["inDashboardPopulation"]]
+    po_dashboard_rows = [row for row in po_rows if row["live"]["inDashboardPopulation"]]
+    stale_rows = []
+    for kind, workbook_by, header_by, is_open, status_field, number_field in (
+        ("PR", pr_book_by, pr_header_by, pr_is_dashboard_open, "mserp_requisitionstatus", "Purchase requisition"),
+        ("PO", po_book_by, po_header_by, po_is_dashboard_open, "mserp_purchaseorderstatus", "Purchase order"),
+    ):
+        for number, workbook in workbook_by.items():
+            step = clean(workbook.get("Step name"))
+            if not step or number not in header_by or is_open(number):
+                continue
+            header = header_by[number]
+            stale_rows.append({
+                "document": number,
+                "documentType": kind,
+                "workbookStep": step,
+                "liveStatus": formatted(header, status_field),
+                "approvalStatus": formatted(header, "mserp_documentapprovalstatus") if kind == "PO" else None,
+                "reasonCode": "STALE_WORKBOOK_ROW_OUTSIDE_DASHBOARD_POPULATION",
+            })
+
+    def stage_summary(rows, differences):
+        return {
+            "compared": len(rows),
+            "matched": len(rows) - len(differences),
+            "agreementPercent": round(100 * (len(rows) - len(differences)) / len(rows), 2) if rows else None,
+            "differences": differences,
+        }
+
+    def clock_summary(rows, differences):
+        return {
+            "compared": len(rows),
+            "matchedWithinOneDay": len(rows) - len(differences),
+            "agreementPercent": round(100 * (len(rows) - len(differences)) / len(rows), 2) if rows else None,
+            "differences": differences,
+        }
+
+    output = {
+        "generatedAt": generated.isoformat().replace("+00:00", "Z"),
+        "readOnly": True,
+        "sourceCounts": {
+            "workbookPR": len(pr_book), "workbookPO": len(po_book),
+            "livePRHeaders": len(pr_headers), "livePRLines": len(pr_lines), "livePRBiHeaders": len(pr_bi),
+            "livePOHeaders": len(po_headers), "livePOLines": len(po_lines), "livePackingSlipJournals": len(packing),
+            "livePOConfirmations": len(confirmations), "liveVendorInvoiceJournals": len(invoices),
+            "captureSnapshots": len(snapshots), "captureCurrentWorkItems": len(workitems),
+            "captureResolvedDistinctDocuments": len(resolved_current), "captureUnresolvedWorkItems": len(unresolved_items),
+            "captureParallelDocuments": sum(1 for number in snapshot_by if int(snapshot_by[number].get("ssg_pendingapprovercount") or 0) > 1),
+        },
+        "freshness": {
+            "datasetGeneratedUtc": generated.isoformat().replace("+00:00", "Z"),
+            "fAndOReadUtc": generated.isoformat().replace("+00:00", "Z"),
+            "approvalCaptureReconciledUtc": latest_capture.isoformat().replace("+00:00", "Z") if latest_capture else None,
+            "effectiveDataTimeUtc": effective_data_time.isoformat().replace("+00:00", "Z"),
+            "captureAgeMinutes": round((generated - latest_capture).total_seconds() / 60, 2) if latest_capture else None,
+        },
+        "measurementRules": {
+            "workbookExportCutoffUtc": WORKBOOK_EXPORT_CUTOFF.isoformat().replace("+00:00", "Z"),
+            "workbookExportCutoffBasis": "user-supplied approximately 09:30 Asia/Dubai on 7 September 2026",
+            "dashboardPRStatuses": ["In review", "Approved"],
+            "dashboardPOExclusions": ["Invoiced", "Closed", "Cancelled", "Canceled", "Rejected approval"],
+            "amountRules": ["EXACT_EQUALITY", "VAT_ADJUSTED"],
+        },
+        "liveDatasetNumbers": {
+            "distinctResolvedDocuments": len(snapshot_by),
+            "openWorkItems": len(workitems),
+            "unresolvedApprovalWorkItems": len(unresolved_items),
+            "parallelApprovalDocuments": sum(1 for number in snapshot_by if int(snapshot_by[number].get("ssg_pendingapprovercount") or 0) > 1),
+            "documentsWithLiveHeader": len(snapshot_by) - missing_live_headers,
+            "stageableDocuments": stageable_documents,
+            "approvalUnmappedDocuments": unmapped_documents,
+            "missingLiveHeaderDocuments": missing_live_headers,
+            "stageCounts": dict(stage_counts),
+        },
+        "prInReviewSeparability": {
+            "separable": not any(v["PR in review"] and (v["Sourcing"] or v["Priced"]) for v in review_elements.values()),
+            "elementDistributions": review_elements,
+        },
+        "approvalElementMaps": {
+            "prMapped": pr_approval_map, "prAmbiguous": pr_ambiguous,
+            "poMapped": po_approval_map, "poAmbiguous": po_ambiguous,
+        },
+        "reconciliation": {
+            "correction02AllRows": {
+                "prStage": stage_summary(pr_stage_rows, pr_stage_differences),
+                "prProcurementClock": clock_summary(pr_clock_rows, pr_clock_differences),
+                "poStage": stage_summary(po_stage_rows, po_stage_differences),
+            },
+            "prStage": stage_summary(pr_stage_dashboard_rows, pr_stage_dashboard_differences),
+            "prProcurementClock": clock_summary(pr_clock_dashboard_rows, pr_clock_dashboard_differences),
+            "poStage": stage_summary(po_stage_dashboard_rows, po_stage_dashboard_differences),
+            "poClock": {
+                "comparedLikeForLikeApprovalClocks": len(po_clock_dashboard_rows),
+                "matchedWithinOneDay": len(po_clock_dashboard_rows) - len(po_clock_dashboard_differences),
+                "agreementPercent": round(100 * (len(po_clock_dashboard_rows) - len(po_clock_dashboard_differences)) / len(po_clock_dashboard_rows), 2) if po_clock_dashboard_rows else None,
+                "differences": po_clock_dashboard_differences,
+                "notComparableEventClocks": po_clock_not_comparable,
+                "receiptPostedDocuments": sum(1 for row in po_stage_dashboard_rows if row["liveStage"] == "Receipt posted"),
+                "receiptPostedWithPostedOn": sum(
+                    1 for row in po_stage_dashboard_rows
+                    if row["liveStage"] == "Receipt posted" and packing_by.get(row["document"])
+                ),
+            },
+            "approver": {"compared": sum(approver_classes.values()), "classifications": dict(approver_classes), "details": approver_details},
+        },
+        "columns": {"pr.xlsx": pr_columns, "po.xlsx": po_columns},
+        "correction02AllRowsAmountBasis": {"pr.xlsx": amount_summary(pr_rows, "Total amount"), "po.xlsx": amount_summary(po_rows, "Total amount")},
+        "amountBasis": {"pr.xlsx": amount_summary(pr_dashboard_rows, "Total amount"), "po.xlsx": amount_summary(po_dashboard_rows, "Total amount")},
+        "progressedAfterExport": sorted(pr_progressions + po_progressions, key=lambda row: (row["document"], row["liveStage"])),
+        "staleRowsTheWorkbookStillCarries": sorted(stale_rows, key=lambda row: (row["documentType"], row["document"])),
+        "dashboardPopulation": {
+            "prDocuments": len(pr_dashboard_rows),
+            "poDocuments": len(po_dashboard_rows),
+            "prStageCompared": len(pr_stage_dashboard_rows),
+            "poStageCompared": len(po_stage_dashboard_rows),
+        },
+        "poWorkbookStepCounts": {str(key): int(value) for key, value in po_book["Step name"].fillna("(blank)").value_counts().items()},
+    }
+    amount_pr = output["amountBasis"]["pr.xlsx"]["agreementPercent"] or 0
+    amount_po = output["amountBasis"]["po.xlsx"]["agreementPercent"] or 0
+    distinct_exact = missing_live_headers == 0 and stageable_documents == len(snapshot_by)
+    # Deliberate cutover gate. Failure of any requested threshold prohibits deletion.
+    output["verdict"] = {
+        "stageThresholdPercent": 95,
+        "clockThresholdPercent": 90,
+        "amountThresholdPercent": 95,
+        "prStagePassed": (output["reconciliation"]["prStage"]["agreementPercent"] or 0) >= 95,
+        "prClockPassed": (output["reconciliation"]["prProcurementClock"]["agreementPercent"] or 0) >= 90,
+        "poStagePassed": (output["reconciliation"]["poStage"]["agreementPercent"] or 0) >= 95,
+        "prAmountPassed": amount_pr >= 95,
+        "poAmountPassed": amount_po >= 95,
+        "distinctDocumentCountsExact": distinct_exact,
+    }
+    output["verdict"]["canRetireTotally"] = all([
+        output["verdict"]["prStagePassed"], output["verdict"]["prClockPassed"],
+        output["verdict"]["poStagePassed"], output["verdict"]["prAmountPassed"],
+        output["verdict"]["poAmountPassed"], output["verdict"]["distinctDocumentCountsExact"],
+    ])
+    text = json.dumps(output, indent=2, ensure_ascii=False, default=str) + "\n"
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(text, encoding="utf-8")
+    print(json.dumps({
+        "sourceCounts": output["sourceCounts"],
+        "freshness": output["freshness"],
+        "prInReviewSeparability": output["prInReviewSeparability"],
+        "prStage": {key: value for key, value in output["reconciliation"]["prStage"].items() if key != "differences"},
+        "prProcurementClock": {key: value for key, value in output["reconciliation"]["prProcurementClock"].items() if key != "differences"},
+        "poStage": {key: value for key, value in output["reconciliation"]["poStage"].items() if key != "differences"},
+        "amountBasis": {kind: {key: value for key, value in data.items() if key != "differences"} for kind, data in output["amountBasis"].items()},
+        "approver": {key: value for key, value in output["reconciliation"]["approver"].items() if key != "details"},
+        "verdict": output["verdict"],
+    }, indent=2, ensure_ascii=False, default=str))
+
+
+if __name__ == "__main__":
+    main()

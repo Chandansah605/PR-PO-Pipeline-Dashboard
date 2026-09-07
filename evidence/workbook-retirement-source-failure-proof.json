@@ -1,0 +1,15 @@
+{
+  "provedAt": "2026-09-07T17:05:00Z",
+  "test": "refresh failures serve stale data only when a last-good revision exists",
+  "withLastGood": {
+    "sourceState": "STALE",
+    "cached": true,
+    "refreshErrorPreserved": true,
+    "workbookFallback": false
+  },
+  "withoutLastGood": {
+    "failurePropagated": true,
+    "workbookFallback": false
+  },
+  "passed": true
+}

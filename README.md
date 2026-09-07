@@ -4,6 +4,10 @@ Live dashboard for Strive Services Group showing the purchase requisition (PR) a
 
 **Live site:** https://strive-services-group.github.io/PR-PO-Pipeline-Dashboard/ (sign in with your Microsoft work account)
 
+## Workbook retirement status
+
+Correction 04 separates PO stage from its clock. P1a and P2 pass at 100%, so the dashboard now reads one shared live revision from the proxy. The final workbook seeded otherwise unavailable clocks once; every seed remains visibly labelled `since (from last export)`. The workbook still showed 1,099 orders as merely sent although F&O showed them received or invoiced.
+
 ## This is one of two repos (same project)
 | Repo | Purpose | Deploys to |
 |---|---|---|
@@ -13,22 +17,20 @@ Live dashboard for Strive Services Group showing the purchase requisition (PR) a
 They're kept separate because they deploy to different places. The dashboard calls the proxy for live data.
 
 ## How the data flows
-1. On sign-in, the dashboard calls the proxy (`/api/pr`, `/api/po`) for **live** D365 data — amounts, status, departments, vendors, dates — and auto-refreshes every 3 minutes.
-2. The **Step name / step date / pending approver / department-location-contract** come from `pr_steps.json` (generated from the latest D365 PR export), because the workflow "Step name" is a stored field not yet exposed on D365's live OData. The dashboard overlays these onto the live data by requisition number.
+1. On sign-in, the dashboard calls the proxy `/api/dataset` for one shared live revision.
+2. F&O supplies headers, active lines and PO lifecycle state; the development `ssg_` capture supplies approval assignments and first-observed PO stage clocks.
+3. Browser cache is shown while a newer revision refreshes. A stale revision is labelled; no workbook fallback exists.
 
 ## Key files
 - `index.html` — the entire dashboard (UI + data loading + charts).
-- `pr_steps.json` — step lookup overlaid onto live data (PR → step, step date, approver, dept/loc/contract).
-- `gen_pr_steps.py` — regenerates `pr_steps.json` from a fresh PR export: `python gen_pr_steps.py pr.xlsx`.
-- `pr.xlsx` / `po.xlsx` — committed exports (fallback data + source for the step lookup).
+- `dataverse-live.js` — shared live-dataset client and stale-cache handling.
+- `evidence/workbook-retirement-correction-04.json` — final gate evidence.
 - `msal-browser.min.js` — Microsoft sign-in library (self-hosted).
 - `LIVE-INTEGRATION-PLAN.md` — background on the live integration.
 
 ## To edit / publish
 Edit files (GitHub web pencil for small changes, or GitHub Desktop for full edits) → **Commit** → **Push**. GitHub Pages republishes automatically in ~1 minute.
 
-## To refresh the workflow steps
-Export the *All purchase requisitions* list from D365 → save as `pr.xlsx` → run `python gen_pr_steps.py pr.xlsx` → commit `pr_steps.json` → push.
+## Retirement gate
 
-## Pending improvement (makes steps fully live, no exports)
-Have the F&O developer expose the `IFAHR*` fields (esp. `IFAHRPendingStep`) on the OData entity. Once done, the dashboard reads the step live and `pr_steps.json` is no longer needed.
+The correction-04 cutover passed. PR stages, amounts and counts remain settled; PO P1a/P2 are 100%. P1b is reported, not gated. Never display a seeded or missing clock as a live event date.
