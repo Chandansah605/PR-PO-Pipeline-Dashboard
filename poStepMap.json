@@ -1,0 +1,6 @@
+{
+  "1afc2329-18a6-4ef8-81c1-c320b6627810": "Procurement Manager",
+  "44535f4f-3bdc-4b79-a36a-1fb1159c0e2a": "Finance and Accounts Director",
+  "6e8620ee-d790-4e29-b2c1-13b2e18591f3": "Accounting Manager",
+  "_comment": "PO workflow ElementId (GUID) -> readable Step name, copied from Strive-Services-Group/pr-po-proxy on 2026-09-07. The browser uses the published current-step record as a guard because the Dataverse approval virtual entity exposes neither status nor time."
+}
