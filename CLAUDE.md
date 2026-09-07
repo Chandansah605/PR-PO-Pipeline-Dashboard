@@ -2,9 +2,9 @@
 
 ## Current production state
 
-- The emailed PR and PO workbooks remain part of the production data path.
-- The dashboard must not claim that Dataverse alone reproduces workbook stages.
-- The existing workbook fallback, snapshots, scheduled jobs and email behaviour are protected.
+- The dashboard and email read the same proxy dataset revision.
+- No workbook, workbook generator or workbook fallback is a production data source.
+- Browser last-good cache is allowed only when visibly labelled stale.
 
 ## Live sources assessed
 
@@ -14,7 +14,7 @@
 
 ## Retirement gate
 
-Correction 03 retires the invalid all-stage PO workbook gate. The settled PR stage (95.25%), PR procurement clock (97.45%), PR amount (98.23%), PO amount (99.02%) and document counts still pass. The replacement PO tests do not: P1 dated-stage evidence is 512/983 (52.09%) and P3 maintained approval-step parity is 3/61 (4.92%); P2 population parity is exact at 983/983. Do not remove the workbook path or deploy a Dataverse-only replacement until P1–P3 pass.
+Correction 04 replaces P1/P3 with P1a/P1b. P1a and P2 must remain 100%; P1b is a report of live-dated, seeded, first-observed and not-recorded clocks. Stage comes from F&O state or capture, independently from its clock.
 
 ## Protected systems
 
@@ -22,6 +22,7 @@ Correction 03 retires the invalid all-stage PO workbook gate. The settled PR sta
 - Never deploy or modify Chandan's app, flow, OneDrive or tokens.
 - Do not change senders, recipients or the `Report quiet mode` behaviour without explicit approval.
 - Keep evidence timestamps in UTC and distinguish event, active-age and pending clocks.
+- A packing-slip date is a posting date, never a delivery date.
 
 ## Evidence
 
@@ -33,4 +34,5 @@ Correction 03 retires the invalid all-stage PO workbook gate. The settled PR sta
 - Correction 02 machine evidence: `evidence/workbook-retirement-correction-02.json`
 - Correction 03 report: `evidence/workbook-retirement-correction-03.md`
 - Correction 03 machine evidence: `evidence/workbook-retirement-correction-03.json`
+- Correction 04 machine evidence: `evidence/workbook-retirement-correction-04.json`
 - Reproduction script: `tests/reconcile_workbook_retirement.py`

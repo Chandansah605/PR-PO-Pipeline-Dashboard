@@ -17,7 +17,7 @@
   };
 
   const PR_STAGES = ['Re-Assigned/Rejected', 'Procurement', 'Operations to Confirm', 'Dep Managers', 'Finance', 'Director', 'CEO'];
-  const PO_STAGES = ['Procurement', 'Finance', 'Director', 'CEO', 'Sent to Supplier', 'Pending Invoicing'];
+  const PO_STAGES = ['Procurement', 'Finance', 'Director', 'CEO', 'Not yet sent', 'Sent to supplier', 'Receipt posted'];
 
   function clean(value) {
     return String(value == null ? '' : value).trim();
@@ -157,7 +157,7 @@
     (poRows || []).forEach(function (row) {
       const stage = stageName(row);
       const owner = personOwner(row, 'PO');
-      if (!owner || owner === '(unassigned)' || ['Director', 'CEO', 'Sent to Supplier', 'Pending Invoicing'].includes(stage)) return;
+      if (!owner || owner === '(unassigned)' || ['Director', 'CEO', 'Sent to supplier', 'Receipt posted'].includes(stage)) return;
       combined.push({ row: row, type: 'PO', owner: owner });
     });
     return combined;

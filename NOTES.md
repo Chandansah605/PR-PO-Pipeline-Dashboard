@@ -6112,3 +6112,154 @@ Evidence coverage: 1,098/1,425; 327 do not have the dated event P1 requires.
 ## Recommended next step
 
 Expose a dated F&O PO confirmation event through an already-authorised read path and resolve the P3 historical approval discrepancies. Then rerun the same P1–P5 tests without weakening P1 or R2.
+
+# Workbook retirement correction 04 — 7 September 2026
+
+## Verdict
+
+**Retire totally.** Correction 04 separates authoritative PO stage from its clock. P1a and P2 pass at 100%, every settled gate remains passed, the one-time seed is recorded, and the live dashboard/email revision is proven. Workbook runtime files, generators and workflows were removed only after the proxy production path returned the expected counts.
+
+| Gate | 7 Sep verdict | Correction 01 | Correction 02 | Correction 03 | Correction 04 |
+|---|---:|---:|---:|---:|---:|
+| PR stage | 489/571 (85.64%) | 512/571 (89.67%) | 521/547 (95.25%) | 521/547 (95.25%) settled | 521/547 (95.25%) settled PASS |
+| PR procurement clock | 541/564 (95.92%) | 540/564 (95.74%) | 496/509 (97.45%) | 496/509 (97.45%) settled | 496/509 (97.45%) settled PASS |
+| PO stage | 430/1,493 (28.80%) | 653/1,495 (43.68%) | 309/702 (44.02%) | RETIRED | RETIRED |
+| PO P1 / P1a | — | — | — | 512/983 dated (52.09%) FAIL | 983/983 authoritative stage (100.00%) PASS |
+| PO P1b clock coverage | — | — | — | — | Report: 904 live-dated; 12 seeded; 0 first-observed baseline; 67 not recorded |
+| PO P2 F&O population parity | — | — | — | 983/983 (100.00%) PASS | 983/983 (100.00%) PASS |
+| PO P3 workbook approval parity | — | — | — | 3/61 (4.92%) FAIL | RETIRED |
+| PO P4 LPO-sent distribution | — | — | — | 1,099 received or invoiced | 1,099 received or invoiced |
+| PO P5 human sample | — | — | — | 25/25 complete | 25/25 carried and complete |
+| PR amount | 819/4,394 (18.64%) | 3,560/4,394 (81.02%) | 556/566 (98.23%) | 556/566 (98.23%) settled | 556/566 (98.23%) settled PASS |
+| PO amount | 85/2,977 (2.86%) | 2,923/2,977 (98.19%) | 707/714 (99.02%) | 707/714 (99.02%) settled | 707/714 (99.02%) settled PASS |
+| Distinct documents | Exact | Exact | Exact | Exact | Exact PASS |
+
+## P1a — authoritative PO stage
+
+- Result: **PASS**, 983/983 open F&O purchase orders have a stage; `STAGE_NOT_EVIDENCED` = 0.
+- Open-stage distribution: `Receipt posted` 504; `Sent to supplier` 389; `Not yet sent` 79; `Finance` 7; `Approval — unmapped element` 4.
+- Stage is derived from each order's F&O status and approval status, posted packing slips, posted vendor invoices, or the current approval capture. Missing time never invalidates a known state.
+
+## P1b — PO clocks, reported not gated
+
+- Production after seed: 904 `LIVE_EVENT_DATE`; 12 `SEEDED_FROM_FINAL_WORKBOOK`; 0 baseline `PENDING_SINCE_FIRST_OBSERVED`; 67 `NOT_RECORDED`.
+- Screen and email render `SEEDED_FROM_FINAL_WORKBOOK` as `since (from last export)`.
+- `NOT_RECORDED` renders as `since — not recorded`; it never receives a fabricated date.
+- `Stage event date and time` contains only a genuine F&O/capture event. Seed and first-observed values stay in `Step date and time` with their provenance.
+
+### Final-workbook seeds
+
+Every seed below records the workbook value and the export timestamp `2026-09-07T05:30:00Z`.
+
+| Observation key | Stage | Seeded clock UTC | Flag |
+|---|---|---|---|
+| ifahr-live\|PO\|scbm\|P0000001160 | Not yet sent | 2025-10-31T11:21:31Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2600488 | Not yet sent | 2026-05-01T16:09:47Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2600638 | Not yet sent | 2026-04-17T16:24:45Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2600645 | Not yet sent | 2026-04-20T09:59:18Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2600651 | Not yet sent | 2026-04-20T15:02:15Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2600706 | Not yet sent | 2026-04-27T16:40:49Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2600713 | Not yet sent | 2026-04-28T16:17:53Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2600795 | Not yet sent | 2026-05-12T11:25:00Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2600813 | Not yet sent | 2026-05-15T16:14:49Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2601138 | Not yet sent | 2026-08-10T15:37:54Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2601516 | Not yet sent | 2026-08-25T12:28:50Z | SEEDED_FROM_FINAL_WORKBOOK |
+| ifahr-live\|PO\|scbm\|SCBM-PO2601523 | Not yet sent | 2026-08-26T09:38:54Z | SEEDED_FROM_FINAL_WORKBOOK |
+
+## Stage-observation proof
+
+- A non-reportable proof row changed from `Sent to supplier` with no clock to `Receipt posted` at `2026-09-07T17:16:15Z`.
+- Dataverse stored `PENDING_SINCE_FIRST_OBSERVED`, the same first-observed second, and `liveEvent = first observed after cutover`.
+- Proof key: `ifahr-live|PO|proof|C04-STAGE-CHANGE-PROOF`; `ssg_isreportable = false`, so it cannot enter the dashboard population.
+- Evidence: `evidence/workbook-retirement-stage-observation-live-proof.json`.
+
+## Stale rows the workbook still carries
+
+- Correction 04 carries R4 unchanged: **2,944 stale workbook rows**, including **829 PO rows**.
+- The complete counted-once document list remains under the earlier same-named section and in `evidence/workbook-retirement-correction-02.md`; stale rows are not gates.
+
+## Production same-revision and failure proof
+
+- Pre-seed local proof: dashboard revision and email dry-run revision both `c96917d99719d6316aad038a82fdf57de012bffc1da9bf21e95e142b1b2a7cd3`; 4,413 PR headers, 3,188 PO headers, 983 open POs, 1,805 email open items; zero sends.
+- Production proof after seed: proxy commit `45caaa4b78ec2ef35a7b8ff9f2094bd802f5c6f2`; dashboard and email dry-run both returned revision `cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5`; source state `LIVE`; 4,413 PRs; 3,188 POs; 983 open POs; zero unevidenced stages; zero pending observation writes.
+- The production email dry-run returned `sentAll = false`, two active division summaries and 19 personal summaries; no email was sent.
+- Unit proof forces the loader to fail: a prior revision returns `sourceState = STALE`; with no last-good revision the same failure propagates. There is no workbook fallback.
+- Browser cache is rendered immediately while refresh runs; stale state remains visibly labelled.
+
+## Dataverse security and seed record
+
+- Created development application user `2dae4ee2-dbaa-f111-aaac-7ced8dacd849` for the `ssg-prpo-proxy` user-assigned managed identity (`6435d989-1467-4cfb-a377-919011f03a94`).
+- Assigned only `SSG PR PO Approval Capture Application` in the Shared Services business unit.
+- Added organisation-level Create, Read, Write, Append and Append To on `ssg_PRPODocument` to that custom role; Delete was not added.
+- No write occurred in `operations-ifahr-live`. No non-`ssg_` development table was written.
+- Seed dry-run planned 983; apply wrote 983; post-seed verification found all 983 with exact stage/payload hashes and planned no new writes.
+
+## What I found
+
+- Correction 03's 471 failures were clock gaps, not unknown stages. F&O status makes all 983 open PO stages authoritative.
+- The final workbook could seed 12 of the 79 missing current-stage clocks; 67 legitimately have no recorded time.
+- The workbook's frozen PO labels are not a valid lifecycle gate. F&O shows **1,099** workbook-`LPO sent` orders as received or invoiced.
+
+## Problems and risks
+
+- The GitHub proxy deploy workflow lacks `AZURE_FUNCTIONAPP_PUBLISH_PROFILE_SSG_PRPO_PROXY`; run 34146527247 stopped before deployment. The authorised Azure Functions CLI deployment succeeded instead.
+- 67 open POs initially show `since — not recorded`; their next observed stage change starts our own clock.
+- The non-reportable proof row is retained because the approved role deliberately has no Delete permission.
+- The package audit reports two moderate and one high transitive dependency advisory; no forced/breaking dependency upgrade was mixed into this cutover.
+
+## Files changed
+
+- Dashboard runtime now reads `/api/dataset`, shows cache/freshness/provenance, and uses current stages.
+- Proxy now assembles one cross-company revision for dashboard, email and weekly snapshots.
+- Final workbooks, overlay, generators, obsolete tests and four workbook workflows were deleted.
+
+## Exact changes made
+
+- Kept accepted PR capture/active-line pricing rules and active-line excl.-VAT amounts.
+- Implemented P1a PO state independently from live-event, seeded and first-observed clocks.
+- Added composite legal-entity/PO observation keys and development-only managed-identity writes.
+- Kept posted packing-slip date as posting date, never delivery date.
+- Kept P4's 1,099 business-case number in the screen/email change note.
+
+## What I did not change
+
+- No F&O or `operations-ifahr-live` row was written.
+- No email sender, recipient, quiet-mode switch or scheduled morning send was changed or triggered.
+- Chandan's parallel app, flow, OneDrive and tokens were not touched.
+- Existing `weekly_snapshots.json` and `stuck_items.json` history remain; the proxy weekly job now reads the shared live revision.
+
+## Testing performed
+
+- Correction-04 reconciliation: P1a/P2 and settled-gate assertions passed against all F&O companies.
+- Proxy syntax and seven focused stage/clock/cache tests passed.
+- Dashboard data-client and Race Control tests passed; both HTML inline-script sets parse under Node `vm.Script`.
+- Seed dry-run, apply and exact post-seed comparison passed.
+- Production `/api/dataset`, `/api/pr`, `/api/po` and function-key email dry-run returned the same live revision/count model.
+- Live development Dataverse stage-change proof passed.
+- Post-removal search confirmed no runtime workbook URL, file, overlay generator or retired workflow remains.
+
+## Commands recorded
+
+- `python tests/reconcile_workbook_retirement_correction04.py --out evidence/workbook-retirement-correction-04.json`.
+- `python tests/seed_final_workbook_po_clocks.py --evidence evidence/workbook-retirement-correction-04.json --out evidence/workbook-retirement-clock-seed-dry-run.json`.
+- The same seed command with `--apply`, followed by a second read-only exact comparison.
+- `node test/sameRevisionProof.js ...workbook-retirement-same-revision-preseed.json` and `node test/liveStageObservationProof.js ...workbook-retirement-stage-observation-live-proof.json`.
+- `node --test test/prpoDataset.test.js` and `node --test tests/dataverse-live.test.js tests/race-control.test.js`.
+- `func azure functionapp publish ssg-prpo-proxy --javascript` after the exact-SHA workflow stopped on its missing secret.
+- Production GETs to `/api/dataset?refresh=1`, `/api/pr`, `/api/po` and `/api/prpo-email` without `send=1`.
+
+## Assumptions
+
+- The user explicitly settled Correction 02's PR, amount and distinct-count gates; they were carried, not reopened.
+- The final-workbook export timestamp is `2026-09-07T05:30:00Z`, as used by the accepted correction evidence.
+- Legal entity plus PO number is the stable observation identity because F&O reuses PO numbers across companies.
+
+## Remaining risks
+
+- The browser's first ever visit has no cached dataset; it shows the loading shell until the live function returns. Subsequent visits show cache immediately while refreshing.
+- Historical three-day email cards show today only until new live weekly observations accumulate; daily email delivery itself is unchanged.
+- Azure Functions still reports Node 20 runtime deprecation guidance; this cutover did not change the runtime stack.
+
+## Recommended next step
+
+Monitor the next scheduled morning email and first weekly live snapshot. Repair the missing GitHub publish-profile secret separately so future exact-SHA deployments use the repository workflow again.

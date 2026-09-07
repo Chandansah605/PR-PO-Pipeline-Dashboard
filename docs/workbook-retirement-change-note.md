@@ -1,6 +1,6 @@
-# PR/PO reporting change note — draft, not approved for issue
+# PR/PO reporting change note — correction 04 cutover
 
-Status: **Blocked. Do not publish or forward yet.** The replacement PO gates are now valid, but dated stage evidence is only 52.09% and maintained approval-step parity is only 4.92%. Production remains unchanged.
+Status: **Implemented.** PO stage and PO clock are now separate. P1a and P2 both pass at 100%; P1b is reported rather than used as a stage gate.
 
 ## Exact bucket changes
 
@@ -31,7 +31,7 @@ Every dashboard and email amount will use live F&O line values **excl. VAT**. Fa
 - **Receipt posted** — a packing slip has been posted.
 - **Invoiced** — the purchase order is invoiced where that status is exposed.
 
-The workbook still shows **1,099 purchase orders** as merely `LPO sent` even though F&O shows them as `Receipt posted` or `Invoiced`. In the proposed live view, an order that used to remain at `LPO sent` indefinitely advances when F&O records the posted packing slip or vendor invoice.
+The final workbook still shows **1,099 purchase orders** as merely `LPO sent` even though F&O shows them as `Receipt posted` or `Invoiced`. In the live view, an order that used to remain at `LPO sent` indefinitely advances when F&O records the posted packing slip or vendor invoice.
 
 `Posted on` is the packing-slip document date. It is a receipt-posting date, never a delivery date.
 
@@ -40,11 +40,11 @@ The workbook still shows **1,099 purchase orders** as merely `LPO sent` even tho
 - **Assigned since** — the earliest captured assignment for the current approval stage.
 - **Observed in stage since** — the preserved first observation of Sourcing or Priced. The F&O header modified time only seeds records already open at cutover.
 - **Posted on** — the packing-slip document date for Receipt posted.
+- **Since (from last export)** — the final workbook seeded the clock because F&O exposed the stage but no event time. It is never presented as a live event date.
+- **Since — not recorded** — neither a live event nor a final-workbook time existed. No date is invented.
 
 The dataset time is the oldest required source timestamp. The screen shows `Dataset generated`, `F&O read` and `Approval capture reconciled` separately in Dubai time, while the dataset stores UTC. Cached means an earlier Dataverse-derived dataset, never workbook data.
 
-## Forwardable paragraph — hold until every gate passes
+## Forwardable paragraph
 
-PR/PO reporting will move from emailed workbooks to automatically refreshed Dataverse data. PR review, supplier inquiry, quotation logging, quotation sharing and Operations confirmation will appear together as Sourcing, meaning with Procurement and not yet priced. Priced — awaiting approval will mean every active PR line has a positive purchase price. All amounts will come from live F&O lines and will be labelled excl. VAT, so familiar totals will normally be about 5% lower than the VAT-inclusive workbook totals. PO reporting will follow live events from Sent to supplier to Receipt posted and then Invoiced. Approval clocks will use captured assignment times, procurement clocks will use the preserved first observation in the stage, and Posted on will be the packing-slip posting date, never a delivery date. The dashboard and daily emails will use the same dated dataset and will show unresolved or unmapped workflow items separately instead of guessing.
-
-This paragraph is not approved for issue until every retirement gate passes and the live cutover is verified.
+PR/PO reporting now reads automatically refreshed F&O and approval-capture data instead of emailed workbooks. PR review, supplier inquiry, quotation logging, quotation sharing and Operations confirmation appear together as Sourcing, meaning with Procurement and not yet priced. Priced — awaiting approval means every active PR line has a positive purchase price. All amounts come from live F&O lines and are labelled excl. VAT. Purchase orders now move from Sent to supplier to Receipt posted and Invoiced; **1,099** orders that the final workbook still called merely sent were already received or invoiced in F&O. Some orders show **since (from last export)** until our own first-observed clock takes over. A posted packing-slip date is a posting date, never a delivery date. The dashboard and daily emails use the same dataset revision and show missing clocks rather than inventing dates.
