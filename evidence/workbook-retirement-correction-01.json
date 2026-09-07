@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-07T13:51:58.461802Z",
+  "generatedAt": "2026-09-07T14:03:26.088700Z",
   "readOnly": true,
   "sourceCounts": {
     "workbookPR": 4394,
@@ -17,11 +17,11 @@
     "captureParallelDocuments": 108
   },
   "freshness": {
-    "datasetGeneratedUtc": "2026-09-07T13:51:58.461802Z",
-    "fAndOReadUtc": "2026-09-07T13:51:58.461802Z",
-    "approvalCaptureReconciledUtc": "2026-09-07T13:48:25Z",
-    "effectiveDataTimeUtc": "2026-09-07T13:48:25Z",
-    "captureAgeMinutes": 3.56
+    "datasetGeneratedUtc": "2026-09-07T14:03:26.088700Z",
+    "fAndOReadUtc": "2026-09-07T14:03:26.088700Z",
+    "approvalCaptureReconciledUtc": "2026-09-07T14:00:29Z",
+    "effectiveDataTimeUtc": "2026-09-07T14:00:29Z",
+    "captureAgeMinutes": 2.95
   },
   "liveDatasetNumbers": {
     "distinctResolvedDocuments": 923,
@@ -822,14 +822,14 @@
           "document": "CPR-034911",
           "stage": "Sourcing",
           "workbookClock": "2026-09-05T14:42:00Z",
-          "liveSeedClock": "2026-09-07T08:21:26Z",
+          "liveSeedClock": "2026-09-07T13:56:32Z",
           "withinOneDay": false
         },
         {
           "document": "CPR-034808",
           "stage": "Sourcing",
           "workbookClock": "2026-09-05T14:41:59Z",
-          "liveSeedClock": "2026-09-07T08:18:48Z",
+          "liveSeedClock": "2026-09-07T13:56:16Z",
           "withinOneDay": false
         },
         {
@@ -18811,8 +18811,8 @@
         "liveSource": "VAT-adjusted workbook amount versus F&O line amount excl. VAT",
         "workbookNonBlank": 4394,
         "compared": 4394,
-        "matched": 3561,
-        "agreementPercent": 81.04,
+        "matched": 3560,
+        "agreementPercent": 81.02,
         "noLiveEquivalent": false
       },
       {
@@ -18957,8 +18957,8 @@
         "liveSource": "VAT-adjusted workbook amount versus F&O line amount excl. VAT",
         "workbookNonBlank": 2977,
         "compared": 2977,
-        "matched": 2921,
-        "agreementPercent": 98.12,
+        "matched": 2923,
+        "agreementPercent": 98.19,
         "noLiveEquivalent": false
       },
       {
@@ -19030,29 +19030,29 @@
     "pr.xlsx": {
       "documentsCompared": 4394,
       "workbookTotalIncludingVat": 53093720.31,
-      "adjustedWorkbookTotalExVat": 48353102.28,
-      "documentsWithDeterministicTaxBasis": 3654,
+      "adjustedWorkbookTotalExVat": 47938970.43,
+      "documentsWithDeterministicTaxBasis": 3624,
       "liveLineTotalExVat": 49314746.25,
-      "matchedDocuments": 3561,
-      "agreementPercent": 81.04,
+      "matchedDocuments": 3560,
+      "agreementPercent": 81.02,
       "taxBasisCounts": {
-        "standard-rate VAT": 2852,
-        "unknown": 21,
+        "standard-rate VAT": 2823,
+        "unknown": 38,
         "zero amount": 1495,
-        "non-VAT": 24,
-        "mixed VAT basis": 2
+        "non-VAT": 23,
+        "mixed VAT basis": 15
       },
       "differences": [
         {
           "document": "PR-000007",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 720.0,
-          "adjustedWorkbookExVat": 685.71,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 720.0,
-          "difference": -34.29
+          "difference": null
         },
         {
           "document": "PR-000008",
@@ -19067,14 +19067,14 @@
         },
         {
           "document": "PR-000018",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 726.0,
-          "adjustedWorkbookExVat": 691.43,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 726.0,
-          "difference": -34.57
+          "difference": null
         },
         {
           "document": "PR-000107",
@@ -19134,25 +19134,25 @@
         },
         {
           "document": "PR-000105",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 1025.5,
-          "adjustedWorkbookExVat": 976.67,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 1025.5,
-          "difference": -48.83
+          "difference": null
         },
         {
           "document": "PR-000142",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 2100.0,
-          "adjustedWorkbookExVat": 2000.0,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 2100.0,
-          "difference": -100.0
+          "difference": null
         },
         {
           "document": "PR-000145",
@@ -19301,14 +19301,14 @@
         },
         {
           "document": "PR-000237",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 155000.0,
-          "adjustedWorkbookExVat": 147619.05,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 155000.0,
-          "difference": -7380.95
+          "difference": null
         },
         {
           "document": "CPR-000003",
@@ -19447,14 +19447,14 @@
         },
         {
           "document": "PR-000285",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 1000.0,
-          "adjustedWorkbookExVat": 952.38,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 1000.0,
-          "difference": -47.62
+          "difference": null
         },
         {
           "document": "CPR-000095",
@@ -19655,14 +19655,14 @@
         },
         {
           "document": "PR-000317",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 1550.0,
-          "adjustedWorkbookExVat": 1476.19,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 1550.0,
-          "difference": -73.81
+          "difference": null
         },
         {
           "document": "PR-000318",
@@ -19788,14 +19788,14 @@
         },
         {
           "document": "PR-000327",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 517.5,
-          "adjustedWorkbookExVat": 492.86,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 517.5,
-          "difference": -24.64
+          "difference": null
         },
         {
           "document": "CPR-001511",
@@ -19862,15 +19862,15 @@
         },
         {
           "document": "PR-000333",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 846.5,
-          "adjustedWorkbookExVat": 806.19,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 840.0,
-          "difference": -33.81
+          "difference": null
         },
         {
           "document": "CPR-001539",
@@ -19892,14 +19892,14 @@
         },
         {
           "document": "PR-000336",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 791.0,
-          "adjustedWorkbookExVat": 753.33,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 791.0,
-          "difference": -37.67
+          "difference": null
         },
         {
           "document": "CPR-001771",
@@ -20067,14 +20067,14 @@
         },
         {
           "document": "PR-000364",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 2560.0,
-          "adjustedWorkbookExVat": 2438.1,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 2560.0,
-          "difference": -121.9
+          "difference": null
         },
         {
           "document": "CPR-002915",
@@ -20249,14 +20249,14 @@
         },
         {
           "document": "PR-000402",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 20494.0,
-          "adjustedWorkbookExVat": 19518.1,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 20494.0,
-          "difference": -975.9
+          "difference": null
         },
         {
           "document": "CPR-003409",
@@ -21432,15 +21432,15 @@
         },
         {
           "document": "PR-000574",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 918.6,
-          "adjustedWorkbookExVat": 874.86,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 876.0,
-          "difference": -1.14
+          "difference": null
         },
         {
           "document": "CPR-009593",
@@ -22093,6 +22093,17 @@
           "workbookAmount": 289.78,
           "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 0.0,
+          "difference": null
+        },
+        {
+          "document": "PR-000670",
+          "taxBasis": "unknown",
+          "taxCodes": [
+            "OS/(blank)"
+          ],
+          "workbookAmount": 220200.0,
+          "adjustedWorkbookExVat": null,
+          "liveLineAmountExVat": 220200.0,
           "difference": null
         },
         {
@@ -23715,15 +23726,15 @@
         },
         {
           "document": "PR-001061",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 1013.86,
-          "adjustedWorkbookExVat": 965.58,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 970.93,
-          "difference": -5.35
+          "difference": null
         },
         {
           "document": "CPR-021613",
@@ -23817,39 +23828,39 @@
         },
         {
           "document": "PR-001128",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 748.55,
-          "adjustedWorkbookExVat": 712.9,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 716.59,
-          "difference": -3.69
+          "difference": null
         },
         {
           "document": "PR-001129",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 748.55,
-          "adjustedWorkbookExVat": 712.9,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 716.59,
-          "difference": -3.69
+          "difference": null
         },
         {
           "document": "PR-001130",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 748.55,
-          "adjustedWorkbookExVat": 712.9,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 716.59,
-          "difference": -3.69
+          "difference": null
         },
         {
           "document": "CPR-022319",
@@ -23900,15 +23911,15 @@
         },
         {
           "document": "PR-001139",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 1222.47,
-          "adjustedWorkbookExVat": 1164.26,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 1175.97,
-          "difference": -11.71
+          "difference": null
         },
         {
           "document": "CPR-022403",
@@ -23921,15 +23932,15 @@
         },
         {
           "document": "PR-001141",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 1106.42,
-          "adjustedWorkbookExVat": 1053.73,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 1064.09,
-          "difference": -10.36
+          "difference": null
         },
         {
           "document": "CPR-022446",
@@ -23978,15 +23989,15 @@
         },
         {
           "document": "PR-001152",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 1065.85,
-          "adjustedWorkbookExVat": 1015.1,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 1025.45,
-          "difference": -10.35
+          "difference": null
         },
         {
           "document": "CPR-022538",
@@ -24008,15 +24019,15 @@
         },
         {
           "document": "PR-001158",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 773.67,
-          "adjustedWorkbookExVat": 736.83,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 743.52,
-          "difference": -6.69
+          "difference": null
         },
         {
           "document": "CPR-022558",
@@ -24058,14 +24069,14 @@
         },
         {
           "document": "PR-001183",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 1000.0,
-          "adjustedWorkbookExVat": 952.38,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 1000.0,
-          "difference": -47.62
+          "difference": null
         },
         {
           "document": "CPR-022977",
@@ -24410,15 +24421,15 @@
         },
         {
           "document": "PR-001259",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 458.42,
-          "adjustedWorkbookExVat": 436.59,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 439.6,
-          "difference": -3.01
+          "difference": null
         },
         {
           "document": "CPR-025051",
@@ -24494,14 +24505,14 @@
         },
         {
           "document": "PR-001271",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 2257.5,
-          "adjustedWorkbookExVat": 2150.0,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 2257.5,
-          "difference": -107.5
+          "difference": null
         },
         {
           "document": "CPR-025238",
@@ -24990,14 +25001,14 @@
         },
         {
           "document": "PR-001365",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 3135.5,
-          "adjustedWorkbookExVat": 2986.19,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 3135.5,
-          "difference": -149.31
+          "difference": null
         },
         {
           "document": "CPR-026886",
@@ -25867,14 +25878,14 @@
         },
         {
           "document": "PR-001545",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 1100.0,
-          "adjustedWorkbookExVat": 1047.62,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 1100.0,
-          "difference": -52.38
+          "difference": null
         },
         {
           "document": "CPR-029841",
@@ -26616,39 +26627,39 @@
         },
         {
           "document": "PR-001700",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-SRVC"
           ],
           "workbookAmount": 0.0,
-          "adjustedWorkbookExVat": 0.0,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 803.67,
-          "difference": -803.67
+          "difference": null
         },
         {
           "document": "PR-001701",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-SRVC"
           ],
           "workbookAmount": 0.0,
-          "adjustedWorkbookExVat": 0.0,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 803.67,
-          "difference": -803.67
+          "difference": null
         },
         {
           "document": "PR-001702",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-SRVC"
           ],
           "workbookAmount": 0.0,
-          "adjustedWorkbookExVat": 0.0,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 803.67,
-          "difference": -803.67
+          "difference": null
         },
         {
           "document": "CPR-033932",
@@ -26797,22 +26808,22 @@
     "po.xlsx": {
       "documentsCompared": 2977,
       "workbookTotalIncludingVat": 36836401.82,
-      "adjustedWorkbookTotalExVat": 34714967.5,
-      "documentsWithDeterministicTaxBasis": 2959,
+      "adjustedWorkbookTotalExVat": 34684077.18,
+      "documentsWithDeterministicTaxBasis": 2956,
       "liveLineTotalExVat": 48404855.18,
-      "matchedDocuments": 2921,
-      "agreementPercent": 98.12,
+      "matchedDocuments": 2923,
+      "agreementPercent": 98.19,
       "taxBasisCounts": {
-        "mixed VAT basis": 1,
-        "standard-rate VAT": 2885,
-        "non-VAT": 35,
+        "unknown": 13,
+        "standard-rate VAT": 2880,
+        "non-VAT": 37,
         "zero amount": 46,
-        "unknown": 10
+        "mixed VAT basis": 1
       },
       "differences": [
         {
           "document": "P0000000001",
-          "taxBasis": "mixed VAT basis",
+          "taxBasis": "unknown",
           "taxCodes": [
             "OS/(blank)",
             "SR-RCVR/SR-GOOD",
@@ -27249,17 +27260,6 @@
           "difference": null
         },
         {
-          "document": "P0000000503",
-          "taxBasis": "standard-rate VAT",
-          "taxCodes": [
-            "SR-RCVR/OS-GOOD"
-          ],
-          "workbookAmount": 3000.0,
-          "adjustedWorkbookExVat": 2857.14,
-          "liveLineAmountExVat": 3000.0,
-          "difference": -142.86
-        },
-        {
           "document": "P0000000532",
           "taxBasis": "zero amount",
           "taxCodes": [],
@@ -27290,14 +27290,14 @@
         },
         {
           "document": "P0000000737",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)"
           ],
           "workbookAmount": 11000.0,
-          "adjustedWorkbookExVat": 10476.19,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 11000.0,
-          "difference": -523.81
+          "difference": null
         },
         {
           "document": "P0000000886",
@@ -27321,15 +27321,15 @@
         },
         {
           "document": "P0000001287",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "mixed VAT basis",
           "taxCodes": [
             "SR-RCVR/OS-GOOD",
             "SR-RCVR/SR-GOOD"
           ],
           "workbookAmount": 876.8,
-          "adjustedWorkbookExVat": 835.05,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 836.0,
-          "difference": -0.95
+          "difference": null
         },
         {
           "document": "P0000001436",
@@ -27345,16 +27345,16 @@
         },
         {
           "document": "P0000001526",
-          "taxBasis": "standard-rate VAT",
+          "taxBasis": "unknown",
           "taxCodes": [
             "SR-RCVR/(blank)",
             "SR-RCVR/SR-GOOD",
             "SR-RCVR/SR-SRVC"
           ],
           "workbookAmount": 20800.96,
-          "adjustedWorkbookExVat": 19810.44,
+          "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 19813.77,
-          "difference": -3.33
+          "difference": null
         },
         {
           "document": "SCBM-PO2600306",
@@ -27384,17 +27384,6 @@
           "adjustedWorkbookExVat": null,
           "liveLineAmountExVat": 0.0,
           "difference": null
-        },
-        {
-          "document": "SCBM-PO2600690",
-          "taxBasis": "standard-rate VAT",
-          "taxCodes": [
-            "SR-RCVR/OS-SRVC"
-          ],
-          "workbookAmount": 1858.5,
-          "adjustedWorkbookExVat": 1770.0,
-          "liveLineAmountExVat": 1858.5,
-          "difference": -88.5
         },
         {
           "document": "SCBM-PO2600796",

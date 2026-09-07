@@ -28,6 +28,7 @@ def main():
     parser.add_argument("current", type=Path)
     parser.add_argument("baseline", type=Path)
     parser.add_argument("target", type=Path)
+    parser.add_argument("--notes", type=Path)
     args = parser.parse_args()
     current = json.loads(args.current.read_text(encoding="utf-8"))
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
@@ -72,7 +73,7 @@ def main():
         "",
         "## Corrected amount basis",
         "",
-        "Tax applicability comes from the exposed F&O sales-tax group. Live group descriptions confirm `SR-RCVR` is Standard Recoverable, `OS` is Out of Scope of VAT and `ZR` is Zero Rate. Standard-rate documents divide the workbook total by 1.05; OS/ZR documents keep the workbook value. Mixed or blank groups remain unmatched rather than being guessed. Zero matches only zero.",
+        "Tax applicability comes from the exposed F&O sales-tax-group and item-tax-group pair. Live group descriptions confirm `SR-RCVR` is Standard Recoverable, `OS` is Out of Scope of VAT and `ZR` is Zero Rate. A standard-rate line requires both codes to be standard-rate; an OS/ZR code makes the line non-VAT. Standard-rate documents divide the workbook total by 1.05; non-VAT documents keep the workbook value. Mixed or blank pairs remain unmatched rather than being guessed. Zero matches only zero.",
         "",
     ]
     for kind in ("pr.xlsx", "po.xlsx"):
@@ -169,7 +170,7 @@ def main():
         "## Commands recorded",
         "",
         "- `python tests/reconcile_workbook_retirement.py --out evidence/workbook-retirement-correction-01.json` with short-lived Azure CLI tokens supplied only to the child process.",
-        "- `python tests/render_retirement_correction.py evidence/workbook-retirement-correction-01.json evidence/workbook-retirement-reconciliation.json evidence/workbook-retirement-correction-01.md`.",
+        "- `python tests/render_retirement_correction.py evidence/workbook-retirement-correction-01.json evidence/workbook-retirement-reconciliation.json evidence/workbook-retirement-correction-01.md --notes NOTES.md`.",
         "- `node --test tests/dataverse-live.test.js tests/race-control.test.js`.",
         "- `python tests/test_weekly_snapshot.py`.",
         "- PowerShell trigger/target assertions for both proxy workflows; no YAML parser was installed.",
@@ -184,8 +185,17 @@ def main():
         f"Investigate the {pr_zero_amount_differences:,} PR amount cases with no current active-line value and the {po_approval_event_differences:,} PO approval-to-event differences. Rerun the same gates after the sources or approved population rules change. Do not deploy or remove workbooks before all mandatory gates pass.",
         "",
     ])
+    rendered = "\n".join(lines)
     args.target.parent.mkdir(parents=True, exist_ok=True)
-    args.target.write_text("\n".join(lines), encoding="utf-8")
+    args.target.write_text(rendered, encoding="utf-8")
+    if args.notes:
+        marker = lines[0]
+        notes = args.notes.read_text(encoding="utf-8")
+        if marker in notes:
+            notes = notes[:notes.index(marker)].rstrip() + "\n\n" + rendered
+        else:
+            notes = notes.rstrip() + "\n\n" + rendered
+        args.notes.write_text(notes, encoding="utf-8")
 
 
 if __name__ == "__main__":

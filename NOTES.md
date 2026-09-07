@@ -443,8 +443,8 @@ Waqas must decide whether unpriced documents on shared procurement elements may 
 | PR stage agreement | 489/571 (85.64%) | 512/571 (89.67%) | FAIL; threshold 95% |
 | PR procurement clock within one day | 541/564 (95.92%) | 540/564 (95.74%) | PASS; threshold 90% |
 | PO stage agreement | 430/1,493 (28.80%) | 653/1,495 (43.68%) | FAIL; threshold 95% |
-| PR amount agreement | 819/4,394 (18.64%, old unadjusted basis) | 3,561/4,394 (81.04%, corrected ex-VAT basis) | FAIL; threshold 95% |
-| PO amount agreement | 85/2,977 (2.86%, old unadjusted basis) | 2,921/2,977 (98.12%, corrected ex-VAT basis) | PASS; threshold 95% |
+| PR amount agreement | 819/4,394 (18.64%, old unadjusted basis) | 3,560/4,394 (81.02%, corrected ex-VAT basis) | FAIL; threshold 95% |
+| PO amount agreement | 85/2,977 (2.86%, old unadjusted basis) | 2,923/2,977 (98.19%, corrected ex-VAT basis) | PASS; threshold 95% |
 | Distinct-document count | Not a failing gate | 923 resolved documents; 1,414 work items | PASS |
 
 Even if all 755 workbook `LPO sent/shared with supplier` rows now marked `Invoiced` were accepted as later lifecycle progress, PO agreement would be 1,408/1,495 (94.18%), still below 95%. Correction 01 explicitly grants progression equivalence for `Receipt posted`, not for `Invoiced`; the measured gate above applies that rule literally.
@@ -454,28 +454,28 @@ Even if all 755 workbook `LPO sent/shared with supplier` rows now marked `Invoic
 - Workbooks: 4,394 PR and 2,977 PO documents.
 - F&O: 4,413 PR headers, 20,711 PR lines, 3,188 PO headers, 14,977 PO lines and 3,868 packing-slip journals.
 - Approval capture: 1,781 snapshots and 1,414 current work items.
-- Dataset generated/F&O read: `2026-09-07T13:51:58.461802Z` / `2026-09-07T13:51:58.461802Z`.
-- Approval capture reconciled/effective data time: `2026-09-07T13:48:25Z` / `2026-09-07T13:48:25Z`; capture age 3.56 minutes.
+- Dataset generated/F&O read: `2026-09-07T14:03:26.088700Z` / `2026-09-07T14:03:26.088700Z`.
+- Approval capture reconciled/effective data time: `2026-09-07T14:00:29Z` / `2026-09-07T14:00:29Z`; capture age 2.95 minutes.
 
 ## Corrected amount basis
 
-Tax applicability comes from the exposed F&O sales-tax group. Live group descriptions confirm `SR-RCVR` is Standard Recoverable, `OS` is Out of Scope of VAT and `ZR` is Zero Rate. Standard-rate documents divide the workbook total by 1.05; OS/ZR documents keep the workbook value. Mixed or blank groups remain unmatched rather than being guessed. Zero matches only zero.
+Tax applicability comes from the exposed F&O sales-tax-group and item-tax-group pair. Live group descriptions confirm `SR-RCVR` is Standard Recoverable, `OS` is Out of Scope of VAT and `ZR` is Zero Rate. A standard-rate line requires both codes to be standard-rate; an OS/ZR code makes the line non-VAT. Standard-rate documents divide the workbook total by 1.05; non-VAT documents keep the workbook value. Mixed or blank pairs remain unmatched rather than being guessed. Zero matches only zero.
 
 ### pr.xlsx
 
-- Agreement: 3,561/4,394 (81.04%).
+- Agreement: 3,560/4,394 (81.02%).
 - Workbook including VAT: AED 53,093,720.31.
-- Deterministically adjusted workbook excl. VAT: AED 48,353,102.28 across 3,654 documents.
+- Deterministically adjusted workbook excl. VAT: AED 47,938,970.43 across 3,624 documents.
 - Live line total excl. VAT: AED 49,314,746.25.
-- Tax-basis counts: mixed VAT basis 2, non-VAT 24, standard-rate VAT 2,852, unknown 21, zero amount 1,495.
+- Tax-basis counts: mixed VAT basis 15, non-VAT 23, standard-rate VAT 2,823, unknown 38, zero amount 1,495.
 
 ### po.xlsx
 
-- Agreement: 2,921/2,977 (98.12%).
+- Agreement: 2,923/2,977 (98.19%).
 - Workbook including VAT: AED 36,836,401.82.
-- Deterministically adjusted workbook excl. VAT: AED 34,714,967.50 across 2,959 documents.
+- Deterministically adjusted workbook excl. VAT: AED 34,684,077.18 across 2,956 documents.
 - Live line total excl. VAT: AED 48,404,855.18.
-- Tax-basis counts: mixed VAT basis 1, non-VAT 35, standard-rate VAT 2,885, unknown 10, zero amount 46.
+- Tax-basis counts: mixed VAT basis 1, non-VAT 37, standard-rate VAT 2,880, unknown 13, zero amount 46.
 
 ## PR stage differences
 
@@ -519,8 +519,8 @@ Tax applicability comes from the exposed F&O sales-tax group. Live group descrip
 - CPR-034902: Sourcing; workbook `2026-09-05T13:41:52Z`; F&O modified-time seed `2026-09-07T11:54:49Z`.
 - CPR-034908: Sourcing; workbook `2026-09-05T14:42:02Z`; F&O modified-time seed `2026-09-07T11:47:44Z`.
 - CPR-034878: Sourcing; workbook `2026-09-05T14:42:01Z`; F&O modified-time seed `2026-09-07T05:35:57Z`.
-- CPR-034911: Sourcing; workbook `2026-09-05T14:42:00Z`; F&O modified-time seed `2026-09-07T08:21:26Z`.
-- CPR-034808: Sourcing; workbook `2026-09-05T14:41:59Z`; F&O modified-time seed `2026-09-07T08:18:48Z`.
+- CPR-034911: Sourcing; workbook `2026-09-05T14:42:00Z`; F&O modified-time seed `2026-09-07T13:56:32Z`.
+- CPR-034808: Sourcing; workbook `2026-09-05T14:41:59Z`; F&O modified-time seed `2026-09-07T13:56:16Z`.
 - CPR-034914: Sourcing; workbook `2026-09-05T14:41:58Z`; F&O modified-time seed `2026-09-07T08:24:28Z`.
 - CPR-034920: Sourcing; workbook `2026-09-05T15:41:51Z`; F&O modified-time seed `2026-09-07T07:34:00Z`.
 
@@ -532,17 +532,17 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 
 ## pr.xlsx amount differences
 
-- PR-000007: workbook AED 720.00; adjusted excl. VAT AED 685.71; live excl. VAT AED 720.00; difference AED -34.29; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000007: workbook AED 720.00; adjusted excl. VAT unavailable; live excl. VAT AED 720.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - PR-000008: workbook AED 365.00; adjusted excl. VAT unavailable; live excl. VAT AED 365.00; difference unavailable; basis `unknown`; codes `(blank)/(blank)`.
-- PR-000018: workbook AED 726.00; adjusted excl. VAT AED 691.43; live excl. VAT AED 726.00; difference AED -34.57; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000018: workbook AED 726.00; adjusted excl. VAT unavailable; live excl. VAT AED 726.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - PR-000107: workbook AED 777.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000111: workbook AED 101.25; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000114: workbook AED 112.14; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000115: workbook AED 10,000.00; adjusted excl. VAT unavailable; live excl. VAT AED 10,000.00; difference unavailable; basis `unknown`; codes `(blank)/SR-SRVC`.
 - PR-000117: workbook AED 38.20; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000139: workbook AED 648.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000105: workbook AED 1,025.50; adjusted excl. VAT AED 976.67; live excl. VAT AED 1,025.50; difference AED -48.83; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
-- PR-000142: workbook AED 2,100.00; adjusted excl. VAT AED 2,000.00; live excl. VAT AED 2,100.00; difference AED -100.00; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000105: workbook AED 1,025.50; adjusted excl. VAT unavailable; live excl. VAT AED 1,025.50; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
+- PR-000142: workbook AED 2,100.00; adjusted excl. VAT unavailable; live excl. VAT AED 2,100.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - PR-000145: workbook AED 2,265.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000149: workbook AED 1,115.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000155: workbook AED 210.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -558,7 +558,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - PR-000225: workbook AED 793.50; adjusted excl. VAT AED 755.71; live excl. VAT AED 755.00; difference AED 0.71; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
 - PR-000228: workbook AED 13,600.00; adjusted excl. VAT unavailable; live excl. VAT AED 13,600.00; difference unavailable; basis `unknown`; codes `(blank)/SR-SRVC`.
 - PR-000236: workbook AED 1,240.00; adjusted excl. VAT unavailable; live excl. VAT AED 1,240.00; difference unavailable; basis `unknown`; codes `(blank)/(blank)`.
-- PR-000237: workbook AED 155,000.00; adjusted excl. VAT AED 147,619.05; live excl. VAT AED 155,000.00; difference AED -7,380.95; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000237: workbook AED 155,000.00; adjusted excl. VAT unavailable; live excl. VAT AED 155,000.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-000003: workbook AED 750.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-000008: workbook AED 41.35; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-000010: workbook AED 312.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -574,7 +574,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-000065: workbook AED 7.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-000067: workbook AED 2.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-000078: workbook AED 35.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000285: workbook AED 1,000.00; adjusted excl. VAT AED 952.38; live excl. VAT AED 1,000.00; difference AED -47.62; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000285: workbook AED 1,000.00; adjusted excl. VAT unavailable; live excl. VAT AED 1,000.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-000095: workbook AED 21,678.99; adjusted excl. VAT AED 20,646.66; live excl. VAT AED 20,315.70; difference AED 330.96; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
 - CPR-000098: workbook AED 63.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-000111: workbook AED 102.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -596,7 +596,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-000762: workbook AED 27.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-000832: workbook AED 356.30; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-000875: workbook AED 254.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000317: workbook AED 1,550.00; adjusted excl. VAT AED 1,476.19; live excl. VAT AED 1,550.00; difference AED -73.81; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000317: workbook AED 1,550.00; adjusted excl. VAT unavailable; live excl. VAT AED 1,550.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - PR-000318: workbook AED 1,132.96; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001054: workbook AED 14.75; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001051: workbook AED 280.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -610,7 +610,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-001184: workbook AED 1,320.59; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001231: workbook AED 4,711.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001262: workbook AED 2,900.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000327: workbook AED 517.50; adjusted excl. VAT AED 492.86; live excl. VAT AED 517.50; difference AED -24.64; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000327: workbook AED 517.50; adjusted excl. VAT unavailable; live excl. VAT AED 517.50; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-001511: workbook AED 5.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001530: workbook AED 3,482.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001486: workbook AED 4.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -618,10 +618,10 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-001548: workbook AED 1,972.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-000607: workbook AED 16.33; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000332: workbook AED 39.25; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000333: workbook AED 846.50; adjusted excl. VAT AED 806.19; live excl. VAT AED 840.00; difference AED -33.81; basis `standard-rate VAT`; codes `SR-RCVR/(blank), SR-RCVR/SR-GOOD`.
+- PR-000333: workbook AED 846.50; adjusted excl. VAT unavailable; live excl. VAT AED 840.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank), SR-RCVR/SR-GOOD`.
 - CPR-001539: workbook AED 3,591.22; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001698: workbook AED 41.25; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000336: workbook AED 791.00; adjusted excl. VAT AED 753.33; live excl. VAT AED 791.00; difference AED -37.67; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000336: workbook AED 791.00; adjusted excl. VAT unavailable; live excl. VAT AED 791.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-001771: workbook AED 956.69; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001687: workbook AED 6.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-001889: workbook AED 295.25; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -640,7 +640,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-002499: workbook AED 16,113.96; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-002725: workbook AED 1,756.63; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-002790: workbook AED 100.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000364: workbook AED 2,560.00; adjusted excl. VAT AED 2,438.10; live excl. VAT AED 2,560.00; difference AED -121.90; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000364: workbook AED 2,560.00; adjusted excl. VAT unavailable; live excl. VAT AED 2,560.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-002915: workbook AED 15.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000365: workbook AED 89,500.00; adjusted excl. VAT unavailable; live excl. VAT AED 89,500.00; difference unavailable; basis `unknown`; codes `(blank)/(blank)`.
 - CPR-002962: workbook AED 80.05; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -659,7 +659,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-003416: workbook AED 19,468.68; adjusted excl. VAT AED 18,541.60; live excl. VAT AED 18,362.50; difference AED 179.10; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
 - CPR-003424: workbook AED 520.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-003407: workbook AED 67.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000402: workbook AED 20,494.00; adjusted excl. VAT AED 19,518.10; live excl. VAT AED 20,494.00; difference AED -975.90; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-000402: workbook AED 20,494.00; adjusted excl. VAT unavailable; live excl. VAT AED 20,494.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-003409: workbook AED 27.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-000406: workbook AED 18,000.00; adjusted excl. VAT unavailable; live excl. VAT AED 18,000.00; difference unavailable; basis `unknown`; codes `(blank)/(blank)`.
 - CPR-003703: workbook AED 187.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -788,7 +788,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-009145: workbook AED 325.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-009189: workbook AED 213.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-009051: workbook AED 150.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-000574: workbook AED 918.60; adjusted excl. VAT AED 874.86; live excl. VAT AED 876.00; difference AED -1.14; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-000574: workbook AED 918.60; adjusted excl. VAT unavailable; live excl. VAT AED 876.00; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - CPR-009593: workbook AED 1,010.25; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-009594: workbook AED 11.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-009616: workbook AED 85.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -860,6 +860,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-012211: workbook AED 60.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-012219: workbook AED 103.60; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-012147: workbook AED 289.78; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
+- PR-000670: workbook AED 220,200.00; adjusted excl. VAT unavailable; live excl. VAT AED 220,200.00; difference unavailable; basis `unknown`; codes `OS/(blank)`.
 - CPR-012531: workbook AED 67.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-012541: workbook AED 200.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-012558: workbook AED 14,011.50; adjusted excl. VAT AED 13,344.29; live excl. VAT AED 13,330.00; difference AED 14.29; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
@@ -1036,7 +1037,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-021440: workbook AED 49.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-021512: workbook AED 3,415.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-021514: workbook AED 3,080.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001061: workbook AED 1,013.86; adjusted excl. VAT AED 965.58; live excl. VAT AED 970.93; difference AED -5.35; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001061: workbook AED 1,013.86; adjusted excl. VAT unavailable; live excl. VAT AED 970.93; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - CPR-021613: workbook AED 28.75; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-021443: workbook AED 3.75; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-021445: workbook AED 40.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -1047,31 +1048,31 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-022056: workbook AED 188.40; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022083: workbook AED 23.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022119: workbook AED 684.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001128: workbook AED 748.55; adjusted excl. VAT AED 712.90; live excl. VAT AED 716.59; difference AED -3.69; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
-- PR-001129: workbook AED 748.55; adjusted excl. VAT AED 712.90; live excl. VAT AED 716.59; difference AED -3.69; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
-- PR-001130: workbook AED 748.55; adjusted excl. VAT AED 712.90; live excl. VAT AED 716.59; difference AED -3.69; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001128: workbook AED 748.55; adjusted excl. VAT unavailable; live excl. VAT AED 716.59; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001129: workbook AED 748.55; adjusted excl. VAT unavailable; live excl. VAT AED 716.59; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001130: workbook AED 748.55; adjusted excl. VAT unavailable; live excl. VAT AED 716.59; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - CPR-022319: workbook AED 1,155.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022334: workbook AED 110.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022342: workbook AED 325.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-001138: workbook AED 1,425.50; adjusted excl. VAT unavailable; live excl. VAT AED 1,425.50; difference unavailable; basis `unknown`; codes `(blank)/SR-SRVC`.
 - CPR-022394: workbook AED 925.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001139: workbook AED 1,222.47; adjusted excl. VAT AED 1,164.26; live excl. VAT AED 1,175.97; difference AED -11.71; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001139: workbook AED 1,222.47; adjusted excl. VAT unavailable; live excl. VAT AED 1,175.97; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - CPR-022403: workbook AED 9.60; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001141: workbook AED 1,106.42; adjusted excl. VAT AED 1,053.73; live excl. VAT AED 1,064.09; difference AED -10.36; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001141: workbook AED 1,106.42; adjusted excl. VAT unavailable; live excl. VAT AED 1,064.09; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - CPR-022446: workbook AED 9.35; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022416: workbook AED 58.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022467: workbook AED 480.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022471: workbook AED 325.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022487: workbook AED 362.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001152: workbook AED 1,065.85; adjusted excl. VAT AED 1,015.10; live excl. VAT AED 1,025.45; difference AED -10.35; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001152: workbook AED 1,065.85; adjusted excl. VAT unavailable; live excl. VAT AED 1,025.45; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - CPR-022538: workbook AED 862.25; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022539: workbook AED 99.40; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001158: workbook AED 773.67; adjusted excl. VAT AED 736.83; live excl. VAT AED 743.52; difference AED -6.69; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001158: workbook AED 773.67; adjusted excl. VAT unavailable; live excl. VAT AED 743.52; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - CPR-022558: workbook AED 7.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022772: workbook AED 48.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-022910: workbook AED 865.45; adjusted excl. VAT AED 824.24; live excl. VAT AED 824.00; difference AED 0.24; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
 - CPR-022916: workbook AED 129.10; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001183: workbook AED 1,000.00; adjusted excl. VAT AED 952.38; live excl. VAT AED 1,000.00; difference AED -47.62; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-001183: workbook AED 1,000.00; adjusted excl. VAT unavailable; live excl. VAT AED 1,000.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-022977: workbook AED 4,696.45; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-023074: workbook AED 365.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-023145: workbook AED 47.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -1109,7 +1110,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-023987: workbook AED 122.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-024870: workbook AED 125.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-024938: workbook AED 865.45; adjusted excl. VAT AED 824.24; live excl. VAT AED 824.00; difference AED 0.24; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
-- PR-001259: workbook AED 458.42; adjusted excl. VAT AED 436.59; live excl. VAT AED 439.60; difference AED -3.01; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- PR-001259: workbook AED 458.42; adjusted excl. VAT unavailable; live excl. VAT AED 439.60; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - CPR-025051: workbook AED 1,250.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-025083: workbook AED 106.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-025101: workbook AED 50.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -1118,7 +1119,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-024753: workbook AED 192.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-025164: workbook AED 30.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-025172: workbook AED 140.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001271: workbook AED 2,257.50; adjusted excl. VAT AED 2,150.00; live excl. VAT AED 2,257.50; difference AED -107.50; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-001271: workbook AED 2,257.50; adjusted excl. VAT unavailable; live excl. VAT AED 2,257.50; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-025238: workbook AED 30.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-025237: workbook AED 1,628.75; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-025283: workbook AED 360.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -1172,7 +1173,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-026747: workbook AED 340.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-026566: workbook AED 904.05; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-026814: workbook AED 10.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001365: workbook AED 3,135.50; adjusted excl. VAT AED 2,986.19; live excl. VAT AED 3,135.50; difference AED -149.31; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-001365: workbook AED 3,135.50; adjusted excl. VAT unavailable; live excl. VAT AED 3,135.50; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-026886: workbook AED 10.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-026887: workbook AED 4.25; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-026892: workbook AED 2.75; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -1267,7 +1268,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - CPR-029752: workbook AED 157.53; adjusted excl. VAT AED 150.03; live excl. VAT AED 150.00; difference AED 0.03; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
 - PR-001541: workbook AED 30.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-029779: workbook AED 447.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- PR-001545: workbook AED 1,100.00; adjusted excl. VAT AED 1,047.62; live excl. VAT AED 1,100.00; difference AED -52.38; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- PR-001545: workbook AED 1,100.00; adjusted excl. VAT unavailable; live excl. VAT AED 1,100.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - CPR-029841: workbook AED 575.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-029962: workbook AED 97.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-030012: workbook AED 308.65; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -1348,9 +1349,9 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - PR-001680: workbook AED 3,570.00; adjusted excl. VAT AED 3,570.00; live excl. VAT AED 300.00; difference AED 3,270.00; basis `non-VAT`; codes `OS/SR-SRVC`.
 - CPR-033583: workbook AED 3,675.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - CPR-033705: workbook AED 1,222.50; adjusted excl. VAT AED 1,164.29; live excl. VAT AED 1,150.00; difference AED 14.29; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
-- PR-001700: workbook AED 0.00; adjusted excl. VAT AED 0.00; live excl. VAT AED 803.67; difference AED -803.67; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-SRVC`.
-- PR-001701: workbook AED 0.00; adjusted excl. VAT AED 0.00; live excl. VAT AED 803.67; difference AED -803.67; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-SRVC`.
-- PR-001702: workbook AED 0.00; adjusted excl. VAT AED 0.00; live excl. VAT AED 803.67; difference AED -803.67; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-SRVC`.
+- PR-001700: workbook AED 0.00; adjusted excl. VAT unavailable; live excl. VAT AED 803.67; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-SRVC`.
+- PR-001701: workbook AED 0.00; adjusted excl. VAT unavailable; live excl. VAT AED 803.67; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-SRVC`.
+- PR-001702: workbook AED 0.00; adjusted excl. VAT unavailable; live excl. VAT AED 803.67; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-SRVC`.
 - CPR-033932: workbook AED 200.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - PR-001710: workbook AED 535.50; adjusted excl. VAT AED 535.50; live excl. VAT AED 45.00; difference AED 490.50; basis `non-VAT`; codes `OS/SR-SRVC`.
 - CPR-034004: workbook AED 114.75; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
@@ -1368,7 +1369,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 
 ## po.xlsx amount differences
 
-- P0000000001: workbook AED 0.00; adjusted excl. VAT unavailable; live excl. VAT AED 409,885.00; difference unavailable; basis `mixed VAT basis`; codes `OS/(blank), SR-RCVR/SR-GOOD, SR-RCVR/SR-SRVC`.
+- P0000000001: workbook AED 0.00; adjusted excl. VAT unavailable; live excl. VAT AED 409,885.00; difference unavailable; basis `unknown`; codes `OS/(blank), SR-RCVR/SR-GOOD, SR-RCVR/SR-SRVC`.
 - P0000000008: workbook AED 2,800.00; adjusted excl. VAT AED 2,666.67; live excl. VAT AED 1,243,466.67; difference AED -1,240,800.00; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
 - P0000000002: workbook AED 52,500.00; adjusted excl. VAT AED 50,000.00; live excl. VAT AED 51,377.00; difference AED -1,377.00; basis `standard-rate VAT`; codes `SR-RCVR/SR-GOOD, SR-RCVR/SR-SRVC`.
 - P0000000003: workbook AED 148,719.15; adjusted excl. VAT AED 141,637.29; live excl. VAT AED 134,936.33; difference AED 6,700.96; basis `standard-rate VAT`; codes `SR-RCVR/SR-GOOD`.
@@ -1406,20 +1407,18 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 - P0000000230: workbook AED 2,436.00; adjusted excl. VAT AED 2,320.00; live excl. VAT AED 1,920.00; difference AED 400.00; basis `standard-rate VAT`; codes `SR-RCVR/SR-SRVC`.
 - P0000000232: workbook AED 4,000.00; adjusted excl. VAT unavailable; live excl. VAT AED 4,000.00; difference unavailable; basis `unknown`; codes `(blank)/(blank)`.
 - P0000000461: workbook AED 57,225.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- P0000000503: workbook AED 3,000.00; adjusted excl. VAT AED 2,857.14; live excl. VAT AED 3,000.00; difference AED -142.86; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD`.
 - P0000000532: workbook AED 525.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - P0000000585: workbook AED 1,844.10; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - P0000000654: workbook AED 21,043.05; adjusted excl. VAT AED 20,041.00; live excl. VAT AED 13,801.00; difference AED 6,240.00; basis `standard-rate VAT`; codes `SR-RCVR/SR-GOOD`.
-- P0000000737: workbook AED 11,000.00; adjusted excl. VAT AED 10,476.19; live excl. VAT AED 11,000.00; difference AED -523.81; basis `standard-rate VAT`; codes `SR-RCVR/(blank)`.
+- P0000000737: workbook AED 11,000.00; adjusted excl. VAT unavailable; live excl. VAT AED 11,000.00; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank)`.
 - P0000000886: workbook AED 112,877.90; adjusted excl. VAT unavailable; live excl. VAT AED 112,877.90; difference unavailable; basis `unknown`; codes `(blank)/(blank)`.
 - P0000000993: workbook AED 16,936.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- P0000001287: workbook AED 876.80; adjusted excl. VAT AED 835.05; live excl. VAT AED 836.00; difference AED -0.95; basis `standard-rate VAT`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
+- P0000001287: workbook AED 876.80; adjusted excl. VAT unavailable; live excl. VAT AED 836.00; difference unavailable; basis `mixed VAT basis`; codes `SR-RCVR/OS-GOOD, SR-RCVR/SR-GOOD`.
 - P0000001436: workbook AED 10,948.95; adjusted excl. VAT unavailable; live excl. VAT AED 10,499.00; difference unavailable; basis `unknown`; codes `(blank)/SR-GOOD, SR-RCVR/SR-GOOD`.
-- P0000001526: workbook AED 20,800.96; adjusted excl. VAT AED 19,810.44; live excl. VAT AED 19,813.77; difference AED -3.33; basis `standard-rate VAT`; codes `SR-RCVR/(blank), SR-RCVR/SR-GOOD, SR-RCVR/SR-SRVC`.
+- P0000001526: workbook AED 20,800.96; adjusted excl. VAT unavailable; live excl. VAT AED 19,813.77; difference unavailable; basis `unknown`; codes `SR-RCVR/(blank), SR-RCVR/SR-GOOD, SR-RCVR/SR-SRVC`.
 - SCBM-PO2600306: workbook AED 1,425.00; adjusted excl. VAT unavailable; live excl. VAT AED 1,425.00; difference unavailable; basis `unknown`; codes `(blank)/(blank)`.
 - SCBM-PO2600614: workbook AED 1,995.00; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - SCBM-PO2600615: workbook AED 1,790.25; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
-- SCBM-PO2600690: workbook AED 1,858.50; adjusted excl. VAT AED 1,770.00; live excl. VAT AED 1,858.50; difference AED -88.50; basis `standard-rate VAT`; codes `SR-RCVR/OS-SRVC`.
 - SCBM-PO2600796: workbook AED 157.50; adjusted excl. VAT unavailable; live excl. VAT AED 0.00; difference unavailable; basis `zero amount`; codes `no material live lines`.
 - SCBM-PO2600813: workbook AED 7,500.00; adjusted excl. VAT unavailable; live excl. VAT AED 7,500.00; difference unavailable; basis `unknown`; codes `(blank)/SR-SRVC`.
 - SCBM-PO2601134: workbook AED 1,712.00; adjusted excl. VAT unavailable; live excl. VAT AED 1,712.00; difference unavailable; basis `unknown`; codes `(blank)/SR-SRVC`.
@@ -1473,7 +1472,7 @@ Only like-for-like approval clocks are comparable: 2/3 (66.67%) are within one d
 ## Commands recorded
 
 - `python tests/reconcile_workbook_retirement.py --out evidence/workbook-retirement-correction-01.json` with short-lived Azure CLI tokens supplied only to the child process.
-- `python tests/render_retirement_correction.py evidence/workbook-retirement-correction-01.json evidence/workbook-retirement-reconciliation.json evidence/workbook-retirement-correction-01.md`.
+- `python tests/render_retirement_correction.py evidence/workbook-retirement-correction-01.json evidence/workbook-retirement-reconciliation.json evidence/workbook-retirement-correction-01.md --notes NOTES.md`.
 - `node --test tests/dataverse-live.test.js tests/race-control.test.js`.
 - `python tests/test_weekly_snapshot.py`.
 - PowerShell trigger/target assertions for both proxy workflows; no YAML parser was installed.

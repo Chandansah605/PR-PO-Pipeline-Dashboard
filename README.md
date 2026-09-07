@@ -6,7 +6,7 @@ Live dashboard for Strive Services Group showing the purchase requisition (PR) a
 
 ## Workbook retirement status
 
-Correction 01 merges `PR in review` into `Sourcing`, uses live line amounts excluding VAT and follows live PO events. The corrected 7 September 2026 reconciliation still concludes **cannot retire**: PR stage agreement is 89.67%, PO stage agreement is 43.68% and PR amount agreement is 81.04%, all below their 95% gates. The workbook overlay, jobs and fallback remain in production. See `evidence/workbook-retirement-correction-01.md`.
+Correction 01 merges `PR in review` into `Sourcing`, uses live line amounts excluding VAT and follows live PO events. The corrected 7 September 2026 reconciliation still concludes **cannot retire**: PR stage agreement is 89.67%, PO stage agreement is 43.68% and PR amount agreement is 81.02%, all below their 95% gates. The workbook overlay, jobs and fallback remain in production. See `evidence/workbook-retirement-correction-01.md`.
 
 ## This is one of two repos (same project)
 | Repo | Purpose | Deploys to |

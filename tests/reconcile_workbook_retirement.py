@@ -313,10 +313,14 @@ def main():
             group = clean(line.get("mserp_salestaxgroupcode")) or clean(line.get("mserp_projecttaxgroupcode"))
             item = clean(line.get("mserp_salestaxitemgroupcode")) or clean(line.get("mserp_projecttaxitemgroupcode"))
             tax_codes.add(f"{group or '(blank)'}/{item or '(blank)'}")
-            if norm(group).startswith("sr-"):
-                tax_classes.append("standard-rate VAT")
-            elif norm(group).startswith(("os", "zr")):
+            group_key = norm(group)
+            item_key = norm(item)
+            if not group_key or not item_key:
+                tax_classes.append("unknown")
+            elif group_key.startswith(("os", "zr")) or item_key.startswith(("os", "zr")):
                 tax_classes.append("non-VAT")
+            elif group_key.startswith("sr-") and item_key.startswith("sr-"):
+                tax_classes.append("standard-rate VAT")
             else:
                 tax_classes.append("unknown")
         unique_tax_classes = set(tax_classes)

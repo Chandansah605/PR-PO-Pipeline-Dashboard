@@ -14,7 +14,7 @@
 
 ## Retirement gate
 
-Correction 01 approves merging `PR in review` into `Sourcing`, makes live line amounts excluding VAT authoritative and uses live PO lifecycle events. The corrected 7 September 2026 run still failed PR stage (89.67%), PO stage (43.68%) and PR amount (81.04%) gates. Do not remove the workbook path or deploy a Dataverse-only replacement until a fresh reconciliation passes every stated gate.
+Correction 01 approves merging `PR in review` into `Sourcing`, makes live line amounts excluding VAT authoritative and uses live PO lifecycle events. The corrected 7 September 2026 run still failed PR stage (89.67%), PO stage (43.68%) and PR amount (81.02%) gates. Do not remove the workbook path or deploy a Dataverse-only replacement until a fresh reconciliation passes every stated gate.
 
 ## Protected systems
 
