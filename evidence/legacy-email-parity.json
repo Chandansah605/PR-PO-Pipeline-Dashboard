@@ -1,0 +1,5777 @@
+{
+  "checkedAt": "2026-09-07T18:43:20.617Z",
+  "datasetRevision": "cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5",
+  "historicalLogic": "73fef6abc6e9610782c37097fc3e462148dd0c93:src/functions/prpoEmail.js",
+  "sendInvoked": false,
+  "currentItems": 1805,
+  "legacyWorkbookItems": 1805,
+  "namedPersonalRecipients": 5,
+  "sharedLists": [
+    "Suppliers",
+    "Pending Invoicing"
+  ],
+  "currentChannelCounts": {
+    "person:adnan.ullah@striveservicesgroup.com": 355,
+    "person:roderick.red@striveservicesgroup.com": 232,
+    "person:procurement.asst@striveservicesgroup.com": 95,
+    "person:arman.b@striveservicesgroup.com": 8,
+    "person:abdul.muqeet@sahalahfm.com": 2,
+    "list:Suppliers": 389,
+    "list:Pending Invoicing": 504
+  },
+  "legacyChannelCounts": {
+    "person:adnan.ullah@striveservicesgroup.com": 355,
+    "person:roderick.red@striveservicesgroup.com": 232,
+    "person:procurement.asst@striveservicesgroup.com": 95,
+    "person:arman.b@striveservicesgroup.com": 8,
+    "person:abdul.muqeet@sahalahfm.com": 2,
+    "list:Suppliers": 389,
+    "list:Pending Invoicing": 504
+  },
+  "channelMembershipExact": true,
+  "channelDifferences": [],
+  "sampleRouting": null,
+  "stageCrosswalkCounts": {
+    "Sourcing -> Procurement": 217,
+    "Priced — awaiting approval -> Procurement": 524,
+    "Sourcing -> Re-Assigned/Rejected": 48,
+    "Priced — awaiting approval -> Re-Assigned/Rejected": 21,
+    "Dep Managers -> Dep Managers": 3,
+    "Priced — awaiting approval -> Dep Managers": 1,
+    "Sourcing -> Finance": 1,
+    "Priced — awaiting approval -> Finance": 6,
+    "Finance -> Finance": 9,
+    "Procurement -> Procurement": 80,
+    "Pending Invoicing -> Pending Invoicing": 504,
+    "Sent to Supplier -> Sent to Supplier": 389,
+    "Director -> Director": 2
+  },
+  "stageLabelDifferences": [
+    {
+      "document": "PR-000116",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000126",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000142",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000147",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000148",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000153",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000162",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000128",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000150",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000154",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000163",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000174",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000004",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000017",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000007",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000019",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000026",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000028",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000034",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000035",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000276",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000074",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000075",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000071",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000072",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000076",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000082",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000092",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000425",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000436",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000438",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000686",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000767",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000089",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000431",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000722",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000766",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000791",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000829",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000983",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001089",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001198",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000267",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001201",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001090",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001229",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001086",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001105",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001245",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001432",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001239",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001587",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001493",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001531",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001537",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001691",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001762",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002011",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001887",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-001930",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002003",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002004",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002015",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002283",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002310",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002446",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-003024",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-003205",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000400",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-003426",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-003720",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-003841",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004074",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004515",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004551",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000423",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002450",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-002470",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-003373",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-003662",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004395",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004454",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004926",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004934",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004965",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004930",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004906",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-005015",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-005068",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-005148",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-005584",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-005388",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000437",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-004985",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-005736",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-005729",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000467",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-006292",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000510",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-007060",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-007225",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-007316",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-007361",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-007431",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-007901",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-007441",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-007709",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008081",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008089",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008103",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008245",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008283",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008303",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008362",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008378",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008503",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008312",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008533",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008824",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008932",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-009054",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008820",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008912",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-008976",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-009053",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-009056",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-009497",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-009200",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000579",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-009592",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-009738",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010153",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010185",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010253",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010254",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010699",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010682",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010731",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010735",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010749",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010589",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010598",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000610",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010694",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010723",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010732",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010713",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010941",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011159",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011307",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011395",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011397",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-010258",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011524",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011564",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011578",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011593",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011661",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011839",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011875",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011890",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011818",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011848",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011956",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-011829",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-012083",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-012087",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-012786",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-012812",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-012659",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-012982",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-013300",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-013889",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014433",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014522",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014524",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-000716",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-013888",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014394",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014430",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014470",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014465",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014527",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014629",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-014870",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-015411",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016136",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016220",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000783",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000793",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016525",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-015425",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-015442",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016283",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016359",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016575",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016918",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017211",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016796",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016922",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016959",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017078",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017258",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017283",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017452",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017483",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017760",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017491",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-017494",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000866",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000882",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018007",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018059",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018190",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018223",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018200",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018377",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018476",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-016921",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018453",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018456",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018821",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018865",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-018907",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-019042",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-019061",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-019594",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-019625",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-019510",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-019521",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-019836",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-019883",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-000996",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020061",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020146",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020151",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020291",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001010",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001014",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020680",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020861",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020877",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020174",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020223",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020622",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020623",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020636",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-020757",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001038",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021179",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021300",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021321",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021510",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021577",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001071",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001077",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021092",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021353",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021363",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021339",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021511",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021629",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021637",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021645",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022098",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022121",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-021989",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022069",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022436",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022449",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022434",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022392",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001144",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022938",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023245",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023654",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023660",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023713",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023870",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023916",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023928",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023975",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024007",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022949",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023257",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023262",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023868",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023913",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-023934",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024472",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024528",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024576",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024592",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024702",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024741",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024743",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024323",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024369",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024415",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024419",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024422",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-022970",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024581",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025218",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-024932",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025077",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025168",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025234",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025285",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025493",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025627",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025673",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025678",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025690",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025738",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025739",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025972",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025979",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026070",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026080",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026172",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026173",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026261",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026470",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026471",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026472",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026476",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026549",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026584",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026592",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026593",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026595",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025469",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025492",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025574",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025692",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025734",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025766",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025825",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-025971",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026145",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026183",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026263",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026534",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026535",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026758",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026924",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026951",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027036",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027037",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027046",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027126",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027124",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027122",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027182",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026655",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026914",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026915",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026942",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026974",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027006",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027048",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027125",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-026948",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027156",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027158",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027195",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027233",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027280",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027520",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027521",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001411",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027457",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027583",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027685",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027754",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027909",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028129",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028051",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028083",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028154",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028158",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001446",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028303",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028106",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028401",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028470",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028298",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028299",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028304",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028312",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-027584",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028562",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028653",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028655",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028658",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028659",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028660",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028662",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028699",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028573",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028654",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028657",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028669",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028671",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028683",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028693",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028703",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028911",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028912",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028917",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028920",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028922",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028955",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029009",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029075",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029077",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029078",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029082",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029151",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028845",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028914",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028918",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028951",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-028958",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029144",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029264",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029370",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029420",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029423",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029484",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029487",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029488",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029548",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029566",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029703",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029704",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029714",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029736",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029952",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029957",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029369",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029452",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029454",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029476",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029477",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029482",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029547",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029572",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029646",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029654",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029697",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029699",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029700",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029712",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029715",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001544",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001545",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029894",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-029954",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030024",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030093",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030102",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030129",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030138",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030219",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030241",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030243",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030352",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030518",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030521",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030549",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030139",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030141",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030111",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030216",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030217",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030218",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030275",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030558",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030694",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030695",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030719",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030816",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030818",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030843",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030599",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030701",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030786",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030831",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031081",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031083",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031137",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031151",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031155",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031213",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031216",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031217",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031218",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031219",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031333",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031332",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031328",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031334",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031381",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031053",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031055",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031061",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031141",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031171",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031304",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031312",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031380",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031502",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031508",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031510",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031528",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031531",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031430",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031484",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031519",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031523",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031437",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031652",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031671",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031688",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031690",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031757",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031767",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031797",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031552",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031639",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031730",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031748",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031764",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031765",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031795",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031627",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031636",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031368",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031649",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031759",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031770",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031796",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031827",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031980",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031985",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032021",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032055",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032149",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032176",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032245",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032257",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-031956",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032015",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032059",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032111",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032120",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032130",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032136",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032179",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032191",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032218",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032259",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032007",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032061",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032057",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Dep Managers",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032098",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032159",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032175",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032178",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032254",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032260",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032142",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032510",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032515",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032700",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032665",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032795",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001649",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032992",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033076",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033214",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033254",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033256",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033260",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032355",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032411",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032445",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032447",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032449",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032450",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032451",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032488",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032512",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032514",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032513",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032620",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001624",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032490",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032601",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032703",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032705",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032717",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032720",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032722",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032724",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032702",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032766",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032773",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001643",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032863",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032936",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032977",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033074",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001654",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Finance",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033063",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001661",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033165",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033173",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001662",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033136",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033203",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032862",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032975",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032978",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-032982",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033006",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033080",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033131",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033133",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033128",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033205",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033239",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033251",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033288",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033327",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033338",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033339",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033340",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033318",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033341",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033481",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033502",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033507",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001678",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033509",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001679",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001682",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033557",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033598",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033605",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033637",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033641",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033625",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001698",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033658",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001699",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001700",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Finance",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033752",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033756",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033757",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033762",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001701",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Finance",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001702",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Finance",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001703",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033785",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033386",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033373",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033439",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033479",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033499",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033573",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033596",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033606",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033622",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033659",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033660",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033755",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033759",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033768",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033771",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033789",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033447",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033449",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033445",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033480",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033492",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033533",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001684",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Finance",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001694",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Finance",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001695",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033323",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033616",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033685",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033753",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001706",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033793",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033852",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033926",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033924",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001713",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001714",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034163",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034152",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034205",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033912",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033913",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033914",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033916",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033919",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033929",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033934",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034029",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034069",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034081",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001726",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034165",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033930",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033886",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001715",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033993",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033996",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001717",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034025",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034066",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034082",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034098",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001725",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034159",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034161",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034162",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034154",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-033991",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034285",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001728",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034433",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001738",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034528",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034537",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034545",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001742",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001743",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Finance",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034555",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034582",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001747",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001750",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034351",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034411",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034426",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001735",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034477",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034513",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034527",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034541",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034548",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001744",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034623",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034646",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034663",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034744",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034745",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034747",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034761",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034832",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034366",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-030580",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034368",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034387",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034382",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034391",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034425",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034430",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034476",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034491",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034504",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034550",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034587",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001746",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001748",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034666",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001751",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034667",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001753",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001754",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034746",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034750",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034767",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034616",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001761",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034802",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034805",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034902",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034878",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034911",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034930",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001762",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034819",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-035039",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034908",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034983",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001763",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034986",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034992",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-035001",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034879",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-035038",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034808",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034914",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034920",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034985",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034988",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034996",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-034999",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-035006",
+      "type": "PR",
+      "liveStage": "Priced — awaiting approval",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-035030",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "CPR-035018",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Procurement",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    },
+    {
+      "document": "PR-001765",
+      "type": "PR",
+      "liveStage": "Sourcing",
+      "legacyBucket": "Re-Assigned/Rejected",
+      "reason": "NO_EXACT_OLD_STAGE: mapped through frozen PR_MAP Procurement routing"
+    }
+  ]
+}

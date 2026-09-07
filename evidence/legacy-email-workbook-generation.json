@@ -1,0 +1,91 @@
+{
+  "datasetRevision": "cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5",
+  "sourceState": "LIVE",
+  "pr": {
+    "rows": 822,
+    "columns": [
+      "Purchase requisition",
+      "Quotation reference",
+      "Name",
+      "Preparer",
+      "Status",
+      "Created date",
+      "Submitted date",
+      "Requisition purpose",
+      "Submission Status",
+      "Accepted By/Assign To",
+      "Department",
+      "Location",
+      "Contract",
+      "Request for quotation case",
+      "Total amount",
+      "Pending Approver/User",
+      "Step name",
+      "Step date and time"
+    ],
+    "amountExVat": 15393975.32,
+    "sha256": "42df2352c9c72945c04c5f523d6137b63d5aae84fab5413c178b35777a90f3c5",
+    "excludedNoEquivalent": {
+      "(blank)": 59,
+      "Approval — unmapped element": 39
+    }
+  },
+  "po": {
+    "rows": 983,
+    "columns": [
+      "Purchase order",
+      "Vendor account",
+      "Invoice account",
+      "Vendor name",
+      "Purchase type",
+      "Approval status",
+      "Purchase order status",
+      "Currency",
+      "Requested receipt date",
+      "Created date and time",
+      "Purchase requisition",
+      "RFQ number",
+      "Total amount",
+      "Department",
+      "Location",
+      "Contract",
+      "Pending Approver/User",
+      "Step name",
+      "Step date and time",
+      "Created by"
+    ],
+    "amountExVat": 37691777.25,
+    "sha256": "5fc48c7b33f0ef011f526f784eece1a372852b8159c58a5b07b8d746ba8748ac",
+    "clockCounts": {
+      "liveDated": 904,
+      "seededFromFinalWorkbook": 12,
+      "pendingSinceFirstObserved": 0,
+      "notRecorded": 67
+    },
+    "notRecordedDatesBlank": 67,
+    "excludedNoEquivalent": {
+      "Invoiced": 2131,
+      "STAGE_NOT_EVIDENCED": 73,
+      "Receipt posted": 1
+    }
+  },
+  "amountBasis": "live F&O active-line values excl. VAT",
+  "datePolicy": "live event, final-workbook seed, or blank for NOT_RECORDED",
+  "outputNote": "Generated from the live dataset for the legacy email app only; not a data source; delete when the sender moves to ssg-prpo-proxy.",
+  "contentChanged": false,
+  "noExactOldEquivalent": {
+    "PR": {
+      "Sourcing": "consolidated live stage; mapped to legacy Procurement",
+      "Priced — awaiting approval": "consolidated live stage; mapped to legacy Procurement",
+      "Approval — unmapped element": "not displayed by the dashboard; excluded",
+      "(blank)": "not displayed by the dashboard; excluded"
+    },
+    "PO": {
+      "Not yet sent": "authoritative F&O state; mapped to legacy Procurement",
+      "Approval — unmapped element": "displayed fallback; mapped to legacy Procurement",
+      "Receipt posted": "routed by Confirmed plus Received to Pending Invoicing",
+      "Invoiced": "excluded by the open-pipeline rule",
+      "STAGE_NOT_EVIDENCED": "must never be open; generation fails if it is"
+    }
+  }
+}

@@ -5,6 +5,7 @@
 - The dashboard and email read the same proxy dataset revision.
 - No workbook, workbook generator or workbook fallback is a production data source.
 - Browser last-good cache is allowed only when visibly labelled stale.
+- `pr.xlsx` and `po.xlsx` are live-generated legacy email outputs only, never data sources; delete them when sending moves to `ssg-prpo-proxy`.
 
 ## Live sources assessed
 

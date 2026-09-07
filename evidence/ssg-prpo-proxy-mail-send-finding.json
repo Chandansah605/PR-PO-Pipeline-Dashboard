@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-09-07T18:44:19Z",
+  "changed": false,
+  "functionApp": "ssg-prpo-proxy",
+  "appRegistrationClientId": "780ac097-75e1-4cdb-a760-a032e8722a34",
+  "servicePrincipalId": "777f2e63-dda6-4c27-987a-9584b6ff96c0",
+  "mailSend": {
+    "resource": "Microsoft Graph",
+    "permission": "Mail.Send",
+    "permissionType": "Application",
+    "appRoleId": "b633e1c5-b582-4048-a93e-9f11b44c7e96",
+    "granted": true
+  },
+  "applicationAccessPolicy": {
+    "visible": false,
+    "mailbox": "Racecontrol@striveservicesgroup.com",
+    "finding": "Exchange application access policies are not exposed by the Azure AD app-role assignment queried in this read-only session."
+  },
+  "administratorFinding": "Application Mail.Send is already granted; moving the sender does not require new Graph permission consent. Mailbox policy coverage was not visible."
+}

@@ -8,6 +8,8 @@ Live dashboard for Strive Services Group showing the purchase requisition (PR) a
 
 Correction 04 separates PO stage from its clock. P1a and P2 pass at 100%, so the dashboard now reads one shared live revision from the proxy. The final workbook seeded otherwise unavailable clocks once; every seed remains visibly labelled `since (from last export)`. The workbook still showed 1,099 orders as merely sent although F&O showed them received or invoiced.
 
+`pr.xlsx` and `po.xlsx` are generated from that live revision for the legacy email app only. They are not data sources and must be deleted when the sender moves to `ssg-prpo-proxy`.
+
 ## This is one of two repos (same project)
 | Repo | Purpose | Deploys to |
 |---|---|---|
@@ -20,6 +22,7 @@ They're kept separate because they deploy to different places. The dashboard cal
 1. On sign-in, the dashboard calls the proxy `/api/dataset` for one shared live revision.
 2. F&O supplies headers, active lines and PO lifecycle state; the development `ssg_` capture supplies approval assignments and first-observed PO stage clocks.
 3. Browser cache is shown while a newer revision refreshes. A stale revision is labelled; no workbook fallback exists.
+4. A one-way scheduled compatibility job publishes `pr.xlsx` and `po.xlsx`; no dashboard or current email path reads them.
 
 ## Key files
 - `index.html` — the entire dashboard (UI + data loading + charts).

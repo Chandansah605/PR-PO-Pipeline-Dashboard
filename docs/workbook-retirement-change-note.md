@@ -25,6 +25,8 @@ Approval stages remain Procurement, Dep Managers, Finance, Director and CEO. Any
 
 Every dashboard and email amount will use live F&O line values **excl. VAT**. Familiar totals will normally read about 5% lower because the old workbook values included 5% VAT. The new reporting will not gross amounts up. Every displayed amount must carry the label `excl. VAT`.
 
+During the temporary legacy-sender bridge, `pr.xlsx` and `po.xlsx` also carry these settled live ex-VAT values. Recipient totals will therefore read about 5% lower than yesterday even though Chandan's unchanged sender still reads workbook-shaped outputs.
+
 ## PO stages
 
 - **Sent to supplier** — the PO is confirmed or sent.
