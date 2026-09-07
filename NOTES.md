@@ -80,7 +80,21 @@ The unchanged file path produced this same-day UI baseline. Live UI values were 
 
 ## Production verification
 
-Pending GitHub Pages publication. This section will be completed from the signed-in production page before final handoff.
+GitHub Pages run `34102463611` built and deployed merge commit `c512c00ffc25d0a52376eb2f84af0726f56fd17e` successfully. A fresh Chrome tab then signed in as the current Microsoft 365 user and completed the browser-side Dataverse read in under 30 seconds.
+
+- Production displayed `Live Dataverse`, 4,405 PR rows, 3,184 PO rows, and `Data date: 07 Sept 2026, 09:06 · Live Dataverse` with no stale warning.
+- Reloading within three minutes displayed `Cached live Dataverse` with the same 4,405 / 3,184 rows and data date.
+- Forcing the token acquisition to fail in that tab switched automatically to 4,394 / 2,977 published rows, rendered 586 PR pipeline entries, and displayed `Live Dataverse read failed — File fallback is shown.` Reloading restored the cached live source.
+- At 412 × 915, the source state remained visible, both sidebar and main content measured 412 pixels wide, and the document had no horizontal overflow.
+
+### Live Dataverse production view
+
+| View | Total rows | Live pipeline rows | Header buckets | Departments | Ageing |
+|---|---:|---:|---|---|---|
+| PR | 4,405 | 580 | Re-Assigned/Rejected 5; Procurement 92; Operations to Confirm 463; Dep Managers 14; Finance 6; Director 0; CEO 0 | Building 392; Cleaning 62; Security 2; Landscaping 30; Concierge 1; FitOut 9; Home Maintenance 67; Others 17 | 0–3: 56; 4–7: 54; 8–14: 62; 15–30: 117; 30+: 291 |
+| PO | 3,184 | 909 | Procurement 29; Finance 22; Director 0; CEO 1; Sent to Supplier 614; Pending Invoicing 243 | Building 395; Cleaning 98; Security 28; Landscaping 19; Concierge 19; FitOut 73; Home Maintenance 89; Others 188 | 0–3: 36; 4–7: 35; 8–14: 30; 15–30: 57; 30+: 751 |
+
+The full-source bucket differences above come from the 218 live-only rows and the few newer status values, not changes to grouping logic. Within shared rows, step and step-date mismatches were both zero for PR and PO; this is the direct same-record verification that stage assignment and ageing bands did not move because of the code change.
 
 ## What I did not change
 
