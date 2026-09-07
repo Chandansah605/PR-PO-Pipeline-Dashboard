@@ -6076,13 +6076,16 @@ Evidence coverage: 1,098/1,425; 327 do not have the dated event P1 requires.
 - No workbook, generator, fallback or workflow was removed.
 - No Dataverse or Azure resource was written. No function app or GitHub Pages site was deployed.
 - Basit's morning email and Chandan's parallel chain remain untouched.
+- Production primary `main` remained `a6adb057`; proxy `main` remained `3b930f44`.
+- GitHub Pages remained built from `main`; no Correction 03 deployment run was triggered.
 
 ## Testing performed
 
 - Python compile and machine-evidence assertions for P1–P5.
 - Complete read-only PO reconciliation against both Dataverse organisations and the unchanged workbook.
 - Existing dashboard JavaScript and weekly-snapshot regression tests.
-- Desktop browser visual check and responsive-rule inspection of the unpublished change note.
+- Desktop and 390 x 844 browser visual checks of the unpublished change note.
+- Production Pages returned HTTP 200; the unchanged proxy returned 4,413 PR and 2,986 PO rows.
 - Git diff and remote-branch verification; production remained unchanged.
 
 ## Commands recorded
