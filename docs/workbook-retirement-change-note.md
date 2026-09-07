@@ -1,6 +1,6 @@
 # PR/PO reporting change note — draft, not approved for issue
 
-Status: **Blocked. Do not publish or forward yet.** Correction 02 passes the PR stage, PR procurement clock and both amount gates for the dashboard population, but PO stage is only 44.02% against its 95% gate. Production remains unchanged.
+Status: **Blocked. Do not publish or forward yet.** The replacement PO gates are now valid, but dated stage evidence is only 52.09% and maintained approval-step parity is only 4.92%. Production remains unchanged.
 
 ## Exact bucket changes
 
@@ -30,6 +30,8 @@ Every dashboard and email amount will use live F&O line values **excl. VAT**. Fa
 - **Sent to supplier** — the PO is confirmed or sent.
 - **Receipt posted** — a packing slip has been posted.
 - **Invoiced** — the purchase order is invoiced where that status is exposed.
+
+The workbook still shows **1,099 purchase orders** as merely `LPO sent` even though F&O shows them as `Receipt posted` or `Invoiced`. In the proposed live view, an order that used to remain at `LPO sent` indefinitely advances when F&O records the posted packing slip or vendor invoice.
 
 `Posted on` is the packing-slip document date. It is a receipt-posting date, never a delivery date.
 

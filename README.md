@@ -6,7 +6,7 @@ Live dashboard for Strive Services Group showing the purchase requisition (PR) a
 
 ## Workbook retirement status
 
-Correction 02 measures the same documents the production dashboard displays, accepts exact amount equality regardless of tax classification, and accepts timestamp-proven post-export progression. The 7 September 2026 reconciliation still concludes **cannot retire**: PR stage is 95.25%, PR procurement clock is 97.45%, PR amount is 98.23% and PO amount is 99.02%, but PO stage is only 44.02% against its 95% gate. The workbook overlay, jobs, fallback and daily emails remain in production. See `evidence/workbook-retirement-correction-02.md`.
+Correction 03 retires the invalid all-stage PO workbook gate and tests dated stage evidence, F&O population parity and the approval rows the workbook maintains. The verdict remains **cannot retire**: P2 passes at 983/983, but P1 is 512/983 (52.09%) and P3 is 3/61 (4.92%). The workbook still shows 1,099 orders as merely sent although F&O shows them received or invoiced. The workbook overlay, jobs, fallback and daily emails remain in production. See `evidence/workbook-retirement-correction-03.md`.
 
 ## This is one of two repos (same project)
 | Repo | Purpose | Deploys to |

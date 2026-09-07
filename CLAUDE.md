@@ -14,7 +14,7 @@
 
 ## Retirement gate
 
-Correction 02 measures the production dashboard population, accepts exact amount equality regardless of tax classification and accepts only timestamp-proven post-export progression. The corrected 7 September 2026 run passes PR stage (95.25%), PR procurement clock (97.45%), PR amount (98.23%) and PO amount (99.02%), but still fails PO stage (44.02%). Do not remove the workbook path or deploy a Dataverse-only replacement until a fresh reconciliation passes every stated gate.
+Correction 03 retires the invalid all-stage PO workbook gate. The settled PR stage (95.25%), PR procurement clock (97.45%), PR amount (98.23%), PO amount (99.02%) and document counts still pass. The replacement PO tests do not: P1 dated-stage evidence is 512/983 (52.09%) and P3 maintained approval-step parity is 3/61 (4.92%); P2 population parity is exact at 983/983. Do not remove the workbook path or deploy a Dataverse-only replacement until P1–P3 pass.
 
 ## Protected systems
 
@@ -31,4 +31,6 @@ Correction 02 measures the production dashboard population, accepts exact amount
 - Correction 01 machine evidence: `evidence/workbook-retirement-correction-01.json`
 - Correction 02 report: `evidence/workbook-retirement-correction-02.md`
 - Correction 02 machine evidence: `evidence/workbook-retirement-correction-02.json`
+- Correction 03 report: `evidence/workbook-retirement-correction-03.md`
+- Correction 03 machine evidence: `evidence/workbook-retirement-correction-03.json`
 - Reproduction script: `tests/reconcile_workbook_retirement.py`
