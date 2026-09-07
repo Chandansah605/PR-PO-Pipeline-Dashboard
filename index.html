@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>IFAHR/Chandan/ Strive Services Group PR / PO Pipeline Dashboard</title>
+<title>Strive Services Group Race Control</title>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -20,6 +20,8 @@
      Falls back to Microsoft's CDN only if the local copy is missing. -->
 <script src="msal-browser.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js';document.head.appendChild(s);"></script>
 <script src="dataverse-live.js"></script>
+<script src="race-control.js"></script>
+<link rel="stylesheet" href="race-control.css"/>
 
 <style>
 :root{
@@ -345,7 +347,7 @@ table.dataTable thead{background:#f8fafc}
 .login-logo-card,.login-card,.login-footer{z-index:5 !important}
 </style>
 </head>
-<body>
+<body class="race-control-mode">
 
 <!-- ============ LOGIN OVERLAY ============ -->
 <div class="login-overlay" id="loginOverlay">
@@ -353,7 +355,7 @@ table.dataTable thead{background:#f8fafc}
   <div class="login-rev">REV</div>
 
   <div class="login-logo-card">
-    <img src="strive-logo.png" alt="Strive Services Group" style="height:60px;width:auto;display:block"/>
+    <img src="strive-logo.svg" alt="Strive Services Group" style="height:60px;width:auto;display:block"/>
   </div>
 
   <div class="login-card">
@@ -392,39 +394,37 @@ table.dataTable thead{background:#f8fafc}
 
 <div class="topbar">
   <div class="topbar-left">
-    <h1><i class="fa-solid fa-chart-line"></i> PR / PO Pipeline Dashboard</h1>
+    <h1><i class="fa-solid fa-chart-line"></i> PR / PO Race Control</h1>
     <div class="sub"><i class="fa-solid fa-building" style="opacity:.8;margin-right:4px"></i> Strive Services Group</div>
   </div>
   <div class="topbar-right">
     <span id="cacheTag" class="cache-tag" style="display:none"><i class="fa-solid fa-database"></i> Cached upload active</span>
-    <input type="text" id="globalSearch" class="global-search" placeholder="🔍 Global search..."/>
+    <input type="text" id="globalSearch" class="global-search detail-only-action" placeholder="🔍 Global search..."/>
     <div class="data-meta" aria-live="polite">
       <span class="source-tag file" id="dataSource"><i class="fa-solid fa-file-excel"></i> File fallback</span>
       <span class="last-refresh" id="lastRefresh">Data date: —</span>
       <span class="data-warning" id="dataWarning"></span>
     </div>
     <button class="btn" onclick="window.loadLive ? loadLive() : refreshDashboard()" title="Pull the latest live data from D365 now"><i class="fa-solid fa-rotate"></i> Refresh</button>
-    <button class="btn btn-ghost" onclick="document.getElementById('refreshFile').click()" title="Fallback only — load PR/PO Excel manually if the live D365 feed is unavailable"><i class="fa-solid fa-upload"></i> Excel (fallback)</button>
-    <button class="btn btn-ghost" onclick="resetCachedData()" title="Clear any manual Excel upload and return to the live D365 feed"><i class="fa-solid fa-arrow-rotate-left"></i> Reset</button>
-    <button class="btn" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
-    <button class="btn" onclick="exportToPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+    <button class="btn btn-ghost detail-only-action" onclick="document.getElementById('refreshFile').click()" title="Fallback only — load PR/PO Excel manually if the live D365 feed is unavailable"><i class="fa-solid fa-upload"></i> Excel (fallback)</button>
+    <button class="btn btn-ghost detail-only-action" onclick="resetCachedData()" title="Clear any manual Excel upload and return to the live D365 feed"><i class="fa-solid fa-arrow-rotate-left"></i> Reset</button>
+    <button class="btn detail-only-action" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+    <button class="btn detail-only-action" onclick="exportToPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
     <button class="btn btn-ghost" onclick="signOut()" title="Sign out"><i class="fa-solid fa-right-from-bracket"></i></button>
     <input type="file" id="refreshFile" accept=".xlsx,.xls" multiple onchange="handleFileUpload(event)"/>
   </div>
 </div>
 
-<div class="app">
+<nav class="command-nav page-toggle" aria-label="Dashboard views">
+  <button class="toggle-btn active" data-mode="RACE" onclick="setMode('RACE',this)"><i class="fa-solid fa-flag-checkered"></i> Race Control</button>
+  <button class="toggle-btn" data-mode="PR" onclick="setMode('PR',this)"><i class="fa-solid fa-clipboard-list"></i> PR detail</button>
+  <button class="toggle-btn" data-mode="PO" onclick="setMode('PO',this)"><i class="fa-solid fa-file-invoice-dollar"></i> PO detail</button>
+  <button class="toggle-btn" data-mode="ANALYSIS" onclick="setMode('ANALYSIS',this)"><i class="fa-solid fa-magnifying-glass-chart"></i> Analysis</button>
+</nav>
+
+<div class="app race-mode" id="dashboardApp">
   <aside class="sidebar">
     <h3><i class="fa-solid fa-filter"></i> Filters</h3>
-
-    <div class="filter-group">
-      <label>View Mode</label>
-      <div class="filter-toggle page-toggle">
-        <button class="toggle-btn active" data-mode="PR" onclick="setMode('PR',this)"><i class="fa-solid fa-clipboard-list"></i> PR</button>
-        <button class="toggle-btn" data-mode="PO" onclick="setMode('PO',this)"><i class="fa-solid fa-file-invoice-dollar"></i> PO</button>
-        <button class="toggle-btn" data-mode="ANALYSIS" onclick="setMode('ANALYSIS',this)"><i class="fa-solid fa-magnifying-glass-chart"></i> Analysis</button>
-      </div>
-    </div>
 
     <div class="sub-toggle-wrap" id="prSubToggleWrap">
       <div class="filter-group">
@@ -466,8 +466,10 @@ table.dataTable thead{background:#f8fafc}
 
   <main class="main">
 
+    <section id="raceControlSection"></section>
     <div id="analysisSection" style="display:none"></div>
 
+    <div id="detailDashboard" style="display:none">
     <div class="section-h"><i class="fa-solid fa-gauge-high"></i>Overall Performance <span class="mode-badge pr" id="modeBadge">PR MODE</span></div>
     <div class="kpi-strip" id="kpiOverall"></div>
 
@@ -516,6 +518,7 @@ table.dataTable thead{background:#f8fafc}
     </div>
 
     <div class="section-h"><i class="fa-solid fa-table-list"></i><span id="tableSectionTitle">All Filtered PR Records</span></div>
+    <div class="holder-focus" id="holderFocus"><span></span><button onclick="clearHolderFocus()">Clear person</button></div>
     <div class="table-card">
       <div class="table-header">
         <h3><i class="fa-solid fa-table-list"></i> <span id="tableTitle">Detailed PR Records</span></h3>
@@ -524,6 +527,7 @@ table.dataTable thead{background:#f8fafc}
       <div style="overflow:auto">
         <table id="mainTable" class="display compact stripe" style="width:100%"><thead id="mainTableHead"></thead><tbody></tbody></table>
       </div>
+    </div>
     </div>
 
     <div class="footer">© 2026 Strive Services Group · PR / PO Pipeline Tracker · Enterprise Edition</div>
@@ -659,7 +663,7 @@ const BUCKET_COLORS = {
 function bucketColor(b){return BUCKET_COLORS[b]||'#64748b';}
 function deptColor(d){return DEPT_COLORS[d]||'#1F6FB5';}
 
-let mode = 'PR';           // 'PR' or 'PO'
+let mode = 'RACE';         // 'RACE', 'PR' or 'PO'
 let allRecords=[];
 let filteredRecords=[];
 let dataTableInstance=null;
@@ -676,6 +680,9 @@ const LIVE_CACHE_MS=3*60*1000;
 let publishedFilePromise=null;
 let supportingDataPromise=null;
 let liveRequest=null;
+let STUCK_ITEMS=[];
+let STUCK_ITEMS_ERROR=null;
+let raceHolderFilter='';
 
 function showLoader(t='Loading...'){document.getElementById('loaderText').innerText=t;document.getElementById('loader').classList.add('active');}
 function hideLoader(){document.getElementById('loader').classList.remove('active');}
@@ -839,14 +846,23 @@ function populateFilters(records){
   fill('filterProject', uniqueSorted(records.map(r=>r.project)));
 }
 
-function setMode(m, btn){
-  if(m==='ANALYSIS'){ enterAnalysis(btn); return; }
-  const wasAnalysis = !!window.__analysisOn;
-  exitAnalysis(btn);
-  if(mode === m){ return; }
-  mode = m;
+function activateViewButton(btn){
   document.querySelectorAll('.page-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+function setMode(m, btn, options){
+  options=options||{};
+  if(!options.preserveHolder)raceHolderFilter='';
+  if(m==='RACE'){ enterRaceControl(btn); return; }
+  if(m==='ANALYSIS'){ enterAnalysis(btn); return; }
+  exitAnalysis();
+  document.body.classList.remove('race-control-mode');
+  document.getElementById('dashboardApp').classList.remove('race-mode');
+  document.getElementById('raceControlSection').style.display='none';
+  document.getElementById('detailDashboard').style.display='';
+  activateViewButton(btn);
+  if(mode === m){ applyFilters(); return; }
+  mode = m;
   document.getElementById('modeBadge').className = 'mode-badge ' + m.toLowerCase();
   document.getElementById('modeBadge').innerText = m + ' MODE';
   document.getElementById('tableSectionTitle').innerText = `All Filtered ${m} Records`;
@@ -870,21 +886,32 @@ function setMode(m, btn){
 
 /* ================= ANALYSIS TAB — Procurement Action Centre · Journey · Supplier Intel · Weekly ================= */
 window.__analysisOn=false;
+function enterRaceControl(btn){
+  mode='RACE';
+  document.body.classList.add('race-control-mode');
+  window.__analysisOn=false;
+  activateViewButton(btn||document.querySelector('[data-mode="RACE"]'));
+  document.getElementById('dashboardApp').classList.add('race-mode');
+  document.getElementById('raceControlSection').style.display='';
+  document.getElementById('analysisSection').style.display='none';
+  document.getElementById('detailDashboard').style.display='none';
+  renderRaceControl();
+}
 function enterAnalysis(btn){
-  document.querySelectorAll('.page-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  document.querySelectorAll('.main > *').forEach(el=>{ if(el.id!=='analysisSection') el.style.display='none'; });
+  mode='ANALYSIS';
+  document.body.classList.remove('race-control-mode');
+  activateViewButton(btn);
+  document.getElementById('dashboardApp').classList.add('race-mode');
+  document.getElementById('raceControlSection').style.display='none';
+  document.getElementById('detailDashboard').style.display='none';
   document.getElementById('analysisSection').style.display='';
   window.__analysisOn=true;
   renderAnalysis();
 }
 function exitAnalysis(btn){
-  if(!window.__analysisOn) { if(btn){document.querySelectorAll('.page-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');} return; }
-  document.querySelectorAll('.main > *').forEach(el=>{ el.style.display=''; });
   document.getElementById('analysisSection').style.display='none';
   window.__analysisOn=false;
-  document.querySelectorAll('.page-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+  if(btn)activateViewButton(btn);
 }
 const AN_CSS=`
 <style>
@@ -2196,7 +2223,65 @@ function renderAnalysis(){
   }).catch(()=>{});
 }
 
+function raceLiveRecords(type){
+  const previousMode=mode;
+  mode=type;
+  const records=type==='PR'?buildPRRecords(PR_DATA):buildPORecords(PO_DATA);
+  const live=records.filter(livePipelineFilter);
+  mode=previousMode;
+  return live;
+}
+function renderRaceControl(){
+  const host=document.getElementById('raceControlSection');
+  if(!host||!window.RACE_CONTROL)return;
+  const model=RACE_CONTROL.buildModel({
+    prLive:raceLiveRecords('PR'),
+    poLive:raceLiveRecords('PO'),
+    stuckItems:STUCK_ITEMS,
+    weeklySnapshots:WEEKLY_SNAPSHOTS,
+    source:sourceLabel(DATA_STATE.source),
+    currentDate:fmtDate(new Date())
+  });
+  RACE_CONTROL.render(host,model);
+  if(STUCK_ITEMS_ERROR){
+    const hero=host.querySelector('.rc-hero');
+    if(hero)hero.insertAdjacentHTML('afterend','<div class="data-warning visible">The maintained IT clean-up list could not be loaded. Automatic live checks remain active.</div>');
+  }
+  const openHolder=target=>{
+    const row=target.closest&&target.closest('.rc-holder');
+    if(row)focusRaceHolder(row.dataset.holder,row.dataset.type);
+  };
+  host.onclick=event=>openHolder(event.target);
+  host.onkeydown=event=>{if((event.key==='Enter'||event.key===' ')&&event.target.closest('.rc-holder')){event.preventDefault();openHolder(event.target);}};
+  window.__raceControlModel=model;
+  if(window.__raceFirstPaintMs==null)window.__raceFirstPaintMs=Math.round(performance.now());
+  if(DATA_STATE.source==='live')window.__raceLiveAppliedMs=Math.round(performance.now());
+}
+function focusRaceHolder(holderKey,detailMode){
+  raceHolderFilter=holderKey;
+  const targetMode=detailMode==='PO'?'PO':'PR';
+  const button=document.querySelector('[data-mode="'+targetMode+'"]');
+  setMode(targetMode,button,{preserveHolder:true});
+  setTimeout(()=>{
+    applyFilters();
+    const banner=document.getElementById('holderFocus');
+    if(banner)banner.scrollIntoView({behavior:'smooth',block:'center'});
+  },240);
+}
+function clearHolderFocus(){
+  raceHolderFilter='';
+  applyFilters();
+}
+
 function rebuild(){
+  if(mode==='RACE'){
+    renderRaceControl();
+    return;
+  }
+  if(mode==='ANALYSIS'){
+    renderAnalysis();
+    return;
+  }
   if(mode === 'PR'){
     allRecords = buildPRRecords(PR_DATA);
   } else {
@@ -2234,6 +2319,10 @@ function applyFilters(){
     if(activeFilters.dept && r.department!==activeFilters.dept) return false;
     if(activeFilters.status && r.status!==activeFilters.status) return false;
     if(activeFilters.project && r.project!==activeFilters.project) return false;
+    if(raceHolderFilter&&window.RACE_CONTROL){
+      const person=RACE_CONTROL.personOwner(r,mode)||RACE_CONTROL.canonicalOwner(r.pendingUser);
+      if(RACE_CONTROL.ownerKey(person)!==raceHolderFilter)return false;
+    }
     if(activeFilters.from){const f=new Date(activeFilters.from);if(!r.createdDate||r.createdDate<f)return false;}
     if(activeFilters.to){const t=new Date(activeFilters.to);t.setHours(23,59,59);if(!r.createdDate||r.createdDate>t)return false;}
     if(activeFilters.aging){const a=r.aging;if(a==null)return false;
@@ -2247,12 +2336,19 @@ function applyFilters(){
     }
     return true;
   });
+  const holderBanner=document.getElementById('holderFocus');
+  if(holderBanner){
+    const holder=window.__raceControlModel&&window.__raceControlModel.holders.find(h=>h.key===raceHolderFilter);
+    holderBanner.classList.toggle('visible',!!raceHolderFilter);
+    holderBanner.querySelector('span').textContent=raceHolderFilter?'Ring-fenced queue: '+(holder?holder.name:raceHolderFilter)+' · '+mode:'';
+  }
   renderAll();
 }
 
 function clearFilters(){
   ['filterBucket','filterStep','filterDept','filterStatus','filterProject','filterFrom','filterTo','filterAging'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('globalSearch').value='';
+  raceHolderFilter='';
   activeFilters={prtype:'all',bucket:'',step:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:''};
   document.querySelectorAll('[data-prtype]').forEach(b=>b.classList.remove('active'));
   const allBtn=document.querySelector('[data-prtype="all"]');if(allBtn)allBtn.classList.add('active');
@@ -2848,8 +2944,8 @@ function poWorkflowLookup(rows){
 function applyDataRows(pr,po,state){
   replaceRows(PR_DATA,pr);
   replaceRows(PO_DATA,po);
-  rebuild();
   updateDataStatus(Object.assign({checking:false,error:null},state||{}));
+  rebuild();
 }
 function applyAutomaticFallback(reason){
   const manual=Array.isArray(MANUAL_PR_DATA)&&MANUAL_PR_DATA.length&&Array.isArray(MANUAL_PO_DATA)&&MANUAL_PO_DATA.length;
@@ -2872,6 +2968,7 @@ async function freshLiveCache(){
     const cached=await idbGet('__live_bundle__');
     if(!cached||!cached.savedAt||!Array.isArray(cached.pr)||!Array.isArray(cached.po))return null;
     if(Date.now()-new Date(cached.savedAt).getTime()>LIVE_CACHE_MS)return null;
+    if(window.RACE_CONTROL&&cached.pr.some(row=>typeof row._hasLiveLine!=='boolean'))return null;
     return cached;
   }catch(e){return null;}
 }
@@ -2891,14 +2988,17 @@ async function loadLive(options){
       if(!window.PRPO_DATAVERSE)throw new Error('Dataverse data layer is unavailable');
       const support=await ensureSupportingData();
       const token=await acquireDataverseToken();
+      const lineTracker=window.RACE_CONTROL?RACE_CONTROL.createLineTracker(fetch.bind(window)):null;
       const result=await PRPO_DATAVERSE.load({
         accessToken:token,
         timeoutMs:120000,
+        fetchImpl:lineTracker?lineTracker.fetch:undefined,
         prStepMap:support.prStepMap,
         poStepMap:support.poStepMap,
         prWorkflowLookup:support.prWorkflow,
         poWorkflowLookup:poWorkflowLookup(PUBLISHED_PO_DATA)
       });
+      if(lineTracker)result.pr.forEach(row=>{row._hasLiveLine=lineTracker.hasDocument(row['Purchase requisition']);});
       const guardedPR=result.pr.filter(r=>r._workflowGuarded).length;
       const guardedPO=result.po.filter(r=>r._workflowGuarded).length;
       applyDataRows(result.pr,result.po,{source:'live',detail:'Read directly from Dataverse as the signed-in user'});
@@ -3324,7 +3424,12 @@ window.addEventListener('load', function () {
         if(!j) return;
         WEEKLY_SNAPSHOTS = j;
         try { if (typeof filteredRecords !== 'undefined' && filteredRecords.length) { renderStepWeekly(filteredRecords.filter(livePipelineFilter)); } } catch (e) {}
+        try { if (mode==='RACE') renderRaceControl(); } catch (e) {}
       }).catch(function(){});
+    fetch('stuck_items.json' + bust)
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(j){ STUCK_ITEMS=Array.isArray(j&&j.items)?j.items:[]; STUCK_ITEMS_ERROR=null; if(mode==='RACE')renderRaceControl(); })
+      .catch(function(error){ STUCK_ITEMS_ERROR=error; if(mode==='RACE')renderRaceControl(); });
   } catch (e) {}
 });
 </script>

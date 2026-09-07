@@ -113,3 +113,104 @@ The full-source bucket differences above come from the 218 live-only rows and th
 ## Recommended next step
 
 Monitor live-read failures and fallback use after release. Replace the published workflow guard only when Dataverse exposes an authoritative current work item with a reliable timestamp.
+
+# Race Control first-screen release — 7 September 2026
+
+## What I found
+
+- The existing first-screen `AVERAGE AGING` KPI used the full filtered record set, including records outside the live pipeline. The source of truth for the requested clock is the existing `livePipelineFilter`, reconstructed header bucket and existing `aging` value.
+- The companion `pr-po-proxy/src/functions/prpoEmail.js` personal queue uses the same reconstructed owners, excludes non-person PO stages, and normalises the same named aliases. It was inspected through the GitHub API and was not edited.
+- The 6 September snapshot reproduces the quoted email counts for dinesh.laxman 356, shijil.c 61, Gokul.Krishna 46, Aparna.Pauly 33 and Adnan.Ullah 22. It shows roderick.red 30 instead of the email's 31 because `CPR-027356` is the one intended stuck item removed from his count.
+- The current published workbooks had moved since that email. At the exact browser timestamp `2026-09-07T10:24:37.065Z`, the fallback holder counts were dinesh.laxman 366, shijil.c 60, Gokul.Krishna 44, roderick.red 35, Aparna.Pauly 29 and Adnan.Ullah 18.
+- `PR-000104` is present in the maintained lane but is already outside the protected live-pipeline definition because it has no mapped current step. The other five maintained records are live and excluded. The read-only current Dataverse line check also found `PR-001216` with no returned line, so the live screen correctly shows 7 listed records and 6 active exclusions.
+
+## Problems and risks
+
+- A snapshot generator first pass failed to fall back to the pending approver when an operations-confirmation row used a department outside `DEPT_OPS_USER`. That made three current holder counts disagree with the browser. The fallback was corrected and regression-tested before the historical seeds were regenerated.
+- File amounts are tax-inclusive while direct Dataverse amounts are pre-tax, as documented in the earlier source reconciliation. Race Control deliberately displays the value supplied by the active source and labels that source visibly.
+- The automatic no-line rule can only be evaluated after the live PR-line query completes. File fallback still shows all six maintained records, but it does not claim an automatic line result.
+
+## Files changed
+
+- `index.html` — makes Race Control the default screen, adds tab navigation and holder drill-through, preserves all secondary views, fixes the sign-in logo path, and wires the read-only line tracker into the existing live load.
+- `race-control.js` and `race-control.css` — isolated metrics, exclusions, week-on-week model, rendering and responsive Race Control styling.
+- `stuck_items.json` — maintained six-record IT clean-up list with reason, reporter and date.
+- `gen_weekly_snapshot.py` and `weekly_snapshots.json` — append holder/header-stage metrics and seed 30 August and 6 September without replacing the existing arrays.
+- `strive-logo.svg` — exact official Strive SVG from the approved brand-system asset.
+- `tests/race-control.test.js`, `tests/test_weekly_snapshot.py`, `tests/capture-race-control.js`, and `tests/serve-live-race-data.js` — calculation, preservation, screenshot and read-only live verification support.
+- `evidence/race-control-desktop.png` and `evidence/race-control-mobile.png` — authenticated file-fallback first-screen evidence at 1440 × 1000 and 412 × 915.
+
+## Exact changes made
+
+- Race Control now opens first and answers, in order: current-step average/median, holder queue, three-position movement, and visible stuck-system records.
+- Overall and stage figures use only existing live-pipeline rows. Active stuck documents are removed before all age, count and value aggregation.
+- Holder rows use the existing reconstructed pending owner, show items/value/oldest/median/>7 days, and open the existing PR or PO detail table ring-fenced to that holder.
+- Week-on-week columns read the live current model plus `raceControl` fields from the two prior Sunday snapshots. Missing historical holder data renders as a dash.
+- `createLineTracker` observes the existing paged PR-line requests through response clones. It adds no network query, performs no write and leaves `dataverse-live.js` unchanged.
+- The old dashboard, Analysis, heatmap, funnel, daily counts, status distribution and department × bucket views remain behind `PR detail`, `PO detail` and `Analysis` tabs.
+- Excel-formatted fallback values such as `1,250.50` are parsed in Race Control without changing the protected workbook/live loader.
+
+## Reconciliation evidence
+
+### File fallback hand calculation
+
+Independent Python calculation at the browser's exact timestamp matched the screen:
+
+| Measure | Browser | Independent generator calculation |
+|---|---:|---:|
+| Included live action items | 1,374 | 1,374 |
+| Total value | AED 27,346,702.94 | AED 27,346,702.94 |
+| Average current-step age | 77.0 days | 77.0 days |
+| Median current-step age | 70.0 days | 70.0 days |
+| Oldest current-step age | 473 days | 473 days |
+| Over 7 days | 1,193 | 1,193 |
+
+The unchanged detail views still produced PR 586 and PO 793 live rows. Their header stages remained PR: Re-Assigned/Rejected 5, Procurement 91, Operations to Confirm 470, Dep Managers 14, Finance 6; PO: Procurement 30, Finance 19, CEO 1, Sent to Supplier 538, Pending Invoicing 205. Race Control is lower only by the five maintained records that were active in the fallback source.
+
+### Read-only live Dataverse run
+
+The live query returned 4,407 PR headers / 20,641 PR lines / 814 PR approvals and 3,185 PO headers / 14,962 PO lines / 10 PO approvals. Applying that payload to the new page changed the visible source to `Live Dataverse` without a reload and produced 1,483 included live items, AED 42,251,213.70 value, 86.7-day average, 76-day median and 1,298 items over seven days. The named holder counts after exclusions were dinesh.laxman 360, shijil.c 56, Gokul.Krishna 44, roderick.red 39, Aparna.Pauly 32 and Adnan.Ullah 17.
+
+These later live counts do not equal the morning email because the operational source had moved. The seeded 6 September position proves the shared counting logic against the exact email numbers; the only intended difference is roderick.red's one excluded stuck record.
+
+### Seeded weekly history
+
+- 30 August used repository data from `fd54fa64a757d539afa5ca42cab9253f1cd2eb9c`: 1,360 items, 68-day median, 359 dinesh.laxman items.
+- 6 September used repository data from `d1fbf0482684b0f467cd9f8552af30cc28216ad0`: 1,364 items, 71.5-day median, and the email-count reconciliation above.
+- A structural comparison against `HEAD:weekly_snapshots.json` found no changed `PR` or `PO` arrays in any existing week. Only the new `raceControl` and `raceControlSource` properties were added to the two seeded weeks.
+
+### Existing journey-board measurement
+
+The unchanged journey-board logic measured 1,329 completed PR → PO journeys. Median raised-to-LPO-sent time was 18 working days against the existing 10-working-day target; 37.5% completed within target. P90 was 90 working days. This confirms the meeting's “18 working days” statement as the measured median, not a target or an arithmetic sum of stage medians.
+
+## What I did not change
+
+- No edit to `dataverse-live.js`, live/fallback/cache/status semantics, live-pipeline definition, stage names, stage groupings or the 3/7-day bands.
+- No edit to `.github/workflows/*`, daily email code, workbooks, workflow maps, Dataverse, Azure configuration or app registration.
+- No Dataverse write, secret, package installation, deletion of secondary views or rewrite of historical PR/PO snapshot arrays.
+
+## Testing performed
+
+- `node --check race-control.js` and `node tests/race-control.test.js` — passed calculations, aliases, exclusions, currency parsing and response-clone line tracking.
+- `python -m py_compile gen_weekly_snapshot.py` and `python tests/test_weekly_snapshot.py` — passed holder/stage metrics, unknown-department owner fallback and history preservation.
+- `node --check dataverse-live.js` and `node tests/dataverse-live.test.js` — protected data-layer checks passed unchanged.
+- Parsed both inline `index.html` scripts with `vm.Script` — passed.
+- `node tests/live-dataverse-check.js` with a short-lived Azure CLI token — passed all six read-only paged Dataverse reads; the token was removed from the process environment afterward.
+- `node tests/serve-live-race-data.js 8766` plus browser injection — live payload replaced file figures and identified the automatic no-line item without a Dataverse write.
+- Holder click test — dinesh.laxman's row opened PR detail with 366 file-fallback rows ring-fenced to that name.
+- First paint — 247 ms from navigation start on published workbooks, below the two-second requirement.
+- 412 × 915 browser test — document width 397 px in a 412 px viewport; stage and holder tables each fit their 349 px containers with no page-level horizontal scroll.
+- `node tests/capture-race-control.js http://127.0.0.1:8765/ evidence` — produced both required authenticated screenshots.
+- `git diff --check` — passed apart from Git's informational LF-to-CRLF working-copy warning.
+
+Screenshot evidence: [desktop](evidence/race-control-desktop.png) and [412 × 915 mobile](evidence/race-control-mobile.png).
+
+## Remaining risks
+
+- Current-step dates still use the published workflow overlay when Dataverse has no authoritative current dated work item; this is the protected 87516e3 design.
+- Holder and stage figures can change between an email, Sunday snapshot and meeting because Dataverse is operationally active. Each screen position therefore labels its source and snapshot date.
+- Production GitHub Pages and browser-side signed-in verification are recorded below after publication.
+
+## Recommended next step
+
+Align the separate daily-email task to consume the maintained stuck list, then monitor automatic no-line additions with IT before promoting them into the maintained list.
