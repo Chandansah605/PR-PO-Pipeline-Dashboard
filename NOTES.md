@@ -6265,3 +6265,87 @@ Every seed below records the workbook value and the export timestamp `2026-09-07
 ## Recommended next step
 
 Monitor the next scheduled morning email and first weekly live snapshot. Repair the missing GitHub publish-profile secret separately so future exact-SHA deployments use the repository workflow again.
+
+# Urgent daily-email compatibility bridge — 2026-09-07
+
+## Outcome
+
+- Commit `31e5930d79559e0e9c05b52b8710ff2a54857d03` restored `pr.xlsx` and `po.xlsx` as one-way outputs of live revision `cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5`.
+- The commit was created at `2026-09-07T18:48:56Z`, more than eleven hours before the next `06:00 UTC` sender run.
+- Pages deployment 34153150970 completed successfully at `2026-09-07T18:49:38Z` for that exact commit.
+- Public verification returned HTTP 200 for both URLs. The downloaded files opened and parsed as valid Excel workbooks.
+- Machine proof: `evidence/legacy-email-public-proof.json`.
+- `pr.xlsx`: 822 rows, exactly 18 original columns, SHA-256 `42df2352c9c72945c04c5f523d6137b63d5aae84fab5413c178b35777a90f3c5`.
+- `po.xlsx`: 983 rows, exactly 20 original columns, SHA-256 `5fc48c7b33f0ef011f526f784eece1a372852b8159c58a5b07b8d746ba8748ac`.
+- Both files carry the cell note: `Generated from the live dataset for the legacy email app only; not a data source; delete when the sender moves to ssg-prpo-proxy.`
+
+## Scheduled publication
+
+- New workflow: `.github/workflows/publish-legacy-email-workbooks.yml`.
+- Schedule: `*/15 4-5 * * 1-5`, meaning eight weekday attempts at 04:00, 04:15, 04:30, 04:45, 05:00, 05:15, 05:30 and 05:45 UTC, plus manual dispatch.
+- The generator fails closed unless the shared proxy dataset says `sourceState = LIVE` and has a revision.
+- A content sidecar prevents rewrites when the exported rows are unchanged. Changed outputs are committed, pushed and deployed directly to Pages so a `GITHUB_TOKEN` push cannot strand a new workbook behind a missing Pages rebuild.
+- Manual-dispatch run 34153156222 succeeded at `2026-09-07T18:49:22Z` on `31e5930`; it read 822 PR rows and 983 PO rows from the live revision and correctly reported `contentChanged = false`, creating no empty commit.
+- The retired OneDrive fetch, overlay generators and prior workflows remain removed. The only workflow in the primary repository is this new live-to-legacy output job.
+
+## Workbook contract and mapping
+
+- The exact pre-cutover schemas came from `bc65aca:pr.xlsx` and `bc65aca:po.xlsx`. Header spelling, order, `Sheet1`, `AxTable1`, number/date formats and original widths are preserved.
+- The committed, commented translation table is in `scripts/legacy_email_stage_map.py`; the human-readable table and complete no-equivalent list are in `docs/legacy-email-workbook-bridge.md`.
+- Sourcing and Priced have no exact old stage name. Both use old Procurement labels because that preserves the current pending owner and recipient document-for-document.
+- Receipt posted uses `LPO sent/shared with supplier` plus legacy-compatible `Confirmed / Received`, the only frozen-code rule that lands the row in Pending Invoicing. It does not alter F&O or claim a delivery date.
+- Open PO stage coverage is complete. An open `STAGE_NOT_EVIDENCED` or any unknown displayed stage aborts generation.
+- Open PR rows with blank stage (59) or `Approval — unmapped element` (39) are excluded by the existing dashboard filter and reported as no-equivalent rows; they are not silently dropped from a displayed queue.
+
+## Amount and date proof
+
+- `Total amount` is copied from the settled live active-line amount excl. VAT. The change note now tells recipients that familiar totals will read about 5% lower than yesterday.
+- PO clock coverage carried into the output is 904 live-event dates, 12 final-workbook seeds, zero first-observed baseline rows and 67 `NOT_RECORDED` blanks.
+- `NOT_RECORDED` always writes a blank. No fallback date is generated. F&O date values, including its 1900 sentinel where supplied as a live event, remain source values rather than substituted dates.
+
+## Frozen sender dry-run
+
+- The last pre-cutover implementation `73fef6abc6e9610782c37097fc3e462148dd0c93:src/functions/prpoEmail.js` was executed locally in a sandbox with its timer and HTTP registrations stubbed.
+- No send function or URL with `send=1` was invoked.
+- Current live-dataset logic produced 1,805 items. The frozen logic parsed the generated workbooks and produced the same 1,805 items.
+- Actual addressed channel membership was exact, document-for-document: zero differences across active named personal queues, Suppliers and Pending Invoicing.
+- All 504 live Receipt-posted orders landed in Pending Invoicing; all 389 Sent-to-supplier orders landed in Suppliers.
+- The 818 stage-label differences are the expected named crosswalk from consolidated Sourcing/Priced labels to the frozen vocabulary. Every document and reason is recorded in `evidence/legacy-email-parity.json`; there are zero unexplained recipient or list differences.
+- The public workbook SHA-256 values exactly matched the locally dry-run bytes, so the published files are the files tested.
+
+## No reverse dependency proof
+
+- Primary search across `index.html`, `dataverse-live.js`, `divisions.html`, `race-control.js`, `tests` and `.github` found no `PRPO_PR_URL`, `PRPO_PO_URL`, `/pr.xlsx`, `/po.xlsx` or `fetchXlsx` reader.
+- Proxy active code contains no fixed workbook URL. `loadItems()` in `src/functions/prpoEmail.js` calls `getDataset()`; the remaining parameterized `fetchXlsx` is an uncalled definition, and `historyItems()` returns an empty live-history object.
+- Proxy `package.json` registers only `src/functions/*.js`. The old root `prpoEmail.js` is an inactive reference file and is not an Azure Functions entry point.
+- The generator fetches `/api/dataset`; no workflow fetches either workbook back into the dashboard, current email, Race Control, weekly snapshot or a test.
+
+## Mail.Send finding — read only
+
+- `ssg-prpo-proxy` uses app registration client ID `780ac097-75e1-4cdb-a760-a032e8722a34` for its existing client-credential settings.
+- Its service principal already holds Microsoft Graph `Mail.Send` as an **Application** permission (`b633e1c5-b582-4048-a93e-9f11b44c7e96`). No permission or Azure setting was changed.
+- Therefore moving the sender does not require new Graph Mail.Send administrator consent.
+- An Exchange application access policy covering `Racecontrol@striveservicesgroup.com` was not visible through the Azure AD app-role assignment available in this read-only session. That mailbox-policy detail remains unverified, not assumed.
+- Evidence: `evidence/ssg-prpo-proxy-mail-send-finding.json`.
+
+## Commands and checks
+
+- `git restore --source=bc65aca -- pr.xlsx po.xlsx` to recover the exact reference schemas before replacing their content.
+- `python scripts/generate_legacy_email_workbooks.py --evidence evidence/legacy-email-workbook-generation.json`.
+- Local sandbox execution of `git show 73fef6a:src/functions/prpoEmail.js` against the generated files, send disabled.
+- `node --test tests/dataverse-live.test.js tests/race-control.test.js`.
+- Artifact-tool import, table inspection and rendered review of both generated sheets, followed by independent `openpyxl` reopen/header/table/note validation.
+- `gh workflow run publish-legacy-email-workbooks.yml --ref main` and `gh run watch 34153156222 --exit-status`.
+- Public HTTP downloads followed by workbook reopen and exact header/hash validation.
+
+## Protected systems
+
+- Chandan's function app, flow, OneDrive, tokens and mailbox were untouched.
+- No email was sent. No recipient, sender, quiet-mode setting or timer in either function app was changed.
+- `operations-ifahr-live` remained read-only. No Azure resource or setting was created or changed.
+- The `ssg-prpo-proxy` repository and deployment were inspected read-only and not modified or redeployed.
+
+## Remaining risk and removal condition
+
+- GitHub scheduled workflows can start late, so eight attempts are intentional; the current files are already published before the first scheduled attempt.
+- Delete both workbooks, the generator, mapping, sidecar and workflow as soon as production sending moves to `ssg-prpo-proxy`.
