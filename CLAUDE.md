@@ -14,7 +14,7 @@
 
 ## Retirement gate
 
-Correction 01 approves merging `PR in review` into `Sourcing`, makes live line amounts excluding VAT authoritative and uses live PO lifecycle events. The corrected 7 September 2026 run still failed PR stage (89.67%), PO stage (43.68%) and PR amount (81.02%) gates. Do not remove the workbook path or deploy a Dataverse-only replacement until a fresh reconciliation passes every stated gate.
+Correction 02 measures the production dashboard population, accepts exact amount equality regardless of tax classification and accepts only timestamp-proven post-export progression. The corrected 7 September 2026 run passes PR stage (95.25%), PR procurement clock (97.45%), PR amount (98.23%) and PO amount (99.02%), but still fails PO stage (44.02%). Do not remove the workbook path or deploy a Dataverse-only replacement until a fresh reconciliation passes every stated gate.
 
 ## Protected systems
 
@@ -29,4 +29,6 @@ Correction 01 approves merging `PR in review` into `Sourcing`, makes live line a
 - Machine reconciliation: `evidence/workbook-retirement-reconciliation.json`
 - Correction 01 report: `evidence/workbook-retirement-correction-01.md`
 - Correction 01 machine evidence: `evidence/workbook-retirement-correction-01.json`
+- Correction 02 report: `evidence/workbook-retirement-correction-02.md`
+- Correction 02 machine evidence: `evidence/workbook-retirement-correction-02.json`
 - Reproduction script: `tests/reconcile_workbook_retirement.py`

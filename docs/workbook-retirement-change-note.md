@@ -1,6 +1,6 @@
 # PR/PO reporting change note — draft, not approved for issue
 
-Status: **Blocked. Do not publish or forward yet.** The business decisions are settled, but the corrected live reconciliation still fails the PR stage, PO stage and PR amount gates. Production remains unchanged.
+Status: **Blocked. Do not publish or forward yet.** Correction 02 passes the PR stage, PR procurement clock and both amount gates for the dashboard population, but PO stage is only 44.02% against its 95% gate. Production remains unchanged.
 
 ## Exact bucket changes
 

@@ -59,6 +59,24 @@ PO_APPROVAL = {
     "Finance and Accounts Director": "Director",
     "CEO": "CEO",
 }
+WORKBOOK_EXPORT_CUTOFF = datetime(2026, 9, 7, 5, 30, tzinfo=timezone.utc)
+PR_STAGE_ORDER = {
+    "Sourcing": 0,
+    "Priced — awaiting approval": 1,
+    "Dep Managers": 2,
+    "Finance": 3,
+    "Director": 4,
+    "CEO": 5,
+}
+PO_STAGE_ORDER = {
+    "Procurement": 0,
+    "Finance": 1,
+    "Director": 2,
+    "CEO": 3,
+    "Sent to supplier": 4,
+    "Receipt posted": 5,
+    "Invoiced": 6,
+}
 
 
 def clean(value):
@@ -153,21 +171,30 @@ def compare_amount(workbook, live):
         return False
 
 
-def amount_match(workbook, live, tax_basis):
+def amount_comparison(workbook, live, tax_basis):
     try:
         workbook_value = float(workbook)
         live_value = float(live)
     except (TypeError, ValueError):
-        return None, False
-    if abs(workbook_value) <= 0.01 and abs(live_value) <= 0.01:
-        return 0.0, True
-    if tax_basis == "standard-rate VAT":
-        adjusted = round(workbook_value / 1.05, 2)
-    elif tax_basis == "non-VAT":
-        adjusted = round(workbook_value, 2)
+        return {"comparedWorkbookExVat": None, "matched": False, "matchRule": "INVALID_AMOUNT"}
+    raw = round(workbook_value, 2)
+    if abs(raw - live_value) <= 0.01:
+        return {"comparedWorkbookExVat": raw, "matched": True, "matchRule": "EXACT_EQUALITY"}
+    adjusted = round(workbook_value / 1.05, 2)
+    if tax_basis in {"standard-rate VAT", "mixed VAT basis", "unknown"} and abs(adjusted - live_value) <= 0.02:
+        return {"comparedWorkbookExVat": adjusted, "matched": True, "matchRule": "VAT_ADJUSTED"}
+    if tax_basis == "non-VAT":
+        compared = raw
+    elif tax_basis in {"standard-rate VAT", "mixed VAT basis", "unknown"}:
+        compared = adjusted
     else:
-        return None, False
-    return adjusted, abs(adjusted - live_value) <= 0.02
+        compared = None
+    return {"comparedWorkbookExVat": compared, "matched": False, "matchRule": "AMOUNT_DIFFERENCE"}
+
+
+def amount_match(workbook, live, tax_basis):
+    result = amount_comparison(workbook, live, tax_basis)
+    return result["comparedWorkbookExVat"], result["matched"]
 
 
 def column_result(rows, workbook_column, source, comparator, live_getter, affected=None):
@@ -244,6 +271,12 @@ def main():
     packing = api_all(LIVE, live_token, "mserp_vendpackingslipjourbientities", [
         "mserp_purchid", "mserp_packingslipid", "mserp_documentdate", "mserp_dataareaid",
     ])
+    confirmations = api_all(LIVE, live_token, "mserp_vrmpurchaseorderconfirmationheaderentities", [
+        "mserp_purchaseordernumber", "mserp_confirmationdatetime", "mserp_dataareaid",
+    ])
+    invoices = api_all(LIVE, live_token, "mserp_vendinvoicejourbientities", [
+        "mserp_purchid", "mserp_invoiceid", "mserp_invoicedate", "mserp_sysmodifieddatetime", "mserp_dataareaid",
+    ])
     snapshots = api_all(DEV, dev_token, "ssg_prpocurrentapprovalsnapshots", [
         "ssg_documentnumber", "ssg_documenttype", "ssg_pendingapprovercount", "ssg_pendingapprovernames",
         "ssg_pendinguserids", "ssg_pendingstepnames", "ssg_lastreconciledon", "ssg_oldestpendingsince",
@@ -300,6 +333,12 @@ def main():
     packing_by = defaultdict(list)
     for row in packing:
         packing_by[doc(row.get("mserp_purchid"))].append(row)
+    confirmation_by = defaultdict(list)
+    for row in confirmations:
+        confirmation_by[doc(row.get("mserp_purchaseordernumber"))].append(row)
+    invoice_by = defaultdict(list)
+    for row in invoices:
+        invoice_by[doc(row.get("mserp_purchid"))].append(row)
 
     def line_summary(lines, pr=False):
         status_field = "mserp_linestatus" if pr else "mserp_purchaseorderlinestatus"
@@ -420,8 +459,73 @@ def main():
             return "Approval — unmapped element", ["UNMAPPED_ELEMENT"]
         return None, ["NO_CURRENT_WORK_ITEM_OR_OPEN_STAGE"]
 
-    pr_stage_rows, pr_stage_differences = [], []
+    def pr_is_dashboard_open(number):
+        status = norm(formatted(pr_header_by.get(number, {}), "mserp_requisitionstatus"))
+        return status in {"in review", "approved"}
+
+    def po_is_dashboard_open(number):
+        header = po_header_by.get(number, {})
+        po_status = norm(formatted(header, "mserp_purchaseorderstatus"))
+        approval_status = norm(formatted(header, "mserp_documentapprovalstatus"))
+        return po_status not in {"invoiced", "closed", "cancelled", "canceled"} and approval_status != "rejected"
+
+    def stage_evidence(kind, number, live_stage):
+        if kind == "PR":
+            if live_stage == "Priced — awaiting approval":
+                value = pr_bi_by.get(number, {}).get("mserp_sysmodifieddatetime")
+                source = "PR header modified time after line pricing"
+            elif live_stage in set(PR_APPROVAL.values()):
+                value = snapshot_by.get(number, {}).get("ssg_oldestpendingsince")
+                source = "approval capture assignment"
+            else:
+                value, source = None, None
+        elif live_stage == "Sent to supplier":
+            value = earliest(row.get("mserp_confirmationdatetime") for row in confirmation_by.get(number, []))
+            source = "PO confirmation event"
+        elif live_stage == "Receipt posted":
+            value = earliest(row.get("mserp_documentdate") for row in packing_by.get(number, []))
+            source = "packing-slip posting"
+        elif live_stage == "Invoiced":
+            value = earliest(
+                row.get("mserp_sysmodifieddatetime") or row.get("mserp_invoicedate")
+                for row in invoice_by.get(number, [])
+            )
+            source = "vendor-invoice posting"
+        elif live_stage in set(PO_APPROVAL.values()):
+            value = snapshot_by.get(number, {}).get("ssg_oldestpendingsince")
+            source = "approval capture assignment"
+        else:
+            value, source = None, None
+        parsed = parse_dt(value)
+        return {"source": source, "timestamp": parsed}
+
+    def compare_stage(kind, number, expected, actual):
+        if expected == actual:
+            return {"matched": True, "reasonCode": "EXACT_STAGE", "progression": None}
+        order = PR_STAGE_ORDER if kind == "PR" else PO_STAGE_ORDER
+        if expected not in order or actual not in order or order[actual] <= order[expected]:
+            return {"matched": False, "reasonCode": "REGRESSION_OR_UNMAPPED", "progression": None}
+        evidence = stage_evidence(kind, number, actual)
+        if not evidence["timestamp"]:
+            return {"matched": False, "reasonCode": "PROGRESSION_TIMESTAMP_UNAVAILABLE", "progression": None}
+        progression = {
+            "document": number,
+            "workbookStage": expected,
+            "liveStage": actual,
+            "workbookExportTimestamp": WORKBOOK_EXPORT_CUTOFF.isoformat().replace("+00:00", "Z"),
+            "liveEvidenceTimestamp": iso(evidence["timestamp"]),
+            "liveEvidenceSource": evidence["source"],
+            "reasonCode": "PROGRESSED_AFTER_EXPORT",
+        }
+        if evidence["timestamp"] > WORKBOOK_EXPORT_CUTOFF:
+            return {"matched": True, "reasonCode": "PROGRESSED_AFTER_EXPORT", "progression": progression}
+        return {"matched": False, "reasonCode": "PROGRESSION_NOT_AFTER_EXPORT", "progression": progression}
+
+    pr_stage_rows, pr_stage_differences, pr_progressions = [], [], []
+    pr_stage_dashboard_rows, pr_stage_dashboard_differences = [], []
     pr_clock_rows, pr_clock_differences = [], []
+    pr_clock_dashboard_rows, pr_clock_dashboard_differences = [], []
+    pr_clock_not_comparable = []
     for number, workbook in pr_book_by.items():
         old_step = clean(workbook.get("Step name"))
         expected = PR_APPROVAL.get(old_step) or PR_PROCUREMENT.get(old_step)
@@ -430,20 +534,43 @@ def main():
         actual, flags = pr_live_stage(number)
         if not actual:
             continue
-        row = {"document": number, "workbookStep": old_step, "expectedStage": expected, "liveStage": actual, "flags": flags}
+        comparison = compare_stage("PR", number, expected, actual)
+        row = {
+            "document": number, "workbookStep": old_step, "expectedStage": expected,
+            "liveStage": actual, "matched": comparison["matched"],
+            "reasonCode": comparison["reasonCode"], "flags": flags,
+            "inDashboardPopulation": pr_is_dashboard_open(number),
+        }
         pr_stage_rows.append(row)
-        if expected != actual:
+        if not comparison["matched"]:
             pr_stage_differences.append(row)
-        if expected in {"Sourcing", "Priced — awaiting approval"}:
+        elif comparison["progression"]:
+            pr_progressions.append(comparison["progression"])
+        if row["inDashboardPopulation"]:
+            pr_stage_dashboard_rows.append(row)
+            if not comparison["matched"]:
+                pr_stage_dashboard_differences.append(row)
+        if expected in {"Sourcing", "Priced — awaiting approval"} and actual == expected:
             modified = pr_bi_by.get(number, {}).get("mserp_sysmodifieddatetime")
             within = compare_date(workbook.get("Step date and time"), modified, 1)
             clock = {"document": number, "stage": expected, "workbookClock": iso(workbook.get("Step date and time")), "liveSeedClock": iso(modified), "withinOneDay": within}
             pr_clock_rows.append(clock)
             if not within:
                 pr_clock_differences.append(clock)
+            if row["inDashboardPopulation"]:
+                pr_clock_dashboard_rows.append(clock)
+                if not within:
+                    pr_clock_dashboard_differences.append(clock)
+        elif expected in {"Sourcing", "Priced — awaiting approval"} and comparison["matched"]:
+            pr_clock_not_comparable.append({
+                "document": number, "workbookStage": expected, "liveStage": actual,
+                "reason": "different procurement/approval stage after export",
+            })
 
-    po_stage_rows, po_stage_differences = [], []
+    po_stage_rows, po_stage_differences, po_progressions = [], [], []
+    po_stage_dashboard_rows, po_stage_dashboard_differences = [], []
     po_clock_rows, po_clock_differences, po_clock_not_comparable = [], [], []
+    po_clock_dashboard_rows, po_clock_dashboard_differences = [], []
     for number, workbook in po_book_by.items():
         old_step = clean(workbook.get("Step name"))
         if not old_step or number not in po_header_by:
@@ -453,23 +580,36 @@ def main():
             continue
         if old_step == "LPO sent/shared with supplier":
             expected = "Sent to supplier"
-            matched = actual == expected or (actual == "Receipt posted" and bool(packing_by.get(number)))
-            match_rule = "receipt progression accepted" if matched and actual == "Receipt posted" else "exact"
+            comparison = compare_stage("PO", number, expected, actual)
         elif old_step == "PurchTableApproval":
-            expected = actual if actual in set(PO_APPROVAL.values()) else "Approval — unmapped element"
-            matched = expected == actual
-            match_rule = "capture element map"
+            expected = "PO approval (generic)"
+            if actual in set(PO_APPROVAL.values()) | {"Approval — unmapped element"}:
+                comparison = {"matched": True, "reasonCode": "CAPTURE_MAP_OR_UNMAPPED", "progression": None}
+            else:
+                comparison = compare_stage("PO", number, "CEO", actual)
+                if comparison["progression"]:
+                    comparison["progression"]["workbookStage"] = expected
         else:
             expected = PO_APPROVAL.get(old_step)
-            matched = expected == actual
-            match_rule = "exact"
+            comparison = compare_stage("PO", number, expected, actual) if expected else None
         if not expected:
             continue
-        row = {"document": number, "workbookStep": old_step, "expectedStage": expected, "liveStage": actual, "matched": matched, "matchRule": match_rule, "flags": flags}
+        row = {
+            "document": number, "workbookStep": old_step, "expectedStage": expected,
+            "liveStage": actual, "matched": comparison["matched"],
+            "reasonCode": comparison["reasonCode"], "flags": flags,
+            "inDashboardPopulation": po_is_dashboard_open(number),
+        }
         po_stage_rows.append(row)
-        if not matched:
+        if not comparison["matched"]:
             po_stage_differences.append(row)
-        if old_step in PO_APPROVAL:
+        elif comparison["progression"]:
+            po_progressions.append(comparison["progression"])
+        if row["inDashboardPopulation"]:
+            po_stage_dashboard_rows.append(row)
+            if not comparison["matched"]:
+                po_stage_dashboard_differences.append(row)
+        if old_step in PO_APPROVAL and actual == expected:
             assigned = snapshot_by.get(number, {}).get("ssg_oldestpendingsince")
             within = compare_date(workbook.get("Step date and time"), assigned, 1)
             clock = {"document": number, "stage": expected, "workbookClock": iso(workbook.get("Step date and time")), "liveClock": iso(assigned), "clockSource": "capture assignment", "withinOneDay": within}
@@ -477,6 +617,10 @@ def main():
                 po_clock_rows.append(clock)
                 if not within:
                     po_clock_differences.append(clock)
+                if row["inDashboardPopulation"]:
+                    po_clock_dashboard_rows.append(clock)
+                    if not within:
+                        po_clock_dashboard_differences.append(clock)
         elif old_step == "LPO sent/shared with supplier":
             pack_date = earliest(item.get("mserp_documentdate") for item in packing_by.get(number, []))
             po_clock_not_comparable.append({
@@ -538,6 +682,7 @@ def main():
             "users": {norm(user) for user in snapshot_users(number)},
             "stage": stage,
             "clock": clean(bi.get("mserp_sysmodifieddatetime")) if stage in {"Sourcing", "Priced — awaiting approval"} else assigned,
+            "inDashboardPopulation": pr_is_dashboard_open(number) and bool(PR_APPROVAL.get(clean(workbook.get("Step name"))) or PR_PROCUREMENT.get(clean(workbook.get("Step name")))),
         }
         pr_rows.append({"workbook": workbook, "live": live})
 
@@ -551,6 +696,11 @@ def main():
         stage, _ = po_live_stage(number)
         assigned = parse_dt(snapshot_by.get(number, {}).get("ssg_oldestpendingsince"))
         pack_date = earliest(item.get("mserp_documentdate") for item in packing_by.get(number, []))
+        confirmation_date = earliest(item.get("mserp_confirmationdatetime") for item in confirmation_by.get(number, []))
+        invoice_date = earliest(
+            item.get("mserp_sysmodifieddatetime") or item.get("mserp_invoicedate")
+            for item in invoice_by.get(number, [])
+        )
         live = {
             "number": number,
             "vendorAccount": clean(header.get("mserp_ordervendoraccountnumber")),
@@ -571,8 +721,14 @@ def main():
             "contract": lines["dimension"]["Contract"],
             "users": {norm(user) for user in snapshot_users(number)},
             "stage": stage,
-            "clock": pack_date if stage == "Receipt posted" else assigned,
+            "clock": pack_date if stage == "Receipt posted" else invoice_date if stage == "Invoiced" else confirmation_date if stage == "Sent to supplier" else assigned,
+            "confirmationDate": confirmation_date,
+            "postedOn": pack_date,
+            "invoiceDate": invoice_date,
             "createdByCandidate": clean(header.get("mserp_ordererpersonnelnumber")),
+            "inDashboardPopulation": po_is_dashboard_open(number) and bool(
+                clean(workbook.get("Step name")) in set(PO_APPROVAL) | {"LPO sent/shared with supplier", "PurchTableApproval"}
+            ),
         }
         po_rows.append({"workbook": workbook, "live": live})
 
@@ -662,6 +818,7 @@ def main():
     def amount_summary(rows, column):
         details = []
         basis_counts = Counter()
+        match_rule_counts = Counter()
         adjusted_total = 0.0
         adjusted_count = 0
         matched = 0
@@ -669,8 +826,11 @@ def main():
             workbook_value = float(row["workbook"].get(column) or 0)
             live_value = float(row["live"].get("amount") or 0)
             basis = row["live"]["taxBasis"]
-            adjusted, is_match = amount_match(workbook_value, live_value, basis)
+            comparison = amount_comparison(workbook_value, live_value, basis)
+            adjusted = comparison["comparedWorkbookExVat"]
+            is_match = comparison["matched"]
             basis_counts[basis] += 1
+            match_rule_counts[comparison["matchRule"]] += 1
             if adjusted is not None:
                 adjusted_total += adjusted
                 adjusted_count += 1
@@ -685,6 +845,7 @@ def main():
                     "adjustedWorkbookExVat": adjusted,
                     "liveLineAmountExVat": round(live_value, 2),
                     "difference": round(adjusted - live_value, 2) if adjusted is not None else None,
+                    "reasonCode": comparison["matchRule"],
                 })
         return {
             "documentsCompared": len(rows),
@@ -695,7 +856,45 @@ def main():
             "matchedDocuments": matched,
             "agreementPercent": round(100 * matched / len(rows), 2) if rows else None,
             "taxBasisCounts": dict(basis_counts),
+            "matchRuleCounts": dict(match_rule_counts),
             "differences": details,
+        }
+
+    pr_dashboard_rows = [row for row in pr_rows if row["live"]["inDashboardPopulation"]]
+    po_dashboard_rows = [row for row in po_rows if row["live"]["inDashboardPopulation"]]
+    stale_rows = []
+    for kind, workbook_by, header_by, is_open, status_field, number_field in (
+        ("PR", pr_book_by, pr_header_by, pr_is_dashboard_open, "mserp_requisitionstatus", "Purchase requisition"),
+        ("PO", po_book_by, po_header_by, po_is_dashboard_open, "mserp_purchaseorderstatus", "Purchase order"),
+    ):
+        for number, workbook in workbook_by.items():
+            step = clean(workbook.get("Step name"))
+            if not step or number not in header_by or is_open(number):
+                continue
+            header = header_by[number]
+            stale_rows.append({
+                "document": number,
+                "documentType": kind,
+                "workbookStep": step,
+                "liveStatus": formatted(header, status_field),
+                "approvalStatus": formatted(header, "mserp_documentapprovalstatus") if kind == "PO" else None,
+                "reasonCode": "STALE_WORKBOOK_ROW_OUTSIDE_DASHBOARD_POPULATION",
+            })
+
+    def stage_summary(rows, differences):
+        return {
+            "compared": len(rows),
+            "matched": len(rows) - len(differences),
+            "agreementPercent": round(100 * (len(rows) - len(differences)) / len(rows), 2) if rows else None,
+            "differences": differences,
+        }
+
+    def clock_summary(rows, differences):
+        return {
+            "compared": len(rows),
+            "matchedWithinOneDay": len(rows) - len(differences),
+            "agreementPercent": round(100 * (len(rows) - len(differences)) / len(rows), 2) if rows else None,
+            "differences": differences,
         }
 
     output = {
@@ -705,6 +904,7 @@ def main():
             "workbookPR": len(pr_book), "workbookPO": len(po_book),
             "livePRHeaders": len(pr_headers), "livePRLines": len(pr_lines), "livePRBiHeaders": len(pr_bi),
             "livePOHeaders": len(po_headers), "livePOLines": len(po_lines), "livePackingSlipJournals": len(packing),
+            "livePOConfirmations": len(confirmations), "liveVendorInvoiceJournals": len(invoices),
             "captureSnapshots": len(snapshots), "captureCurrentWorkItems": len(workitems),
             "captureResolvedDistinctDocuments": len(resolved_current), "captureUnresolvedWorkItems": len(unresolved_items),
             "captureParallelDocuments": sum(1 for number in snapshot_by if int(snapshot_by[number].get("ssg_pendingapprovercount") or 0) > 1),
@@ -715,6 +915,13 @@ def main():
             "approvalCaptureReconciledUtc": latest_capture.isoformat().replace("+00:00", "Z") if latest_capture else None,
             "effectiveDataTimeUtc": effective_data_time.isoformat().replace("+00:00", "Z"),
             "captureAgeMinutes": round((generated - latest_capture).total_seconds() / 60, 2) if latest_capture else None,
+        },
+        "measurementRules": {
+            "workbookExportCutoffUtc": WORKBOOK_EXPORT_CUTOFF.isoformat().replace("+00:00", "Z"),
+            "workbookExportCutoffBasis": "user-supplied approximately 09:30 Asia/Dubai on 7 September 2026",
+            "dashboardPRStatuses": ["In review", "Approved"],
+            "dashboardPOExclusions": ["Invoiced", "Closed", "Cancelled", "Canceled", "Rejected approval"],
+            "amountRules": ["EXACT_EQUALITY", "VAT_ADJUSTED"],
         },
         "liveDatasetNumbers": {
             "distinctResolvedDocuments": len(snapshot_by),
@@ -736,35 +943,39 @@ def main():
             "poMapped": po_approval_map, "poAmbiguous": po_ambiguous,
         },
         "reconciliation": {
-            "prStage": {
-                "compared": len(pr_stage_rows),
-                "matched": len(pr_stage_rows) - len(pr_stage_differences),
-                "agreementPercent": round(100 * (len(pr_stage_rows) - len(pr_stage_differences)) / len(pr_stage_rows), 2) if pr_stage_rows else None,
-                "differences": pr_stage_differences,
+            "correction02AllRows": {
+                "prStage": stage_summary(pr_stage_rows, pr_stage_differences),
+                "prProcurementClock": clock_summary(pr_clock_rows, pr_clock_differences),
+                "poStage": stage_summary(po_stage_rows, po_stage_differences),
             },
-            "prProcurementClock": {
-                "compared": len(pr_clock_rows),
-                "matchedWithinOneDay": len(pr_clock_rows) - len(pr_clock_differences),
-                "agreementPercent": round(100 * (len(pr_clock_rows) - len(pr_clock_differences)) / len(pr_clock_rows), 2) if pr_clock_rows else None,
-                "differences": pr_clock_differences,
-            },
-            "poStage": {
-                "compared": len(po_stage_rows),
-                "matched": len(po_stage_rows) - len(po_stage_differences),
-                "agreementPercent": round(100 * (len(po_stage_rows) - len(po_stage_differences)) / len(po_stage_rows), 2) if po_stage_rows else None,
-                "differences": po_stage_differences,
-            },
+            "prStage": stage_summary(pr_stage_dashboard_rows, pr_stage_dashboard_differences),
+            "prProcurementClock": clock_summary(pr_clock_dashboard_rows, pr_clock_dashboard_differences),
+            "poStage": stage_summary(po_stage_dashboard_rows, po_stage_dashboard_differences),
             "poClock": {
-                "comparedLikeForLikeApprovalClocks": len(po_clock_rows),
-                "matchedWithinOneDay": len(po_clock_rows) - len(po_clock_differences),
-                "agreementPercent": round(100 * (len(po_clock_rows) - len(po_clock_differences)) / len(po_clock_rows), 2) if po_clock_rows else None,
-                "differences": po_clock_differences,
+                "comparedLikeForLikeApprovalClocks": len(po_clock_dashboard_rows),
+                "matchedWithinOneDay": len(po_clock_dashboard_rows) - len(po_clock_dashboard_differences),
+                "agreementPercent": round(100 * (len(po_clock_dashboard_rows) - len(po_clock_dashboard_differences)) / len(po_clock_dashboard_rows), 2) if po_clock_dashboard_rows else None,
+                "differences": po_clock_dashboard_differences,
                 "notComparableEventClocks": po_clock_not_comparable,
+                "receiptPostedDocuments": sum(1 for row in po_stage_dashboard_rows if row["liveStage"] == "Receipt posted"),
+                "receiptPostedWithPostedOn": sum(
+                    1 for row in po_stage_dashboard_rows
+                    if row["liveStage"] == "Receipt posted" and packing_by.get(row["document"])
+                ),
             },
             "approver": {"compared": sum(approver_classes.values()), "classifications": dict(approver_classes), "details": approver_details},
         },
         "columns": {"pr.xlsx": pr_columns, "po.xlsx": po_columns},
-        "amountBasis": {"pr.xlsx": amount_summary(pr_rows, "Total amount"), "po.xlsx": amount_summary(po_rows, "Total amount")},
+        "correction02AllRowsAmountBasis": {"pr.xlsx": amount_summary(pr_rows, "Total amount"), "po.xlsx": amount_summary(po_rows, "Total amount")},
+        "amountBasis": {"pr.xlsx": amount_summary(pr_dashboard_rows, "Total amount"), "po.xlsx": amount_summary(po_dashboard_rows, "Total amount")},
+        "progressedAfterExport": sorted(pr_progressions + po_progressions, key=lambda row: (row["document"], row["liveStage"])),
+        "staleRowsTheWorkbookStillCarries": sorted(stale_rows, key=lambda row: (row["documentType"], row["document"])),
+        "dashboardPopulation": {
+            "prDocuments": len(pr_dashboard_rows),
+            "poDocuments": len(po_dashboard_rows),
+            "prStageCompared": len(pr_stage_dashboard_rows),
+            "poStageCompared": len(po_stage_dashboard_rows),
+        },
         "poWorkbookStepCounts": {str(key): int(value) for key, value in po_book["Step name"].fillna("(blank)").value_counts().items()},
     }
     amount_pr = output["amountBasis"]["pr.xlsx"]["agreementPercent"] or 0
