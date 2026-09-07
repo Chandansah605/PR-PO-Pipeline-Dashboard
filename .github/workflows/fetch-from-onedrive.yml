@@ -2,15 +2,22 @@
 # Graph) and refreshes the dashboard - runs in GitHub's cloud, so it works even when
 # CK's laptop is off. The Power Automate flow just needs to keep saving the email
 # attachments into the OneDrive "Email-Drops" folder.
+#
+# HOW IT IS TRIGGERED (Sep 2026): the Azure Function `prpo-fetch-trigger` in
+# Strive-Services-Group/pr-po-proxy fires this workflow via workflow_dispatch every
+# 5 minutes 09:00-11:55 Dubai until today's pr.xlsx is committed. GitHub's own cron
+# below is only a late-day backstop - it has been observed firing 4-5 hours late and
+# collapsing the 5-minute window into a single run, so do NOT rely on it for the
+# 10:00 AM email. The workflow must stay ENABLED (a disabled workflow rejects
+# workflow_dispatch) - the old self-disable / re-arm pair has been removed.
 name: Fetch PR/PO from OneDrive
 on:
   schedule:
-    - cron: "*/5 5-8 * * *"     # every 5 min, 09:00-12:55 Dubai time (UTC+4)
-  workflow_dispatch:             # lets you run it on demand from the Actions tab
+    - cron: "0 9,11 * * 1-5"   # backstop only: 13:00 + 15:00 Dubai (UTC+4), weekdays
+  workflow_dispatch:           # fired by pr-po-proxy /api/prpo-fetch, or on demand from the Actions tab
 
 permissions:
   contents: write
-  actions: write        # needed to disable this workflow once today's file is in
 
 concurrency:
   group: fetch-onedrive
@@ -34,28 +41,14 @@ jobs:
           ONEDRIVE_FOLDER: ${{ secrets.ONEDRIVE_FOLDER }}
         run: python fetch_from_onedrive.py
       - name: Commit and push any changes
-        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pr.xlsx po.xlsx pr_steps.json
           if git diff --cached --quiet; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "No new data - keep polling."
+            echo "No new data."
           else
             git commit -m "Cloud data refresh from OneDrive"
             git push
-            echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "New data processed."
           fi
-      - name: Stop polling for the rest of today
-        # Once we've actually picked up and published a new file, disable this
-        # workflow so it stops running. The companion "arm-onedrive-fetch" workflow
-        # re-enables it early tomorrow morning. Best-effort: never fail the run.
-        if: steps.commit.outputs.changed == 'true'
-        run: |
-          curl -s -X PUT \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/fetch-from-onedrive.yml/disable" \
-            && echo "Fetch workflow disabled until tomorrow's re-arm." || echo "Could not disable (will just keep polling harmlessly)."
