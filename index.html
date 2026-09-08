@@ -3082,6 +3082,7 @@ const MSAL_CONFIG = {
 };
 const MSAL_SCOPES = ['User.Read'];
 let msalInstance = null;
+let msalRedirectPromise = Promise.resolve(null);
 function isMsalConfigured(){
   return MSAL_CONFIG.auth.clientId !== 'YOUR_AZURE_AD_CLIENT_ID_HERE'
       && !MSAL_CONFIG.auth.authority.includes('YOUR_TENANT_ID_HERE')
@@ -3093,23 +3094,77 @@ function showLoginError(msg){
   e.innerText = msg; e.style.display = 'block';
 }
 
-function signIn(){
+function completeSignIn(response){
+  if(msalInstance.setActiveAccount)msalInstance.setActiveAccount(response.account);
+  sessionStorage.setItem('strive_auth','true');
+  sessionStorage.setItem('strive_user', response.account.username || response.account.name || '');
+  enterDashboard(response.account.name || response.account.username);
+}
+
+function authErrorText(err){
+  return [err && err.errorCode, err && err.code, err && err.errorMessage, err && err.message]
+    .filter(Boolean).join(' ').toLowerCase();
+}
+
+function shouldRetryWithRedirect(err){
+  const text = authErrorText(err);
+  return text.includes('popup') || text.includes('block_iframe_reload');
+}
+
+function plainAuthError(err){
+  const text = authErrorText(err);
+  if(text.includes('user_cancelled') || text.includes('user canceled') || text.includes('user cancelled')){
+    return 'Sign-in was cancelled. Please try again.';
+  }
+  return 'Microsoft sign-in could not be completed. Please try again, or contact IT if the problem continues.';
+}
+
+function shouldUseRedirectSignIn(){
+  try{
+    if(window.opener && window.opener !== window) return true;
+    if(window.name) return true;
+    if(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+  }catch(e){
+    // If browser isolation prevents checking the opener, avoid attempting a nested popup.
+    return true;
+  }
+  return false;
+}
+
+async function redirectSignIn(){
+  try{
+    await msalInstance.loginRedirect({ scopes: MSAL_SCOPES });
+  }catch(err){
+    console.error(err);
+    showLoginError(plainAuthError(err));
+  }
+}
+
+async function signIn(){
   document.getElementById('loginErr').style.display='none';
   if(isMsalConfigured()){
     try{
       if(!msalInstance) msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
-      msalInstance.loginPopup({ scopes: MSAL_SCOPES })
-        .then(response=>{
-          if(msalInstance.setActiveAccount)msalInstance.setActiveAccount(response.account);
-          sessionStorage.setItem('strive_auth','true');
-          sessionStorage.setItem('strive_user', response.account.username || response.account.name || '');
-          enterDashboard(response.account.name || response.account.username);
-        })
-        .catch(err=>{
-          console.error(err);
-          showLoginError('Sign-in failed: ' + (err.errorMessage || err.message || 'unknown error'));
-        });
-    }catch(err){ showLoginError('MSAL initialization error: ' + err.message); }
+      await msalRedirectPromise;
+      if(shouldUseRedirectSignIn()){
+        await redirectSignIn();
+        return;
+      }
+      try{
+        const response = await msalInstance.loginPopup({ scopes: MSAL_SCOPES });
+        completeSignIn(response);
+      }catch(err){
+        if(shouldRetryWithRedirect(err)){
+          await redirectSignIn();
+          return;
+        }
+        console.error(err);
+        showLoginError(plainAuthError(err));
+      }
+    }catch(err){
+      console.error(err);
+      showLoginError(plainAuthError(err));
+    }
   } else {
     // If the MSAL library itself failed to load (e.g. blocked by the network),
     // do NOT silently let the user in — show a clear error so the problem is visible.
@@ -3188,8 +3243,20 @@ function spawnFallingLines(){
   if(isMsalConfigured()){
     try{
       msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
-      msalInstance.handleRedirectPromise().catch(()=>{});
-    }catch(e){}
+      msalRedirectPromise = msalInstance.handleRedirectPromise()
+        .then(response=>{
+          if(response) completeSignIn(response);
+          return response;
+        })
+        .catch(err=>{
+          console.error(err);
+          showLoginError(plainAuthError(err));
+          return null;
+        });
+    }catch(err){
+      console.error(err);
+      showLoginError(plainAuthError(err));
+    }
   }
 })();
 </script>
