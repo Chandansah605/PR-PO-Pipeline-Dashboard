@@ -22,13 +22,11 @@
   let motion=!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let frameId=0;
   let clockId=0;
-  let W=0,H=0,DPR=1,last=performance.now();
-  let z=0,speed=0,targetSpeed=0,phase='hold',lit=0,shake=0,flash=0,mx=0,my=0,lap=0;
+  let W=0,H=0,DPR=1,last=performance.now(),headlineBottom=0;
+  let z=0,speed=0,targetSpeed=0,phase='hold',lit=0,shake=0,gatePulse=0,mx=0,my=0,lap=0;
   let passed=[false,false,false,false,false];
   let sequenceTimers=[];
   let dprQuery=null;
-  let carX=0;
-  let carImage=null,carTexture=null,carSource='';
 
   const STAGES=['PR RAISED','SOURCING','APPROVALS','PURCHASE ORDER','RECEIPT POSTED'];
   const GAP=300;
@@ -81,6 +79,8 @@
     ctx.setTransform(DPR,0,0,DPR,0,0);
     ctx.imageSmoothingEnabled=true;
     ctx.imageSmoothingQuality='high';
+    const hero=document.querySelector('.login-hero');
+    headlineBottom=hero?hero.getBoundingClientRect().bottom+28:H*.24;
     if(!motion) drawScene(performance.now(),0);
   }
 
@@ -92,47 +92,8 @@
 
   function handleDprChange(){resize();watchDpr()}
 
-  function chooseCarSource(){
-    const physicalWidth=cv.clientWidth*(window.devicePixelRatio||1);
-    if(cv.clientWidth<=720||physicalWidth<=900)return 'assets/car/car-rear-700.webp';
-    if(physicalWidth<=1450)return 'assets/car/car-rear-1100.webp';
-    return 'assets/car/car-rear-1600.webp';
-  }
-
-  function loadImage(src){
-    return new Promise((resolve,reject)=>{
-      const image=new Image();
-      image.decoding='async';
-      image.fetchPriority='high';
-      image.onload=()=>resolve(image);
-      image.onerror=reject;
-      image.src=src;
-    });
-  }
-
-  async function prepareCar(){
-    carSource=chooseCarSource();
-    try{carImage=await loadImage(carSource)}catch(error){carSource='assets/car/car-rear-1100.png';carImage=await loadImage(carSource)}
-    if(carImage.decode){try{await carImage.decode()}catch(error){/* onload already confirmed the decoded fallback */}}
-    carTexture=document.createElement('canvas');
-    carTexture.width=carImage.naturalWidth;
-    carTexture.height=carImage.naturalHeight;
-    const carCtx=carTexture.getContext('2d');
-    carCtx.imageSmoothingEnabled=true;
-    carCtx.imageSmoothingQuality='high';
-    carCtx.drawImage(carImage,0,0);
-    carCtx.globalCompositeOperation='source-atop';
-    const flood=carCtx.createLinearGradient(0,0,carTexture.width,carTexture.height);
-    flood.addColorStop(0,'rgba(97,143,180,.12)');
-    flood.addColorStop(.55,'rgba(255,255,255,.025)');
-    flood.addColorStop(1,'rgba(20,90,149,.14)');
-    carCtx.fillStyle=flood;
-    carCtx.fillRect(0,0,carTexture.width,carTexture.height);
-    carCtx.globalCompositeOperation='source-over';
-  }
-
   const cam={h:46};
-  const ROADW=110, KERB=22, VERGE=90, WALL=14;
+  const ROADW=122, KERB=22, VERGE=90, WALL=14;
   let vpX=0,vpY=0,projectionScale=1;
   function VP(){return {x:vpX,y:vpY}}
   function project(x,y,zz){const f=Math.max(1,zz),s=projectionScale/f;return {x:vpX+x*s,y:vpY+(cam.h-y)*s,s}}
@@ -168,6 +129,7 @@
     const rg=ctx.createLinearGradient(0,a.y,0,c.y);rg.addColorStop(0,'#141F2E');rg.addColorStop(.6,'#0E1A29');rg.addColorStop(1,'#0A1727');quad(a,b,c,d,rg);
     ctx.save();ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();ctx.clip();ctx.globalAlpha=.16;ctx.fillStyle=ctx.createPattern(noise,'repeat');ctx.translate(0,(z*.7)%256);ctx.fillRect(-256,-512,W+512,H+1024);ctx.globalAlpha=1;ctx.restore();
     ctx.save();ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();ctx.clip();[[-70,-40],[40,70]].forEach(([x0,x1])=>{const p0=project(x0,0,30),p1=project(x1,0,30),p2=project(x1*.6,0,2200),p3=project(x0*.6,0,2200);const lg=ctx.createLinearGradient(0,p0.y,0,p2.y);lg.addColorStop(0,'rgba(0,0,0,.35)');lg.addColorStop(1,'rgba(0,0,0,0)');quad(p0,p1,p2,p3,lg)});ctx.restore();
+    [-46,46].forEach(x=>{const near0=project(x-1.2,0,30),near1=project(x+1.2,0,30),far1=project(x+1.2,0,2200),far0=project(x-1.2,0,2200);const guide=ctx.createLinearGradient(0,near0.y,0,far0.y);guide.addColorStop(0,'rgba(97,143,180,.38)');guide.addColorStop(.7,'rgba(156,192,224,.16)');guide.addColorStop(1,'rgba(156,192,224,0)');quad(near0,near1,far1,far0,guide)});
     const seg=55,startZ=Math.floor(z/seg)*seg,far=z+2200;
     for(let zz=startZ;zz<far;zz+=seg){const rel0=zz-z,rel1=zz+seg-z;if(rel1<30)continue;const r0=Math.max(30,rel0),stripe=Math.floor(zz/seg)%2===0,fade=Math.max(0,1-rel0/2600);
       [-1,1].forEach(side=>{
@@ -186,21 +148,36 @@
 
   function stageState(i){return passed[i]?'green':'next'}
 
+  function stageTitleAlpha(top){
+    return Math.max(0,Math.min(1,(top-headlineBottom)/42));
+  }
+
   function drawLamp(lx,ly,radius,on){
-    ctx.fillStyle='#080C12';
+    ctx.save();
+    ctx.fillStyle='#04070C';
     ctx.shadowColor='rgba(0,0,0,.8)';
     ctx.shadowBlur=radius*.7;
     roundRect(lx-radius*1.25,ly-radius*1.35,radius*2.5,radius*2.7,radius*.38);
     ctx.fill();
     ctx.shadowBlur=0;
-    const lens=ctx.createRadialGradient(lx-radius*.3,ly-radius*.35,radius*.08,lx,ly,radius);
-    lens.addColorStop(0,on?'#FFF5F2':'#442226');
-    lens.addColorStop(.3,on?'#FF786F':'#2B1519');
-    lens.addColorStop(1,on?'#B90F17':'#090608');
-    if(on){ctx.shadowColor='#FF302C';ctx.shadowBlur=radius*2.6}
+    ctx.strokeStyle='rgba(116,143,171,.34)';ctx.lineWidth=Math.max(.7,radius*.08);ctx.stroke();
+    if(on){
+      const bloom=ctx.createRadialGradient(lx,ly,radius*.25,lx,ly,radius*3.4);
+      bloom.addColorStop(0,'rgba(255,65,55,.72)');bloom.addColorStop(.35,'rgba(230,34,29,.34)');bloom.addColorStop(1,'rgba(230,34,29,0)');
+      ctx.fillStyle=bloom;ctx.beginPath();ctx.arc(lx,ly,radius*3.4,0,Math.PI*2);ctx.fill();
+    }
+    const lens=ctx.createRadialGradient(lx-radius*.28,ly-radius*.32,radius*.04,lx,ly,radius);
+    lens.addColorStop(0,on?'#FFFFFF':'#28333E');
+    lens.addColorStop(.18,on?'#FFD8D4':'#151D26');
+    lens.addColorStop(.5,on?'#FF4138':'#0B0F15');
+    lens.addColorStop(1,on?'#9B080D':'#030507');
+    if(on){ctx.shadowColor='#FF2D27';ctx.shadowBlur=radius*3.1}
     ctx.fillStyle=lens;
     ctx.beginPath();ctx.arc(lx,ly,radius,0,Math.PI*2);ctx.fill();
     ctx.shadowBlur=0;
+    ctx.strokeStyle=on?'rgba(255,190,184,.88)':'rgba(130,156,181,.30)';ctx.lineWidth=Math.max(.7,radius*.07);ctx.stroke();
+    ctx.fillStyle=on?'rgba(255,255,255,.88)':'rgba(214,231,246,.13)';ctx.beginPath();ctx.ellipse(lx-radius*.28,ly-radius*.34,radius*.28,radius*.15,-.45,0,Math.PI*2);ctx.fill();
+    ctx.restore();
   }
 
   function drawGantries(){
@@ -228,13 +205,17 @@
           if(i===0){
             const radius=Math.min(h*.17,w*.065),lampY=s1.y+h*.36,step=w*.145,start=s0.x+w*.21;
             for(let n=0;n<5;n++)drawLamp(start+n*step,lampY,radius,L===lap&&phase==='lights'&&n<lit);
+            ctx.save();ctx.globalAlpha=alpha*stageTitleAlpha(s1.y);
             ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#EEF4FA';ctx.font='800 '+Math.max(4,h*.17)+'px Montserrat, Segoe UI, sans-serif';ctx.fillText(STAGES[i],s0.x+w*.5,s1.y+h*.76);
             ctx.fillStyle='rgba(147,169,194,.9)';ctx.font='600 '+Math.max(3,h*.105)+'px Titillium Web, Segoe UI, sans-serif';ctx.fillText('S1  ·  STAGE 1 OF 5',s0.x+w*.5,s1.y+h*.91);
+            ctx.restore();
           }else{
             const lr=h*.17,lx=s0.x+w*.12,ly=s1.y+h*.5;
             drawLamp(lx,ly,lr,state==='green');
+            ctx.save();ctx.globalAlpha=alpha*stageTitleAlpha(s1.y);
             ctx.fillStyle='#EEF4FA';ctx.textBaseline='middle';ctx.textAlign='left';ctx.font='800 '+Math.max(4,h*.34)+'px Montserrat, Segoe UI, sans-serif';ctx.fillText(STAGES[i],s0.x+w*.22,s1.y+h*.48);
             ctx.fillStyle='rgba(147,169,194,.9)';ctx.font='600 '+Math.max(3,h*.16)+'px Titillium Web, Segoe UI, sans-serif';ctx.fillText('S'+(i+1)+'  ·  STAGE '+(i+1)+' OF 5',s0.x+w*.22,s1.y+h*.82);
+            ctx.restore();
           }
         }
         ctx.globalAlpha=1;
@@ -242,20 +223,13 @@
     }
   }
 
-  function drawHeroVehicle(now){
-    if(!carTexture)return;
-    const rel=238+Math.sin(now/1500)*3,carSway=Math.sin(now/1200)*2.5+Math.sin(now/2700)*1.5;
-    carX+=(carSway-carX)*.035;
-    const contact=project(carX,0,rel),s=contact.s,width=94*s,height=width*(carTexture.height/carTexture.width);
-    ctx.save();
-    const shadow=ctx.createRadialGradient(contact.x,contact.y,0,contact.x,contact.y,width*.49);
-    shadow.addColorStop(0,'rgba(0,0,0,.72)');shadow.addColorStop(.58,'rgba(0,0,0,.46)');shadow.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=shadow;ctx.translate(contact.x,contact.y+height*.015);ctx.scale(1,.23);ctx.beginPath();ctx.ellipse(0,0,width*.53,width*.45,0,0,Math.PI*2);ctx.fill();ctx.restore();
-    ctx.save();ctx.globalAlpha=.075;ctx.translate(contact.x,contact.y+height*.035);ctx.scale(1,-.18);ctx.drawImage(carTexture,-width/2,0,width,height*.72);ctx.restore();
-    ctx.drawImage(carTexture,contact.x-width/2,contact.y-height*.94,width,height);
-    const pool=ctx.createRadialGradient(contact.x-width*.16,contact.y-height*.7,0,contact.x-width*.16,contact.y-height*.7,width*.52);
-    pool.addColorStop(0,'rgba(188,219,244,.10)');pool.addColorStop(1,'rgba(97,143,180,0)');ctx.fillStyle=pool;ctx.fillRect(contact.x-width*.75,contact.y-height*1.25,width*1.5,height*1.3);
-    if(speed>3){ctx.strokeStyle='rgba(180,205,230,.07)';ctx.lineWidth=Math.max(1,s*.35);for(let i=0;i<5;i++){const q=project(carX+(i-2)*14,2,rel+28+i*9);ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-speed*s*.9,q.y+speed*s*.28);ctx.stroke()}}
+  function drawTrackSweep(){
+    if(gatePulse<=0)return;
+    const v=VP(),progress=1-gatePulse,y=v.y+H*(.05+progress*.52),spread=Math.max(18,H*.035);
+    const left=project(-ROADW,0,30),right=project(ROADW,0,30),farRight=project(ROADW,0,2200),farLeft=project(-ROADW,0,2200);
+    ctx.save();ctx.beginPath();ctx.moveTo(left.x,left.y);ctx.lineTo(right.x,right.y);ctx.lineTo(farRight.x,farRight.y);ctx.lineTo(farLeft.x,farLeft.y);ctx.closePath();ctx.clip();
+    const beam=ctx.createLinearGradient(0,y-spread,0,y+spread);beam.addColorStop(0,'rgba(97,143,180,0)');beam.addColorStop(.48,'rgba(97,143,180,.09)');beam.addColorStop(.52,'rgba(156,192,224,.14)');beam.addColorStop(1,'rgba(97,143,180,0)');
+    ctx.fillStyle=beam;ctx.fillRect(Math.min(left.x,farLeft.x),y-spread,Math.max(right.x,farRight.x)-Math.min(left.x,farLeft.x),spread*2);ctx.restore();
   }
 
   function drawSpeed(){
@@ -270,8 +244,8 @@
     vpX=W*.36+mx*24;vpY=H*.58+my*14;projectionScale=H*.95;
     ctx.save();
     if(shake>0){ctx.translate((Math.random()-.5)*10*shake,(Math.random()-.5)*6*shake);shake=Math.max(0,shake-dt*.004)}
-    drawSky(now);drawGround();drawGantries();drawHeroVehicle(now);drawFlashes(now);drawRain(dt);drawSpeed();
-    if(flash>0){ctx.fillStyle='rgba(156,192,224,'+flash*.35+')';ctx.fillRect(0,0,W,H);flash=Math.max(0,flash-dt*.006)}
+    drawSky(now);drawGround();drawGantries();drawTrackSweep();drawFlashes(now);drawRain(dt);drawSpeed();
+    gatePulse=Math.max(0,gatePulse-dt*.0045);
     ctx.restore();
   }
 
@@ -282,7 +256,7 @@
     speed+=(targetSpeed-speed)*Math.min(1,dt*.0025);
     z+=speed*dt*.06;
     if(phase==='race'){
-      for(let i=0;i<5;i++){const zz=lap*LAPLEN+gantryZ(i);if(!passed[i]&&z>zz){passed[i]=true;flash=1;shake=1;sectors[i].classList.add('hit');sequenceTimers.push(setTimeout(()=>{if(stopped)return;sectors[i].classList.remove('hit');sectors[i].classList.add('done')},420));if(i===4)sequenceTimers.push(setTimeout(()=>{targetSpeed=2.5},900))}}
+      for(let i=0;i<5;i++){const zz=lap*LAPLEN+gantryZ(i);if(!passed[i]&&z>zz){passed[i]=true;gatePulse=1;shake=1;sectors[i].classList.add('hit');sequenceTimers.push(setTimeout(()=>{if(stopped)return;sectors[i].classList.remove('hit');sectors[i].classList.add('done')},420));if(i===4)sequenceTimers.push(setTimeout(()=>{targetSpeed=2.5},900))}}
       if(z>(lap+1)*LAPLEN){lap++;passed=[false,false,false,false,false];sectors.forEach(s=>s.classList.remove('done','hit'))}
     }
     drawScene(now,dt);
@@ -301,17 +275,17 @@
   }
 
   function showLightsOutState(){
-    phase='race';lit=0;passed=[true,true,true,true,true];sectors.forEach(s=>s.classList.add('done'));btn.classList.add('go');btnText.textContent='Lights out · Sign in';
+    phase='race';lit=0;passed=[true,true,true,true,true];sectors.forEach(s=>s.classList.add('done'));btn.classList.add('go');btnText.textContent='Sign in with Microsoft';
   }
 
   function run(){
     if(stopped) return;
-    clearSequence();z=0;speed=0;targetSpeed=0;lit=0;lap=0;passed=[false,false,false,false,false];phase='hold';sectors.forEach(s=>s.classList.remove('done','hit'));btn.classList.remove('go');btnText.textContent='Sign in with Microsoft';
+    clearSequence();z=0;speed=0;targetSpeed=0;lit=0;lap=0;gatePulse=0;passed=[false,false,false,false,false];phase='hold';sectors.forEach(s=>s.classList.remove('done','hit'));btn.classList.remove('go');btnText.textContent='Sign in with Microsoft';
     if(!motion){showLightsOutState();drawScene(performance.now(),0);return}
     targetSpeed=.7;
     sequenceTimers.push(setTimeout(()=>{phase='lights'},900));
     for(let i=1;i<=5;i++)sequenceTimers.push(setTimeout(()=>{lit=i},900+i*720));
-    sequenceTimers.push(setTimeout(()=>{phase='race';lit=0;targetSpeed=9;flash=1;shake=1.2;btn.classList.add('go');btnText.textContent='Lights out · Sign in'},900+5*720+650+Math.random()*400));
+    sequenceTimers.push(setTimeout(()=>{phase='race';lit=0;targetSpeed=9;gatePulse=1;shake=1.2;btn.classList.add('go')},900+5*720+650+Math.random()*400));
     startRendering();
   }
 
@@ -349,7 +323,7 @@
   }
 
   window.stopLightsOutSignin=stop;
-  window.__lightsOutSignin={getState:()=>({motion,phase,lit,stopped,frameActive:Boolean(frameId),clockActive:Boolean(clockId),dpr:DPR,cssWidth:W,cssHeight:H,backingWidth:cv.width,backingHeight:cv.height,carReady:Boolean(carTexture),carSource}),run,stop};
+  window.__lightsOutSignin={getState:()=>({motion,phase,lit,stopped,frameActive:Boolean(frameId),clockActive:Boolean(clockId),dpr:DPR,cssWidth:W,cssHeight:H,backingWidth:cv.width,backingHeight:cv.height,headlineBottom,gatePulse}),run,stop};
 
   buildTextures();
   replayButton.addEventListener('click',run);
@@ -359,15 +333,8 @@
   document.addEventListener('visibilitychange',handleVisibility);
   ui.classList.toggle('still',!motion);
   motionButton.textContent=motion?'◎ Motion on':'◎ Motion off';
-  async function initialise(){
-    try{
-      await prepareCar();
-      if(stopped)return;
-      resize();watchDpr();startClock();run();
-    }catch(error){
-      console.error('Unable to prepare the sign-in vehicle.',error);
-      resize();watchDpr();startClock();run();
-    }
+  function initialise(){
+    resize();watchDpr();startClock();run();
   }
 
   initialise();

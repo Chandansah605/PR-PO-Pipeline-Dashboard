@@ -1,0 +1,108 @@
+{
+  "performance1920x1080": {
+    "frames": 420,
+    "durationMs": 6999.9,
+    "fps": 60.00085715510222,
+    "p50Ms": 16.699999999999818,
+    "p95Ms": 16.90000000000009,
+    "maxMs": 17.100000000000364,
+    "over20Ms": 0,
+    "state": {
+      "motion": true,
+      "phase": "race",
+      "lit": 0,
+      "stopped": false,
+      "frameActive": true,
+      "clockActive": true,
+      "dpr": 1,
+      "cssWidth": 1920,
+      "cssHeight": 1080,
+      "backingWidth": 1920,
+      "backingHeight": 1080,
+      "headlineBottom": 227,
+      "gatePulse": 0
+    }
+  },
+  "sequenceBrightnessAndLampSamples": {
+    "restingBrightness": 13.31519051833702,
+    "maximumBrightness": 14.643802253540422,
+    "brightnessRise": 1.3286117352034008,
+    "brightnessRisePercent": 9.978165414709633,
+    "redPixels": {
+      "rest": {
+        "t": 361.1000000059605,
+        "luma": 13.229502450980446,
+        "brightRedPixels": 22
+      },
+      "mid": {
+        "t": 3327.9000000059605,
+        "luma": 13.435802117374767,
+        "brightRedPixels": 29
+      },
+      "lightsOut": {
+        "t": 5644.9000000059605,
+        "luma": 13.404763786764683,
+        "brightRedPixels": 20
+      }
+    },
+    "buttonLabels": [
+      "Sign in with Microsoft"
+    ],
+    "state": {
+      "motion": true,
+      "phase": "race",
+      "lit": 0,
+      "stopped": false,
+      "frameActive": true,
+      "clockActive": true,
+      "dpr": 1,
+      "cssWidth": 1920,
+      "cssHeight": 1080,
+      "backingWidth": 1920,
+      "backingHeight": 1080,
+      "headlineBottom": 227,
+      "gatePulse": 0
+    }
+  },
+  "capturedScreencastFrames": 195,
+  "encodedFrames": 98,
+  "reducedMotion": {
+    "state": {
+      "motion": false,
+      "phase": "race",
+      "lit": 0,
+      "stopped": false,
+      "frameActive": false,
+      "clockActive": true,
+      "dpr": 1,
+      "cssWidth": 1920,
+      "cssHeight": 1080,
+      "backingWidth": 1920,
+      "backingHeight": 1080,
+      "headlineBottom": 227,
+      "gatePulse": 0
+    },
+    "doneSectors": 5,
+    "button": "Sign in with Microsoft"
+  },
+  "visibilityPause": [
+    {
+      "hidden": true,
+      "state": {
+        "motion": true,
+        "phase": "hold",
+        "lit": 0,
+        "stopped": false,
+        "frameActive": false,
+        "clockActive": false,
+        "dpr": 1,
+        "cssWidth": 1920,
+        "cssHeight": 1080,
+        "backingWidth": 1920,
+        "backingHeight": 1080,
+        "headlineBottom": 227,
+        "gatePulse": 0
+      }
+    }
+  ]
+}

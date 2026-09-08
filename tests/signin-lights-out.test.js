@@ -52,13 +52,11 @@ test('scene lifecycle renders at native DPR and stops all recurring work', ()=>{
   assert.match(html, /if\(window\.stopLightsOutSignin\) window\.stopLightsOutSignin\(\)/);
 });
 
-test('real rear car asset is decoded before the first rendered sequence', ()=>{
-  for(const asset of ['car-rear-700.webp','car-rear-1100.webp','car-rear-1600.webp','car-rear-1100.png']) assert.match(scene,new RegExp(asset.replaceAll('.', '\\.')));
-  assert.match(scene, /await prepareCar\(\)/);
-  assert.match(scene, /if\(carImage\.decode\)\{try\{await carImage\.decode\(\)/);
-  assert.match(scene, /function drawHeroVehicle\(now\)/);
-  const legacyCarName='draw'+'Car';
-  assert.doesNotMatch(scene,new RegExp(`function ${legacyCarName}\\(|${legacyCarName}\\(`));
+test('empty straight has no vehicle asset or rendering path', ()=>{
+  assert.equal(fs.existsSync(path.join(root,'assets','car')),false);
+  assert.doesNotMatch(scene,/assets\/car|car-rear|car-side|car-front|prepareCar|drawHeroVehicle|carTexture|carImage|carSource|carX/);
+  assert.match(scene,/const ROADW=122/);
+  assert.match(scene,/\[-46,46\]\.forEach\(x=>/);
 });
 
 test('five start-light panels fill left-to-right without track wording', ()=>{
@@ -67,11 +65,32 @@ test('five start-light panels fill left-to-right without track wording', ()=>{
   assert.doesNotMatch(html, /loginCallout|login-callout/);
 });
 
-test('repository car assets stay below the one-megabyte limit', ()=>{
-  const carDir=path.join(root,'assets','car');
-  const files=fs.readdirSync(carDir).filter(name=>/\.(?:png|webp)$/i.test(name));
-  assert.equal(files.length,7);
-  for(const file of files)assert.ok(fs.statSync(path.join(carDir,file)).size<1024*1024,`${file} exceeds 1 MB`);
+test('stage titles are masked below the headline', ()=>{
+  assert.match(scene,/headlineBottom=hero\?hero\.getBoundingClientRect\(\)\.bottom\+28/);
+  assert.match(scene,/function stageTitleAlpha\(top\)/);
+  assert.equal((new Function('top','headlineBottom',"return Math.max(0,Math.min(1,(top-headlineBottom)/42))"))(100,100),0);
+  assert.equal((new Function('top','headlineBottom',"return Math.max(0,Math.min(1,(top-headlineBottom)/42))"))(142,100),1);
+  assert.equal((scene.match(/globalAlpha=alpha\*stageTitleAlpha\(s1\.y\)/g)||[]).length,2);
+});
+
+test('transitions stay local to the track and never wash the frame', ()=>{
+  assert.match(scene,/function drawTrackSweep\(\)/);
+  assert.match(scene,/ctx\.clip\(\)/);
+  assert.doesNotMatch(scene,/\bflash\b|if\(flash>0\)/);
+  assert.match(scene,/gatePulse=Math\.max\(0,gatePulse-dt\*\.0045\)/);
+});
+
+test('lamp glass has distinct off, lit, core and bloom treatments', ()=>{
+  assert.match(scene,/lens\.addColorStop\(0,on\?'#FFFFFF':'#28333E'\)/);
+  assert.match(scene,/bloom\.addColorStop\(0,'rgba\(255,65,55,\.72\)'\)/);
+  assert.match(scene,/ctx\.shadowBlur=radius\*3\.1/);
+  assert.match(scene,/phase='race';lit=0;targetSpeed=9;gatePulse=1/);
+});
+
+test('sign-in button keeps one label for every sequence state', ()=>{
+  assert.equal((html.match(/Sign in with Microsoft/g)||[]).length,1);
+  assert.equal((scene.match(/Sign in with Microsoft/g)||[]).length,2);
+  assert.doesNotMatch(scene,/Lights out · Sign in/);
 });
 
 test('signed-out load defers dashboard-only libraries and layout', ()=>{
@@ -88,7 +107,7 @@ test('signed-out load defers dashboard-only libraries and layout', ()=>{
 test('reduced motion is an immediate lights-out state', ()=>{
   assert.match(scene, /motion=!window\.matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches/);
   assert.match(scene, /if\(!motion\)\{showLightsOutState\(\);drawScene\(performance\.now\(\),0\);return\}/);
-  assert.match(scene, /btnText\.textContent='Lights out · Sign in'/);
+  assert.match(scene, /btnText\.textContent='Sign in with Microsoft'/);
 });
 
 test('lights-out trigger remains below six seconds', ()=>{

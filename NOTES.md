@@ -1,3 +1,82 @@
+# Sign-in empty-straight correction — 8 September 2026
+
+## What I found
+
+- `signin-lights-out.js` was the only runtime consumer of the rear-view car. It selected, decoded, tinted, positioned, reflected, shadowed and drew the image. The only other active references were assertions in `tests/signin-lights-out.test.js`; no dashboard, email, authentication or data path used any file under `assets/car/`.
+- The large gantry title had no relationship to the DOM headline bounds, so an approaching sign could draw its stage name through `PR / PO PIPELINE`.
+- `flash=1` triggered a translucent full-canvas fill both at lights-out and at every passed gantry. That was the pale wash visible in the recording.
+- The lamp lenses used maroon colours even when off, while the lit treatment lacked a separate white core, glass rim and broad bloom.
+- `run()` reset the button to `Sign in with Microsoft`, then the release and reduced-motion paths changed it to `Lights out · Sign in`.
+- The protected popup/redirect implementation from `bd667e9` remains in `index.html`; none of its MSAL lines needed a change.
+
+## Files changed
+
+- `signin-lights-out.js` — empty-straight composition, headline mask, local track sweep, glass lamps and stable button label.
+- `tests/signin-lights-out.test.js` — no-car, title-mask, night-transition, lamp and label regression guards.
+- `assets/car/` — all seven unused car files deleted, 953,959 tracked bytes removed.
+- `evidence/signin-empty-straight/` — reproducible measurement/capture harness, metrics, full sequence and three required frames.
+- `NOTES.md` — implementation, measurements, frames and production verification.
+
+## Exact changes made
+
+- Removed car source selection, image loading/decoding, texture tinting, position, sway, contact shadow, reflection, light pool, speed streaks, state reporting and every image draw.
+- Deleted `car-front-900.webp`, four rear-view files and both side-view files. `assets/car/` no longer exists in the repository.
+- Widened the road from 110 to 122 world units and added paired steel-blue perspective guides. The centre stripe, kerbs, walls and five gantries now form a deliberate empty launch corridor instead of framing a missing object.
+- Measured the DOM hero on resize. Gantry titles have zero opacity until the whole sign top is below the headline safe boundary, then fade in over the next 42 pixels. Lamps and gantry structure can pass behind the headline, but stage wording cannot.
+- Replaced the full-frame flash with a narrow, low-alpha steel-blue sweep clipped to the road polygon. The camera shake and speed lines still deliver the release without lifting the night sky, UI or whole frame.
+- Rebuilt each lamp as black housing, dark neutral glass, cool rim and restrained specular highlight when off. Lit lamps add a white core, red lens, bright rim and radial bloom. The existing five timers still fill left-to-right; the single release callback sets `lit=0`, so all five extinguish together.
+- Kept `Sign in with Microsoft` in the initial, running, release and reduced-motion states. The release still adds the existing `go` emphasis without changing text.
+
+## Protected behaviour
+
+- The clock, race/session/lap chip, sector chips, session-target strip, gantry stage names/order and `Race Control · Procurement · Head office is the engine` line are unchanged.
+- MSAL client/tenant/scopes, popup selection, popup-to-redirect fallback, redirect-return handling, session keys and sign-out are unchanged.
+- Everything outside `signin-lights-out.js`, its focused tests/evidence, the deleted assets and this note is unchanged.
+- The cancelled tyre-movement task was not implemented; no wheel or tyre animation exists.
+
+## Measurements
+
+The checked-in harness opened an isolated Chrome 152 page at an exact 1920 × 1080 foreground document viewport and DPR 1. Its dedicated seven-second performance pass recorded 420 frames over 6,999.9 ms: **60.001 fps**, 16.7 ms median, 16.9 ms p95, 17.1 ms maximum and zero frames above 20 ms. Canvas CSS and backing dimensions were both 1920 × 1080.
+
+Average scene luminance was sampled from a 64 × 36 downsample every 100 ms through the complete sequence. Resting luminance was 13.315 on a 0–100 scale; the maximum was 14.644. The largest rise was therefore **1.329 luminance points**. There is no full-frame transition draw; the only transition overlay is clipped to the road.
+
+The full-resolution lamp-panel crops contained zero bright-red pixels at rest, 4,428 with three lamps lit, and zero at lights-out. This confirms dark glass when off, a high-contrast lit state, and simultaneous extinction. Runtime sampling observed only `Sign in with Microsoft`.
+
+Reduced-motion emulation produced the immediate released state with five completed sector chips, zero animation frame, an active Dubai clock and the same sign-in label. Freezing the page produced a `visibilitychange` state with both animation and clock stopped. The normal foreground path resumed as before.
+
+## Full sequence capture
+
+![Full empty-straight start sequence](evidence/signin-empty-straight/full-sequence.webp)
+
+## Required frames
+
+### Rest — five dark glass lamps
+
+![Empty straight at rest](evidence/signin-empty-straight/rest.jpg)
+
+### Mid-transition — three lamps lit
+
+![Empty straight with three lit lamps](evidence/signin-empty-straight/mid-transition.jpg)
+
+### Lights-out — all lamps extinguished and acceleration underway
+
+![Empty straight at lights-out](evidence/signin-empty-straight/lights-out.jpg)
+
+## Testing performed
+
+- `node --check signin-lights-out.js` — passed.
+- `node --test tests/signin-lights-out.test.js tests/auth-flow.test.js` — 20 of 20 focused scene/auth tests passed.
+- `node evidence/signin-empty-straight/measure-sequence.js http://127.0.0.1:43991/` — generated the sequence evidence and measurements above.
+- 1920 × 1080 visual review — empty composition, dark/lit lamps, release, title clearance and fixed label checked.
+- 390 × 844 visual review — no horizontal overflow; action, headline, chips and panel remained legible and usable.
+- Full repository tests, GitHub Pages production build and deployed sign-in verification are recorded below after publication.
+
+## Brand check
+
+This remains a Strive Services Group interface. The change reuses the existing Steel blue `#618FB4`, light steel blue `#9CC0E0`, deep ocean blue `#145A95`, white and night-navy scene tokens. The official inline Strive logo geometry and every logo colour/effect remain untouched. Desktop and mobile were checked; no brand-font or asset limitation was introduced.
+
+---
+
 # Dead source-column correction — 8 September 2026
 
 ## What I found
