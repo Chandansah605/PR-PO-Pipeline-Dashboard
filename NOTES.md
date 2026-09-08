@@ -6984,3 +6984,10 @@ The before figures are the verified 8 September failure supplied in the task. Th
 ## Recommended next step
 
 - Add an authoritative stable workflow element identifier to the live capture when F&O exposes one. Until then, keep the explicit **Step not reported by F&O** group and monitor its count.
+
+## Production publication
+
+- Implementation commit `b7edf7d20a39f134904356c6c54d1662d806fa52` was pushed directly to `main`.
+- The repository's branch-based GitHub Pages build completed successfully at `2026-09-08T14:08:53Z` from that exact commit.
+- Cache-busted production downloads matched the local workbook hashes exactly. Both public files reopened with the protected headers, `AxTable1`, A1 note and row counts: 1,132 PR attributions and 996 POs.
+- The deployed `index.html` contains the shared holder rule, the **Step not reported by F&O** label and the one-document counting note.
