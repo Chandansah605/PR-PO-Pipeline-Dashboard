@@ -21,7 +21,7 @@
 
   let stopped=false;
   let motion=!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let frameId=0;
+  let frameId=0,adaptivePaused=false,slowFrames=0;
   let clockId=0;
   let W=0,H=0,DPR=1,last=performance.now();
   let z=0,speed=0,targetSpeed=0,phase='hold',lit=0,shake=0,flash=0,mx=0,my=0,lap=0;
@@ -76,14 +76,14 @@
   function resize(){
     if(stopped||!ctx) return;
     const area=window.innerWidth*window.innerHeight;
-    const renderScale=area>1800000?.72:area>1000000?.85:1;
-    DPR=Math.min(2,(window.devicePixelRatio||1)*renderScale);
+    const deviceDpr=Math.min(2,window.devicePixelRatio||1);
+    DPR=Math.min(deviceDpr,Math.sqrt(500000/Math.max(1,area)));
     W=Math.max(1,cv.clientWidth);
     H=Math.max(1,cv.clientHeight);
     cv.width=Math.round(W*DPR);
     cv.height=Math.round(H*DPR);
     ctx.setTransform(DPR,0,0,DPR,0,0);
-    if(!motion) drawScene(performance.now(),0);
+    if(!motion||adaptivePaused) drawScene(performance.now(),0);
   }
 
   const cam={h:46};
@@ -178,6 +178,7 @@
   function frame(now){
     frameId=0;
     if(!overlayIsVisible()||!motion) return;
+    const frameStarted=performance.now();
     const dt=Math.min(50,now-last);last=now;
     speed+=(targetSpeed-speed)*Math.min(1,dt*.0025);
     z+=speed*dt*.06;
@@ -186,11 +187,14 @@
       if(z>(lap+1)*LAPLEN){lap++;passed=[false,false,false,false,false];sectors.forEach(s=>s.classList.remove('done','hit'))}
     }
     drawScene(now,dt);
+    const drawCost=performance.now()-frameStarted;
+    slowFrames=drawCost>32?slowFrames+1:Math.max(0,slowFrames-1);
+    if(slowFrames>=2){adaptivePaused=true;return}
     frameId=requestAnimationFrame(frame);
   }
 
   function startRendering(){
-    if(frameId||!motion||!overlayIsVisible()) return;
+    if(frameId||adaptivePaused||!motion||!overlayIsVisible()) return;
     last=performance.now();
     frameId=requestAnimationFrame(frame);
   }
@@ -211,14 +215,18 @@
     phase='race';lit=0;passed=[true,true,true,true,true];sectors.forEach(s=>s.classList.add('done'));btn.classList.add('go');btnText.textContent='Lights out · Sign in';say('Lights out','green',0);
   }
 
+  function redrawAdaptive(){
+    if(adaptivePaused&&overlayIsVisible()) drawScene(performance.now(),0);
+  }
+
   function run(){
     if(stopped) return;
-    clearSequence();z=0;speed=0;targetSpeed=0;lit=0;lap=0;passed=[false,false,false,false,false];phase='hold';sectors.forEach(s=>s.classList.remove('done','hit'));btn.classList.remove('go');btnText.textContent='Sign in with Microsoft';callout.className='login-callout';callout.textContent='';
+    clearSequence();adaptivePaused=false;slowFrames=0;z=0;speed=0;targetSpeed=0;lit=0;lap=0;passed=[false,false,false,false,false];phase='hold';sectors.forEach(s=>s.classList.remove('done','hit'));btn.classList.remove('go');btnText.textContent='Sign in with Microsoft';callout.className='login-callout';callout.textContent='';
     if(!motion){showLightsOutState();drawScene(performance.now(),0);return}
     targetSpeed=.7;
-    sequenceTimers.push(setTimeout(()=>{phase='lights'},900));
-    for(let i=1;i<=5;i++)sequenceTimers.push(setTimeout(()=>{lit=i;say(i===5?'5 lights':i+' light'+(i>1?'s':''),'red',600)},900+i*720));
-    sequenceTimers.push(setTimeout(()=>{phase='race';lit=0;targetSpeed=9;flash=1;shake=1.2;say('Lights out','green',1100);btn.classList.add('go');btnText.textContent='Lights out · Sign in'},900+5*720+650+Math.random()*400));
+    sequenceTimers.push(setTimeout(()=>{phase='lights';redrawAdaptive()},900));
+    for(let i=1;i<=5;i++)sequenceTimers.push(setTimeout(()=>{lit=i;say(i===5?'5 lights':i+' light'+(i>1?'s':''),'red',600);redrawAdaptive()},900+i*720));
+    sequenceTimers.push(setTimeout(()=>{phase='race';lit=0;targetSpeed=9;flash=1;shake=1.2;say('Lights out','green',1100);btn.classList.add('go');btnText.textContent='Lights out · Sign in';redrawAdaptive()},900+5*720+650+Math.random()*400));
     startRendering();
   }
 
@@ -255,7 +263,7 @@
   }
 
   window.stopLightsOutSignin=stop;
-  window.__lightsOutSignin={getState:()=>({motion,phase,lit,stopped,frameActive:Boolean(frameId),clockActive:Boolean(clockId),dpr:DPR}),run,stop};
+  window.__lightsOutSignin={getState:()=>({motion,phase,lit,stopped,adaptivePaused,frameActive:Boolean(frameId),clockActive:Boolean(clockId),dpr:DPR}),run,stop};
 
   buildTextures();
   replayButton.addEventListener('click',run);

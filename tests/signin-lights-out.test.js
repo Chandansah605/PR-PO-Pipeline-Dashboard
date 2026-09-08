@@ -39,7 +39,10 @@ test('inline logo geometry is the repository logo geometry', ()=>{
 });
 
 test('scene lifecycle caps pixel density and stops all recurring work', ()=>{
-  assert.match(scene, /DPR=Math\.min\(2,\(window\.devicePixelRatio\|\|1\)\*renderScale\)/);
+  assert.match(scene, /deviceDpr=Math\.min\(2,window\.devicePixelRatio\|\|1\)/);
+  assert.match(scene, /DPR=Math\.min\(deviceDpr,Math\.sqrt\(500000\/Math\.max\(1,area\)\)\)/);
+  assert.match(scene, /if\(slowFrames>=2\)\{adaptivePaused=true;return\}/);
+  assert.match(scene, /function redrawAdaptive\(\)/);
   assert.match(scene, /document\.hidden/);
   assert.match(scene, /cancelAnimationFrame\(frameId\)/);
   assert.match(scene, /window\.clearInterval\(clockId\)/);
