@@ -69,7 +69,16 @@ Reduced-motion emulation produced the immediate released state with five complet
 - `node evidence/signin-empty-straight/measure-sequence.js http://127.0.0.1:43991/` — generated the sequence evidence and measurements above.
 - 1920 × 1080 visual review — empty composition, dark/lit lamps, release, title clearance and fixed label checked.
 - 390 × 844 visual review — no horizontal overflow; action, headline, chips and panel remained legible and usable.
-- Full repository tests, GitHub Pages production build and deployed sign-in verification are recorded below after publication.
+- `node --test tests/*.test.js` — all 23 repository tests passed.
+- `gh run watch 34216826141 --exit-status` — the GitHub Pages Jekyll build, deploy and status jobs all passed for implementation commit `323c4f13f4f7cbb1fe20c9f60bf3983988acf8cf`.
+
+## Production verification
+
+- Production `index.html` and `signin-lights-out.js` returned HTTP 200. The deployed script contains the empty-road composition and clipped track sweep, and contains no car asset path, car draw function or alternate sign-in label.
+- All seven former `assets/car/` URLs returned HTTP 404 after deployment.
+- A normal Chrome window was signed out, then the deployed `Sign in with Microsoft` action completed through the existing Microsoft popup/SSO path. The popup closed, the production overlay became `login-overlay hidden`, and Race Control rendered.
+- A separate named popup-style Chrome window loaded the deployed page signed out. Its sign-in action used the protected same-window redirect path, returned to the registered GitHub Pages URI with `strive_auth=true`, hid the overlay and rendered Race Control.
+- No credential, token or authentication-dialog content was read, entered or recorded. The existing browser work session completed both provider round trips.
 
 ## Brand check
 
