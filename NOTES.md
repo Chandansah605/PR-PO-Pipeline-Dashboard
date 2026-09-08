@@ -6413,7 +6413,8 @@ Monitor the next scheduled morning email and first weekly live snapshot. Repair 
 - Kept `#loginOverlay`, `#loginUser`, `#loginErr` and direct `signIn()` wiring. The button is enabled and visible from the first frame; the sequence never gates authentication.
 - Preserved the existing MSAL client ID, tenant, scopes, cache, popup/redirect selection, popup-error fallback and redirect-return completion logic.
 - Added a self-contained `signin-lights-out.js` lifecycle. Rendering is paused in a background tab, permanently stopped when the overlay closes, and not initialized for an already-authenticated session.
-- Capped canvas DPR at 2 and used responsive render scaling for large viewports. Reduced repeated geometry and expensive blur while retaining the approved scene.
+- Capped canvas DPR at 2 and capped the backing canvas at 500,000 pixels independent of device DPR. Slow devices retain every timed light state but automatically pause continuous drawing after two frames over budget.
+- Deferred Plotly, jQuery, DataTables, XLSX, html2canvas, jsPDF, Font Awesome, Dataverse and Race Control assets until authentication. Signed-out dashboard layout is also suppressed beneath the overlay.
 - Reduced-motion users get all five green sectors, the permanent `Lights out` callout and `Lights out · Sign in` button immediately, with no animation frame.
 - Added the exact Dubai Race / Session / Lap calculation from the approved design and stopped its one-second clock with the overlay.
 - Added a 899 px stacked breakpoint and compact 390 px panel while keeping the sign-in action in the initial mobile viewport.
@@ -6447,10 +6448,10 @@ Monitor the next scheduled morning email and first weekly live snapshot. Repair 
 
 - `node --check signin-lights-out.js` passed.
 - Both inline `index.html` scripts parsed under Node `vm.Script`.
-- `node --test tests/auth-flow.test.js tests/signin-lights-out.test.js tests/dataverse-live.test.js tests/race-control.test.js`: 15/15 passed.
+- `node --test tests/auth-flow.test.js tests/signin-lights-out.test.js tests/dataverse-live.test.js tests/race-control.test.js`: 16/16 passed.
 - Auth regression criteria 1–3 remain covered: popup/named/standalone windows choose redirect; normal tabs keep popup; redirect return restores the same session and enters the dashboard.
 - The exact `user_cancelled` MSAL error maps to `Sign-in was cancelled. Please try again.`; Chrome confirmed the error line renders inside the new mobile panel. A live-provider cancellation was not automated because credentials and authentication dialogs remain user-controlled.
-- Chrome at 1920 × 1080 measured 151 animation frames over 2,500.2 ms: 60.395 fps. The button was visible and enabled; overlay client and scroll heights were both 1,080 px; reported canvas DPR was 0.72.
+- Isolated Headless Chrome 152 at an exact CDP 1920 × 1080 viewport measured 151 animation frames over 2,509.8 ms: 60.164 fps. The button was visible, continuous animation remained active, adaptive fallback was not triggered and canvas DPR was 0.491.
 - Chrome reduced-motion emulation showed `Lights out · Sign in`, five completed sectors, no active animation frame and an active Dubai clock.
 - A simulated authenticated session hid the overlay, removed the body scroll lock, initialized Race Control and created no lights-out scene object or recurring work.
 - Chrome verified the 1440 × 860 and 390 × 844 layouts visually. Both evidence PNGs were reopened and checked at their exact dimensions.
@@ -6462,7 +6463,12 @@ Monitor the next scheduled morning email and first weekly live snapshot. Repair 
 - No Azure resource, Entra registration or function app.
 - No page other than `index.html`; the other HTML pages have no copied sign-in implementation.
 
-## Remaining checks before completion
+## Production publication and verification
 
-- Production GitHub Pages deployment and live signed-out visual verification are pending the merge to `main`.
-- Lighthouse desktop performance will be measured against the deployed URL; no Lighthouse CLI is installed locally.
+- Feature commits `ab210c2`, `4a921b5` and `465a65c` were pushed to `feature/lights-out-signin`, then merged to `main` as authorised. Final implementation merge is `23739695d5fe6821184829bea2fb2b33a5e6c8ed`.
+- GitHub Pages deployment `34191024101` completed successfully for that exact final implementation merge.
+- The deployed `index.html` and `signin-lights-out.js` returned HTTP 200. A fresh signed-out Chrome tab showed the five-stage race scene, Dubai race/session/lap chip, working sequence and enabled Microsoft sign-in action.
+- Official PageSpeed Insights captured the final production URL at 9:33 AM Dubai time with Lighthouse 13.4.1. Desktop Performance scored **97**: FCP 0.8 s, LCP 0.8 s, TBT 30 ms, CLS 0.008 and Speed Index 1.5 s.
+- The first deployed desktop audit scored 38 and exposed eager dashboard libraries plus unconstrained canvas work. Those two measured causes were corrected before the final 97 result; no package was installed.
+- Live authentication dialogs and credentials were not automated. Successful dashboard entry was regression-checked with the existing authenticated session path: the overlay closed, all deferred assets loaded, Race Control initialized and no sign-in scene or recurring scene work was created.
+- Final desktop evidence is 1440 × 860, SHA-256 `404C8970DA0B26DE718BDC1FC142B24A17C5B81DC03238B55CEC8DDBCC4351DB`. Final mobile evidence is 390 × 844, SHA-256 `2910C1886E5FDA8935D296A7CF98BDA2DF392989A12B0952609AEB95C82E3DBF`.
