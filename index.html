@@ -634,8 +634,8 @@ const PO_STEPS_MAP = {"Advance payment request submitted (if applicable)":"Procu
 
 /* ==== APPROVER-BASED HEADER-BUCKET RECONSTRUCTION (same logic as the 4 daily division emails) ====
    The F&O step name is unreliable for the finance chain, so header buckets are computed from WHO
-   holds the item: pending-with by status (Draft->Preparer, Approved->Accepted By, In review->Pending
-   Approver/User); ops-confirm steps remap to the requisition department's ops confirmer; then
+   currently holds the item in approval capture. Ops-confirm steps remap to the requisition
+   department's ops confirmer; then
    roleOf(owner) decides Finance/Director/CEO vs Procurement vs Operations. "Re-Assigned/Rejected"
    flags In-review bounce-backs only. */
 const USER_DEPT={"Abdul Basit Raza":"Building Services","Abdul.basit":"IT","Abdul.Muqeet":"Security Services","Admin":"IT","admin.hk":"Housekeeping Services","Adnan.Ullah":"Procurement","Ahamed Noorullah Mohamed":"Accomodation Services","Ahmed.Odeh":"Building Services","Aparna.Pauly":"Procurement","arman.b":"Accounts & Tax","ayman.g":"Accounts & Tax","Ayman.ismail":"Accounts & Tax","Buying Agent Concierge":"Concierge Services","D365CRM ADMIN":"IT","D365CRMADMIN":"IT","Dinesh Laxman Laxman":"Building Services","dinesh.laxman":"Building Services","Gokul Krishna Pillai":"Contracted Cleaning Services","Gokul.Krishna":"Contracted Cleaning Services","IT DEPARTMENT":"IT","Joe Orlain Jamisola":"Concierge Services","Judhin.prabhakar":"Contracted Cleaning Services","Layusha.cleatus":"Procurement","Mohamed.Ashraf":"Procurement","Mohammad.w":"Building Services","Muhammad Shehzad Ahmeduddin":"IT","muhammad.mustajab":"Accounts & Tax","Nathan.Buys":"Building Services","Patrick.Smith":"Accounts & Tax","Pramod Chandrasenan Chandrasenan":"Security Services","pramod.c":"Security Services","Qasim Jahangir":"QHSE","Roderick Red Palma":"Procurement","roderick.red":"Procurement","Shaik.baba":"Housekeeping Services","Shakir Ameer Bakhsh":"FitOut Services","Shijil Choyaprath Chandran":"Home Maintenance Services","shijil.c":"Home Maintenance Services","Sirinikhil":"Housekeeping Services","teena.k":"Concierge Services","Ubaid":"IT","Zaheer Ahmed Ameer":"Accomodation Services","Zaheer.Ahmed":"Accomodation Services"};
@@ -645,16 +645,18 @@ function deptForUser(u){return _RUN[_rnorm(u)]||'';}
 const DEPT_OPSUSER={"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"};
 function opsUserForDept(d){return DEPT_OPSUSER[String(d==null?'':d).trim()]||'';}
 function roleOf(u){const d=deptForUser(u),ul=_rnorm(u);if(d==='Accounts & Tax'){if(ul==='ayman.g')return 'Director';if(ul==='patrick.smith')return 'CEO';return 'Finance';}if(d==='Procurement')return 'Procurement';return '';}
+const NOT_RECORDED='not recorded';
+function ownerText(value){const v=String(value==null?'':value).trim();return (!v||/^0+$/.test(v)||/^\d+$/.test(v))?NOT_RECORDED:v;}
 const PR_PROC_STEPBUCKETS=new Set(["PR In Review","RFQ to suppliers","Qt received & Logged","OP confirms material","Procurement (in process)"]);
 const PR_OPS_STEPBUCKETS=new Set(["Qt Shared to Op","Unit Price Updated"]);
 function prReconstruct(r,bucket){
   // returns {hdr, owner} for a mapped PR record
   const st=String(r['Status']||'').trim();
-  if(bucket==='Sourcing'||bucket==='Priced — awaiting approval') return {hdr:bucket, owner:String(r['Pending Approver/User']||'').trim(), disp:bucket};
-  const pw0=(st==='Draft')?String(r['Preparer']||'').trim():(st==='Approved')?String(r['Accepted By/Assign To']||'').trim():String(r['Pending Approver/User']||'').trim();
+  if(bucket==='Sourcing'||bucket==='Priced — awaiting approval') return {hdr:bucket, owner:ownerText(r['Pending Approver/User']), disp:bucket};
+  const pw0=ownerText(r['Pending Approver/User']);
   const hb=PR_PROC_STEPBUCKETS.has(bucket)?'Procurement':(PR_OPS_STEPBUCKETS.has(bucket)?'Operations to Confirm':bucket);
   const rowdept=String(r['Department']||'').trim();
-  const owner=((hb==='Operations to Confirm'?(opsUserForDept(rowdept)||pw0):pw0)||'');
+  const owner=ownerText(hb==='Operations to Confirm'?(opsUserForDept(rowdept)||pw0):pw0);
   const inrev=(st==='In review');
   const rl=roleOf(owner); let hdr;
   if(rl==='Finance'||rl==='Director'||rl==='CEO') hdr=rl;
@@ -668,11 +670,9 @@ function prReconstruct(r,bucket){
 }
 function poReconstruct(r,bucket){
   // returns {hdr, owner} for a mapped/live PO record
-  const appr=String(r['Approval status']||'').trim();
-  const createdBy=String(r['Created by']||r['Created By']||'').trim();
-  const poPend=String(r['Pending Approver/User']||'').trim();
-  if(bucket==='Sent to supplier'||bucket==='Receipt posted'||bucket==='Invoiced') return {hdr:bucket, owner:String(r['Vendor name']||'').trim(), disp:bucket};
-  const owner=(appr==='Draft')?(createdBy||poPend):poPend;
+  const poPend=ownerText(r['Pending Approver/User']);
+  if(bucket==='Sent to supplier'||bucket==='Receipt posted'||bucket==='Invoiced') return {hdr:bucket, owner:ownerText(r['Vendor name']), disp:bucket};
+  const owner=poPend;
   const rl=roleOf(owner);
   if(rl==='Finance'||rl==='Director'||rl==='CEO') return {hdr:rl, owner, disp:rl};
   return {hdr:'Procurement', owner, disp:'Procurement'};
@@ -830,16 +830,16 @@ function buildPRRecords(prData){
     const stepDate=parseDate(r['Step date and time']);
     const refDate=stepDate||created;
     const aging=refDate?daysBetween(refDate,TODAY):null;
-    const rec_=mapped?prReconstruct(r,bucket):{hdr:null,owner:String(r['Pending Approver/User']||'').trim()};
+    const rec_=mapped?prReconstruct(r,bucket):{hdr:null,owner:ownerText(r['Pending Approver/User'])};
     recs.push({
       docNumber, prType:prType(docNumber),
-      name:r['Name']||'', preparer:r['Preparer']||'', vendorName:'', quotationRef:r['Quotation reference']||'',
+      name:r['Name']||'', vendorName:'', quotationRef:r['Quotation reference']||'',
       department:r['Department']||'—', deptGroup:normalizeDept(r['Department']),
       project:r['Location']||'—', contract:r['Contract']||'',
       bucket, subBucket: step || null, hdrBucket: rec_.hdr, dispBucket: rec_.disp||bucket,
       status:r['Status']||'—',
       createdDate:created, stepDate, aging, amount:Number(r['Total amount'])||0,
-      pendingUser:rec_.owner||r['Pending Approver/User']||'', raw:r,
+      pendingUser:ownerText(rec_.owner||r['Pending Approver/User']), raw:r,
       _isClosed: isClosed,
       _isOpenPipeline: ['in review','approved'].includes(String(r['Status']||'').trim().toLowerCase()),
       _isUnmapped: !mapped
@@ -868,22 +868,18 @@ function buildPORecords(poData){
     const stepDate=parseDate(r['Step date and time']);
     const refDate=stepDate||created;
     const aging=refDate?daysBetween(refDate,TODAY):null;
-    const linkedPR = r['Purchase requisition']||'';
-    // Derive prType for PO from the linked Purchase requisition prefix
-    const derivedType = prType(linkedPR);
-    const rec_=(mapped&&bucket)?poReconstruct(r,bucket):{hdr:null,owner:String(r['Pending Approver/User']||'').trim()};
+    const rec_=(mapped&&bucket)?poReconstruct(r,bucket):{hdr:null,owner:ownerText(r['Pending Approver/User'])};
     recs.push({
-      docNumber, prType: derivedType,
-      name:'', preparer:'', vendorName:r['Vendor name']||'',
+      docNumber, prType:'',
+      name:'', vendorName:r['Vendor name']||'',
       department:r['Department']||'—', deptGroup:normalizeDept(r['Department']),
       project:r['Location']||'—', contract:r['Contract']||'',
       bucket, subBucket: liveStage || null, hdrBucket: rec_.hdr, dispBucket: rec_.disp||bucket,
       status:r['Approval status']||'—',
       poStatus: poStatusRaw,
       currency:r['Currency']||'',
-      linkedPR,
       createdDate:created, stepDate, aging, amount:Number(r['Total amount'])||0,
-      pendingUser:rec_.owner||r['Pending Approver/User']||'', raw:r,
+      pendingUser:ownerText(rec_.owner||r['Pending Approver/User']), raw:r,
       clockProvenance:r['Clock provenance']||'', clockLabel:r['Clock label']||'',
       _isUnmapped: !mapped,
       _isInvoiced: isInvoiced,
@@ -935,11 +931,10 @@ function setMode(m, btn, options){
   document.getElementById('modeBadge').innerText = m + ' MODE';
   document.getElementById('tableSectionTitle').innerText = `All Filtered ${m} Records`;
   document.getElementById('tableTitle').innerText = `Detailed ${m} Records`;
-  // PR/CPR sub-toggle visible in BOTH modes (PO uses linked Purchase requisition prefix)
-  document.getElementById('prSubToggleWrap').classList.remove('hidden');
-  // Update the label text for clarity in each mode
+  // A PO cannot be classified as PR/CPR without complete requisition lineage.
+  document.getElementById('prSubToggleWrap').classList.toggle('hidden',m!=='PR');
   const prefixLabel = document.getElementById('prefixLabel');
-  if(prefixLabel) prefixLabel.innerText = m === 'PR' ? 'PR Prefix' : 'Linked PR Prefix';
+  if(prefixLabel) prefixLabel.innerText = 'PR Prefix';
   // reset filters when mode changes
   ['filterBucket','filterStep','filterDept','filterStatus','filterProject','filterFrom','filterTo','filterAging'].forEach(id=>document.getElementById(id).value='');
   activeFilters={prtype:'all',bucket:'',step:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:document.getElementById('globalSearch').value.trim().toLowerCase()};
@@ -2143,7 +2138,7 @@ function renderAnalysis(){
   const live=prLive.map(r=>({...r,_doc:'PR'})).concat(poLive.map(r=>({...r,_doc:'PO'})));
   const totV=live.reduce((a,r)=>a+(r.amount||0),0);
   const br7=live.filter(r=>(r.aging||0)>7).length;
-  let h=AN_CSS+JB_SUB_CSS+JB_SUB_NAV+`<div class="anSubPane on" id="anSubCurrent"><div class="anWrap">`;
+  let h=AN_CSS+`<div class="anSubPane on" id="anSubCurrent"><div class="anWrap">`;
   /* ---------- HERO ---------- */
   h+=`<div class="anHero"><div><h2><i class="fa-solid fa-magnifying-glass-chart" style="color:#FAC775;margin-right:10px"></i>Procurement Action Centre</h2>
       <div class="sub">Who must act today, where the pipeline leaks, and how suppliers perform — computed with the approver-based logic (same as the daily division emails). Live pipeline only.</div></div>
@@ -2160,14 +2155,14 @@ function renderAnalysis(){
   /* ---------- PENDING BY PERSON + ESCALATIONS ---------- */
   const pg={};
   live.forEach(r=>{ if(r._doc==='PO'&&(r.hdrBucket==='Sent to supplier'||r.hdrBucket==='Receipt posted'))return;
-    const o=String(r.pendingUser||'').trim(); if(!o||o==='(unassigned)')return;
+    const o=ownerText(r.pendingUser); if(o===NOT_RECORDED)return;
     const k=o.toLowerCase(); const e=pg[k]||(pg[k]={disp:o,pr:0,po:0,v:0,old:0,br:0}); if(r._doc==='PR')e.pr++;else e.po++; e.v+=(r.amount||0); if(r.aging!=null){if(r.aging>e.old)e.old=r.aging; if(r.aging>7)e.br++;}});
   const people=Object.values(pg).sort((a,b)=>(b.pr+b.po)-(a.pr+a.po)).slice(0,12);
   const prows=people.map((e,i)=>[`${_anInit(e.disp,i)}<b>${escapeHtml(e.disp)}</b>`,escapeHtml(deptForUser(e.disp)||'—'),
     e.pr?`<span class="anPill" style="background:#e4edff;color:#1d4ed8">${e.pr} PR</span>`:'<span style="color:#c3ccda">—</span>',
     e.po?`<span class="anPill" style="background:#dff3f6;color:#0e7490">${e.po} PO</span>`:'<span style="color:#c3ccda">—</span>',
     _anAgeB(e.old),e.br?`<span class="anPill" style="background:#fee2e2;color:#b91c1c">${e.br}</span>`:'<span style="color:#c3ccda">0</span>',`<b>${_anMoney(e.v)}</b>`]);
-  const unas=live.filter(r=>{const o=String(r.pendingUser||'').trim();return (!o||o==='(unassigned)')&&!(r._doc==='PO'&&(r.hdrBucket==='Sent to supplier'||r.hdrBucket==='Receipt posted'));});
+  const unas=live.filter(r=>ownerText(r.pendingUser)===NOT_RECORDED&&!(r._doc==='PO'&&(r.hdrBucket==='Sent to supplier'||r.hdrBucket==='Receipt posted')));
   const escAgg={};
   live.forEach(r=>{const b=r.hdrBucket||r.bucket;const e=escAgg[b]||(escAgg[b]={a:0,b:0,n:0});e.n++;if(r.aging!=null){if(r.aging>14)e.b++;else if(r.aging>7)e.a++;}});
   const escRows=Object.entries(escAgg).filter(([,e])=>e.a+e.b>0).sort((x,y)=>(y[1].a+y[1].b)-(x[1].a+x[1].b));
@@ -2179,7 +2174,7 @@ function renderAnalysis(){
   h+=`<div class="anRow c21">`
    +_anPanel('fa-user-clock','#2f6bd8','Pending by person — next action &amp; accountable','Top 12 people holding live items (supplier-side stages excluded). Br&gt;7 = past the 7-day SLA.',
       _anTbl(['Accountable person','Department','r:PRs','r:POs','r:Oldest','r:Br>7','r:Value'],prows)
-      +(unas.length?`<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:800;font-size:12px;color:#2f6bd8">Unassigned — nobody accountable (${unas.length})</summary><div style="margin-top:8px">`
+      +(unas.length?`<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:800;font-size:12px;color:#64748b">Owner not recorded in source (${unas.length})</summary><div style="margin-top:8px">`
         +_anTbl(['Doc','#','Department','Stage','r:Age','r:Value'],unas.slice(0,10).map(r=>[r._doc,escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(r.hdrBucket||r.bucket),_anAgeB(r.aging),_anMoney(r.amount)]))+`</div></details>`:''))
    +_anPanel('fa-fire','#dc2626','Escalation queue by stage','<span style="color:#b45309;font-weight:700">amber</span> 7–14d overdue · <span style="color:#b91c1c;font-weight:700">red</span> &gt;14d escalate.',
       `<div class="anLegend"><span><i style="background:#f59e0b"></i>7–14d</span><span><i style="background:#dc2626"></i>&gt;14d</span></div>`+escHtml)
@@ -2192,30 +2187,25 @@ function renderAnalysis(){
       <div class="val">${escapeHtml(r.hdrBucket||r.bucket)} ${_anAgeB(r.aging)}</div></div>`).join('');
   /* ---------- JOURNEY ---------- */
   const prAll=PRR.filter(r=>!['Rejected','Cancelled'].includes(r.status));
-  const poByPR={}; PO_DATA.forEach(p=>{const k=String(p['Purchase requisition']||'').trim(); if(k)(poByPR[k]=poByPR[k]||[]).push(p);});
   const poAllRaw=PO_DATA.filter(p=>String(p['Approval status'])!=='Rejected'&&String(p['Purchase order status'])!=='Canceled');
   const fTot=prAll.length,
-        fRFQ=prAll.filter(r=>String(r.raw['Request for quotation case']||'').trim()).length,
         fQuo=prAll.filter(r=>String(r.raw['Quotation reference']||'').trim()).length,
-        fPO=prAll.filter(r=>poByPR[String(r.docNumber||'').trim()]).length,
         fSent=poAllRaw.filter(p=>String(p['Step name'])==='LPO sent/shared with supplier'||['Received','Invoiced'].includes(String(p['Purchase order status']))).length,
         fRecv=poAllRaw.filter(p=>['Received','Invoiced'].includes(String(p['Purchase order status']))).length,
         fInv=poAllRaw.filter(p=>String(p['Purchase order status'])==='Invoiced').length;
   const fun=[['PRs raised',fTot,fTot,'#2f6bd8','excl. rejected / cancelled'],
-             ['RFQ issued',fRFQ,fTot,'#0ea5e9',(fRFQ/Math.max(fTot,1)*100).toFixed(0)+'% of PRs'],
-             ['Quotation received',fQuo,fTot,'#06b6d4',(fQuo/Math.max(fTot,1)*100).toFixed(0)+'% of PRs'],
-             ['PO created',fPO,fTot,'#14b8a6',(fPO/Math.max(fTot,1)*100).toFixed(0)+'% of PRs'],
+             ['Quotation referenced',fQuo,fTot,'#06b6d4',(fQuo/Math.max(fTot,1)*100).toFixed(0)+'% of PRs'],
              ['PO sent to supplier',fSent,poAllRaw.length,'#a855f7',fSent+' of '+poAllRaw.length+' POs'],
              ['Received (GRN)',fRecv,poAllRaw.length,'#f59e0b',(fRecv/Math.max(poAllRaw.length,1)*100).toFixed(0)+'% of POs'],
              ['Invoiced',fInv,poAllRaw.length,'#22c55e',(fInv/Math.max(poAllRaw.length,1)*100).toFixed(0)+'% of POs']];
   const funHtml=`<div class="anFunnel">`+fun.map(([l,n,base,c,p])=>`<div class="anFunStep"><div class="fl">${l}</div><div class="fb" style="width:${Math.max(8,n/Math.max(base,1)*72).toFixed(1)}%;background:linear-gradient(120deg,${c},${c}dd)">${n.toLocaleString()}</div><div class="fp">${p}</div></div>`).join('')+`</div>`;
   /* exceptions */
-  const e1=prLive.filter(r=>r.hdrBucket==='Procurement'&&!String(r.raw['Request for quotation case']||'').trim()&&(r.aging||0)>7);
+  const e1=prLive.filter(r=>['Procurement','Sourcing','Priced — awaiting approval'].includes(r.hdrBucket)&&!String(r.quotationRef||'').trim()&&(r.aging||0)>7);
   const e2=prLive.filter(r=>r.hdrBucket==='Operations to Confirm'&&(r.aging||0)>7);
   const e3=poLive.filter(r=>['Procurement','Finance','Director','CEO'].includes(r.hdrBucket)&&['Confirmed','Approved'].includes(r.status)&&r.poStatus==='Open order');
   const e4=poLive.filter(r=>r.hdrBucket==='Sent to supplier'&&(()=>{const d=parseDate(r.raw['Requested receipt date']);return d&&d<TODAY;})());
   const e5=poLive.filter(r=>r.hdrBucket==='Receipt posted');
-  const exDef=[['No RFQ issued','fa-file-circle-question','#dc2626','PR in procurement &gt;7d without an RFQ case',e1,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(String(r.pendingUser||'').slice(0,18)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
+  const exDef=[['No quotation recorded','fa-file-circle-question','#dc2626','Procurement-stage PR &gt;7d without a quotation reference',e1,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(ownerText(r.pendingUser).slice(0,18)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
                ['Ops confirmation overdue','fa-hourglass-half','#c2410c','Operations sitting &gt;7d on confirmation',e2,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(String(r.pendingUser||'').slice(0,18)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
                ['Approved PO not sent','fa-paper-plane','#7c3aed','Confirmed / approved but never sent to the supplier',e3,r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,20)),escapeHtml(r.status+' / '+r.poStatus),_anAgeB(r.aging),_anMoney(r.amount)],['PO','Vendor','Status','r:Age','r:Value']],
                ['Late delivery','fa-truck-ramp-box','#b45309','Past the requested receipt date, still not received',e4,r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,20)),escapeHtml((typeof fmtDate==='function')?fmtDate(parseDate(r.raw['Requested receipt date'])):String(r.raw['Requested receipt date']||'')),_anAgeB(r.aging),_anMoney(r.amount)],['PO','Vendor','Promised','r:Age','r:Value']],
@@ -2228,7 +2218,7 @@ function renderAnalysis(){
     </div>`).join('')+`</div>`;
   h+=`<div class="anRow c11">`
    +_anPanel('fa-sack-dollar','#f59e0b','Highest value open','Biggest cash exposure in the live pipeline — clear these first.',hvHtml)
-   +_anPanel('fa-route','#14b8a6','PR-to-payment journey','PR → RFQ → quotation → PO → sent → received (GRN) → invoiced. First four are PR-level, last three PO-level.',funHtml)
+   +_anPanel('fa-route','#14b8a6','Procurement activity','PR and PO activity shown separately. PR-to-PO conversion is withheld because lineage is incomplete.',funHtml)
    +`</div>`;
   h+=_anPanel('fa-circle-exclamation','#dc2626','Journey exceptions — where the pipeline leaks','Each card = a broken hand-off. Expand for the worst offenders by age.',exHtml);
   /* ---------- SUPPLIER INTEL ---------- */
@@ -2276,9 +2266,8 @@ function renderAnalysis(){
     weeks.map(t=>[wl(t),`<b>${wk[t].prC}</b>`,_anMoney(wk[t].prV),String(wk[t].prDone),`<b>${wk[t].poC}</b>`,String(wk[t].poInv)]));
   h+=_anPanel('fa-calendar-week','#2f6bd8','Weekly performance','Derived from created / step dates in today\'s snapshot. * = approximated by the last workflow step date of Closed / Invoiced records.',
     wkCols+`<div style="margin-top:12px">`+wkTbl+`</div><div id="anWow" style="margin-top:14px;font-size:12px;color:#8a99b3">Loading weekly snapshot archive…</div>`);
-  h+=`</div></div>`+JB_SUB_PANES;
+  h+=`</div></div>`;
   host.innerHTML=h;
-  initAnalysisSubTabs();
   fetch('weekly_snapshots.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(js=>{
     const el=document.getElementById('anWow'); if(!el)return;
     if(!js||!Array.isArray(js.snapshots)||js.snapshots.length<2){ el.innerHTML='<i class="fa-solid fa-camera" style="margin-right:6px"></i><b style="color:var(--anNavy)">Week-over-week deltas:</b> archive has '+((js&&js.snapshots)?js.snapshots.length:0)+' snapshot(s) — the server saves one every Sunday; deltas appear once two exist.'; return; }
@@ -2378,10 +2367,7 @@ function applyFilters(){
   activeFilters.search=document.getElementById('globalSearch').value.trim().toLowerCase();
 
   filteredRecords=allRecords.filter(r=>{
-    // PR/CPR prefix filter applies to BOTH modes:
-    // - PR mode: based on Purchase requisition prefix
-    // - PO mode: based on linked Purchase requisition prefix
-    if(activeFilters.prtype!=='all' && r.prType!==activeFilters.prtype) return false;
+    if(mode==='PR'&&activeFilters.prtype!=='all'&&r.prType!==activeFilters.prtype)return false;
     if(activeFilters.bucket && (r.dispBucket||r.bucket)!==activeFilters.bucket) return false;
     if(activeFilters.step && r.subBucket!==activeFilters.step) return false;
     if(activeFilters.dept && r.department!==activeFilters.dept) return false;
@@ -2398,8 +2384,7 @@ function applyFilters(){
       if(activeFilters.aging==='4-7' && !(a>=4&&a<=7)) return false;
       if(activeFilters.aging==='8+'  && !(a>=8)) return false;}
     if(activeFilters.search){
-      // Search includes PR # / PO # (docNumber) AND linked PR # (for PO records)
-      const blob=`${r.docNumber||''} ${r.linkedPR||''} ${r.name||''} ${r.vendorName||''} ${r.department} ${r.project} ${r.bucket} ${r.subBucket} ${r.status} ${r.pendingUser}`.toLowerCase();
+      const blob=`${r.docNumber||''} ${r.name||''} ${r.vendorName||''} ${r.department} ${r.project} ${r.bucket} ${r.subBucket} ${r.status} ${r.pendingUser}`.toLowerCase();
       if(!blob.includes(activeFilters.search)) return false;
     }
     return true;
@@ -2460,7 +2445,7 @@ function renderOverallKPIs(records){
 
   const prC = records.filter(r=>r.prType==='PR').length;
   const cprC = records.filter(r=>r.prType==='CPR').length;
-  const totalSub = mode==='PR' ? `PR: ${prC} · CPR: ${cprC}` : `Linked PR: ${prC} · CPR: ${cprC}`;
+  const totalSub = mode==='PR' ? `PR: ${prC} · CPR: ${cprC}` : 'Requisition lineage not available';
 
   // Order matches user spec: Total, Pending, Completed, Rej&Canc, Avg Aging, Last 7d, Today
   const cards = [
@@ -2726,7 +2711,7 @@ function renderCharts(records){
 /* ============ Main table - mode-aware ============ */
 function getMainColumns(){
   if(mode==='PR') return ['PR #','Type','Name','Department','Project / Location','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Aging','Pending With'];
-  return ['PO #','Linked PR #','Type','Vendor','Department','Project / Location','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Aging','Amount','Pending With'];
+  return ['PO #','Vendor','Department','Project / Location','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Aging','Amount','Pending With'];
 }
 function renderTable(records){
   if(dataTableInstance) dataTableInstance.clear().destroy();
@@ -2736,10 +2721,10 @@ function renderTable(records){
   if(mode==='PR'){
     rows=records.map(r=>[r.docNumber,`<b style="color:${r.prType==='CPR'?'#0ea5e9':'#8b5cf6'}">${r.prType||'—'}</b>`,r.name,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(r.subBucket),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),r.pendingUser]);
   } else {
-    rows=records.map(r=>[r.docNumber,r.linkedPR||'—',`<b style="color:${r.prType==='CPR'?'#0ea5e9':r.prType==='PR'?'#8b5cf6':'#94a3b8'}">${r.prType||'—'}</b>`,r.vendorName,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(stepText(r)),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2}),r.pendingUser]);
+    rows=records.map(r=>[r.docNumber,r.vendorName,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(stepText(r)),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2}),r.pendingUser]);
   }
   $('#mainTable tbody').empty();
-  const sortCol = mode==='PR' ? 8 : 9;
+  const sortCol = mode==='PR' ? 8 : 7;
   dataTableInstance=$('#mainTable').DataTable({data:rows,pageLength:15,lengthMenu:[10,15,25,50,100],order:[[sortCol,'desc']],deferRender:true,dom:'lfrtip',language:{search:'Search:'}});
   document.getElementById('recordCount').innerText=`Showing ${records.length.toLocaleString()} ${mode} record(s)`;
 }
@@ -2747,7 +2732,7 @@ function renderTable(records){
 /* ============ Drill-through ============ */
 function getDrillColumns(){
   if(mode==='PR') return ['PR #','Type','Quote Ref','Name','Department','Project','Sub-bucket (Step)','Status','Created','Step Date','Aging','Pending With'];
-  return ['PO #','Linked PR #','Type','Vendor','Department','Project','Sub-bucket (Step)','Status','Created','Step Date','Aging','Amount','Pending With'];
+  return ['PO #','Vendor','Department','Project','Sub-bucket (Step)','Status','Created','Step Date','Aging','Amount','Pending With'];
 }
 /* Shared modal renderer — used by both bucket/dept drill and Overall-KPI drill */
 function showDrillModal(subset, title){
@@ -2766,7 +2751,7 @@ function showDrillModal(subset, title){
 
   let statsHtml = `
     <div class="modal-stat"><div class="lbl">Total Records</div><div class="val">${subset.length.toLocaleString()}</div></div>
-    <div class="modal-stat"><div class="lbl">${mode==='PR'?'PR / CPR':'Linked PR / CPR'}</div><div class="val">${prC} / ${cprC}</div></div>
+    ${mode==='PR'?`<div class="modal-stat"><div class="lbl">PR / CPR</div><div class="val">${prC} / ${cprC}</div></div>`:''}
     <div class="modal-stat"><div class="lbl">Avg Aging</div><div class="val">${avg}d</div></div>
     <div class="modal-stat"><div class="lbl">Max Aging</div><div class="val">${max}d</div></div>
     <div class="modal-stat"><div class="lbl">SLA Breaches</div><div class="val" style="color:${breaches>0?'var(--red)':'var(--green)'}">${breaches}</div></div>
@@ -2797,8 +2782,6 @@ function showDrillModal(subset, title){
     tbody.innerHTML = sorted.map(r=>`
       <tr>
         <td><b>${escapeHtml(r.docNumber)}</b></td>
-        <td>${escapeHtml(r.linkedPR||'—')}</td>
-        <td><b style="color:${r.prType==='CPR'?'#0ea5e9':r.prType==='PR'?'#8b5cf6':'#94a3b8'}">${r.prType||'—'}</b></td>
         <td>${escapeHtml(r.vendorName)}</td>
         <td>${escapeHtml(r.department)}</td>
         <td>${escapeHtml(r.project)}</td>
@@ -2870,11 +2853,11 @@ function exportDrillToExcel(){
   if(!currentDrillSubset||!currentDrillSubset.length){alert('Nothing to export.');return;}
   const cols=mode==='PR'
     ? ['PR #','Type','Quote Ref','Name','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Pending With','Amount']
-    : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With','Linked PR'];
+    : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With'];
   const wsData=[cols];
   currentDrillSubset.forEach(r=>{
     if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.pendingUser,r.amount]);
-    else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,r.pendingUser,r.linkedPR]);
+    else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,r.pendingUser]);
   });
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(wsData);
@@ -2886,11 +2869,11 @@ function exportDrillToExcel(){
 function exportToExcel(){
   const cols=mode==='PR'
     ? ['PR #','Type','Quote Ref','Name','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Pending With','Amount']
-    : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With','Linked PR'];
+    : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With'];
   const wsData=[cols];
   filteredRecords.forEach(r=>{
     if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.pendingUser,r.amount]);
-    else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,r.pendingUser,r.linkedPR]);
+    else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,r.pendingUser]);
   });
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(wsData);

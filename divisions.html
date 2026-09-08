@@ -96,6 +96,8 @@ function divForDept(d){return DEPT_DIV[d]||'ops_all';}
 const DEPT_OPSUSER={"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"};
 function opsUserForDept(d){return DEPT_OPSUSER[String(d==null?'':d).trim()]||'';}
 function roleOf(u){const d=deptForUser(u),ul=_norm(u);if(d==='Accounts & Tax'){if(ul==='ayman.g')return 'Director';if(ul==='patrick.smith')return 'CEO';return 'Finance';}if(d==='Procurement')return 'Procurement';return '';}
+const NOT_RECORDED='not recorded';
+function ownerText(value){const v=String(value==null?'':value).trim();return (!v||/^0+$/.test(v)||/^\d+$/.test(v))?NOT_RECORDED:v;}
 function opsDivFor(reqdept){return (reqdept==='Home Maintenance Services'||reqdept==='FitOut Services')?'ops_hm':'ops_all';}
 function amt(r){const v=Number(r['Total amount']);return isFinite(v)?v:0;}
 function xd(v){if(v instanceof Date)return isNaN(v)?null:v; if(typeof v==='number'&&isFinite(v)){const o=XLSX.SSF.parse_date_code(v);if(!o||!o.y)return null;return new Date(Date.UTC(o.y,o.m-1,o.d,o.H||0,o.M||0,Math.floor(o.S||0)));} if(typeof v==='string'&&v){const d=new Date(v);return isNaN(d)?null:d;} return null;}
@@ -105,19 +107,19 @@ function poBucket(r){const step=r['Live stage']||r['Step name'];const appr=Strin
 function prHb(b){return PROC.has(b)?'Procurement':(OPS.has(b)?'Operations to Confirm':b);}
 function prAge(r){const sd=r['Step date and time'];return ageDays(sd!=null?sd:r['Created date']);}
 function poAge(r){const sd=r['Step date and time'];return ageDays(sd!=null?sd:(r['Created date and time']!=null?r['Created date and time']:r['Requested receipt date']));}
-function prPendingWith(r){const st=String(r['Status']||'');if(st==='Draft')return String(r['Preparer']||'').trim();if(st==='Approved')return String(r['Accepted By/Assign To']||'').trim();return String(r['Pending Approver/User']||'').trim();}
+function prPendingWith(r){return ownerText(r['Pending Approver/User']);}
 function itemDivision(it){ return it.div; }
 function buildItems(prRows,poRows){
   const items=[];
   for(const r of prRows){ if(!prLive(r))continue; const hb=prHb(PR_MAP[r['Step name']]); const rowdept=String(r['Department']||'').trim(); const pw0=prPendingWith(r); const inrev=(String(r['Status']||'').trim()==='In review');
-    const owner=((hb==='Operations to Confirm'?(opsUserForDept(rowdept)||pw0):pw0)||'(unassigned)');
+    const owner=ownerText(hb==='Operations to Confirm'?(opsUserForDept(rowdept)||pw0):pw0);
     const rl=roleOf(owner); let stage,div;
     if(hb==='Sourcing'||hb==='Priced — awaiting approval'){stage=hb;div='procurement';}
     else if(rl==='Finance'||rl==='Director'||rl==='CEO'){stage=rl;div='finance';}
     else if(rl==='Procurement'){div='procurement';stage=(hb==='Operations to Confirm'&&inrev)?'Re-Assigned/Rejected':'Procurement';}
     else{div=opsDivFor(rowdept);stage=(hb==='Procurement'&&inrev)?'Re-Assigned/Rejected':(hb==='Operations to Confirm')?'Operations to Confirm':'Dep Managers';}
     items.push({ref:r['Purchase requisition'],doc:'PR',typ:String(r['Purchase requisition']||'').startsWith('CPR')?'CPR':'PR',stage:stage,div:div,age:prAge(r),owner:owner,dept:rowdept,value:amt(r),vendor:'',ppend:true,step:String(r['Step name']||''),status:String(r['Status']||'')}); }
-  for(const r of poRows){ const bk=poBucket(r); if(!bk)continue; const ven=String(r['Vendor name']||'-').trim(); const poStat=String(r['Approval status']||''); const createdBy=String(r['Created by']||r['Created By']||'').trim(); const poPend=String(r['Pending Approver/User']||'').trim(); const isVenBk=(bk==='Sent to supplier'||bk==='Receipt posted'); let own,ppend; if(isVenBk){own=ven;ppend=false;}else if(poStat==='In review'||poStat==='InReview'){own=poPend||'(unassigned)';ppend=true;}else if(poStat==='Draft'){own=createdBy||'(unassigned)';ppend=true;}else{own=poPend||'(unassigned)';ppend=false;}
+  for(const r of poRows){ const bk=poBucket(r); if(!bk)continue; const ven=ownerText(r['Vendor name']); const poStat=String(r['Approval status']||''); const poPend=ownerText(r['Pending Approver/User']); const isVenBk=(bk==='Sent to supplier'||bk==='Receipt posted'); let own,ppend; if(isVenBk){own=ven;ppend=false;}else if(poStat==='In review'||poStat==='InReview'||poStat==='Draft'){own=poPend;ppend=true;}else{own=poPend;ppend=false;}
     let stage,div;
     if(bk==='Sent to supplier'){stage=bk;div='procurement';}
     else if(bk==='Receipt posted'){stage=bk;div='finance';}
@@ -171,7 +173,7 @@ function renderOwners(items){
   const persons=items.filter(it=>it.ppend!==false&&it.stage!=='Sent to supplier'&&it.stage!=='Receipt posted');
   const g={};
   for(const it of persons){const key=_norm(it.owner)+'|'+it.doc;const e=g[key]||(g[key]={n:0,ages:[],val:0,br:0,doc:it.doc,disp:{}});e.n++;e.val+=it.value;e.disp[it.owner]=(e.disp[it.owner]||0)+1;if(it.age!=null){e.ages.push(it.age);if(it.age>7)e.br++;}}
-  const rows=Object.entries(g).filter(([k])=>{const o=k.slice(0,k.lastIndexOf('|'));return o!==''&&o!=='(unassigned)';}).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+  const rows=Object.entries(g).filter(([k])=>{const o=k.slice(0,k.lastIndexOf('|'));return o!==''&&o!==NOT_RECORDED;}).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
   if(!rows.length)return '';
   return '<h2 class="sec">🔍 Pending with — who to chase (click a row to drill)</h2><table class="owners"><tr><th>Pending with</th><th>Doc</th><th class="r">Items</th><th class="r">Avg</th><th class="r">Oldest</th><th class="r">Br&gt;7</th><th class="r">Value (AED excl. VAT)</th></tr>'+
     rows.map(([k,e])=>{const disp=Object.entries(e.disp).sort((a,b)=>b[1]-a[1])[0][0];const on=(state.filter&&state.filter.t==='o'&&_norm(state.filter.owner)===k.slice(0,k.lastIndexOf('|'))&&state.filter.doc===e.doc);

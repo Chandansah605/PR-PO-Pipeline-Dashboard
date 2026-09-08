@@ -18,6 +18,7 @@
 
   const PR_STAGES = ['Re-Assigned/Rejected', 'Procurement', 'Operations to Confirm', 'Dep Managers', 'Finance', 'Director', 'CEO'];
   const PO_STAGES = ['Procurement', 'Finance', 'Director', 'CEO', 'Not yet sent', 'Sent to supplier', 'Receipt posted'];
+  const NOT_RECORDED = 'not recorded';
 
   function clean(value) {
     return String(value == null ? '' : value).trim();
@@ -29,6 +30,7 @@
 
   function canonicalOwner(value) {
     const original = clean(value);
+    if (!original || /^0+$/.test(original) || /^\d+$/.test(original)) return NOT_RECORDED;
     return OWNER_ALIASES[ownerKey(original)] || original;
   }
 
@@ -104,7 +106,7 @@
         reportedBy: clean(item.reportedBy) || '—',
         reportedDate: clean(item.reportedDate) || null,
         age: ageOf(row),
-        holder: row ? clean(row.pendingUser) || '—' : '—',
+        holder: row ? canonicalOwner(row.pendingUser) : NOT_RECORDED,
         active: !!row,
         automatic: false
       });
@@ -119,7 +121,7 @@
         reportedBy: 'Automatic live check',
         reportedDate: null,
         age: ageOf(row),
-        holder: clean(row.pendingUser) || '—',
+        holder: canonicalOwner(row.pendingUser),
         active: true,
         automatic: true
       });
@@ -141,8 +143,7 @@
   function personOwner(row, type) {
     if (type === 'PR') return canonicalOwner(row.pendingUser);
     const approval = clean(row.raw && row.raw['Approval status']);
-    if (approval === 'In review') return canonicalOwner(row.pendingUser);
-    if (approval === 'Draft') return canonicalOwner(row.raw && (row.raw['Created by'] || row.raw['Created By']) || row.pendingUser);
+    if (approval === 'In review' || approval === 'InReview' || approval === 'Draft') return canonicalOwner(row.pendingUser);
     return '';
   }
 
@@ -151,13 +152,13 @@
     (prRows || []).forEach(function (row) {
       const stage = stageName(row);
       const owner = personOwner(row, 'PR');
-      if (!owner || owner === '(unassigned)' || stage === 'Director' || stage === 'CEO') return;
+      if (!owner || owner === NOT_RECORDED || stage === 'Director' || stage === 'CEO') return;
       combined.push({ row: row, type: 'PR', owner: owner });
     });
     (poRows || []).forEach(function (row) {
       const stage = stageName(row);
       const owner = personOwner(row, 'PO');
-      if (!owner || owner === '(unassigned)' || ['Director', 'CEO', 'Sent to supplier', 'Receipt posted'].includes(stage)) return;
+      if (!owner || owner === NOT_RECORDED || ['Director', 'CEO', 'Sent to supplier', 'Receipt posted'].includes(stage)) return;
       combined.push({ row: row, type: 'PO', owner: owner });
     });
     return combined;
@@ -343,6 +344,7 @@
 
   return {
     OWNER_ALIASES: OWNER_ALIASES,
+    NOT_RECORDED: NOT_RECORDED,
     ownerKey: ownerKey,
     canonicalOwner: canonicalOwner,
     median: median,
