@@ -1,3 +1,70 @@
+# Journey board extension preview — 8 September 2026
+
+## What I found
+
+- `journey-board.html` already contained the CEO-approved page-one composition, but its live bridge received only a derived object from `index.html`. That object does not contain CRM quote fields, the PO receiving warehouse or line-level PR lineage. `index.html` is protected in this task, so the extension uses an embedded, reproducible snapshot and keeps the existing bridge intact.
+- The existing Entra application `8a4338bf-6c78-4a70-9c62-478bb19b171c` already has the Dynamics `user_impersonation` delegated permission (`78ce3f0f-a1ce-49c2-8cde-64b5c0896db4`). A read-only `WhoAmI` call to `operations-ifahr-live.crm15.dynamics.com` returned HTTP 200. The board therefore reuses the signed-in Microsoft session for a silent Dynamics token; no proxy change or second sign-in is required.
+- The current live data moved during implementation. The final frozen dataset was generated at **8 September 2026 15:45 Dubai** and the CRM/F&O extension read completed at **15:46 Dubai**. Counts below belong to proxy revision `9b557938c95b55caf5371a496a4328a53a7b4a53c97e8700f820568c4b1ba679` unless stated otherwise.
+- The CRM exact join is real: `quotes.ssg_prnumber` maps requisition number to quote; Q-7097 maps to CPR-000004. The builder chooses the row matching both requisition number and quotation reference, then uses the most recently modified exact duplicate only when CRM contains duplicated quote rows. No fuzzy match is used.
+- The supplied 831-record legacy exclusion is a historical board rule, not the size of today's open pre-April population. Removing the date/exclusion rule restores every resolvable open CPR. At the final read there were 758 open CRM-born CPRs: 753 exact quote matches and five unresolved. Of 258 still-open pre-April CPRs, 253 matched and five remained unresolved. Of 757 populated quote references, 753 resolved.
+- The quote supplies department, community project/location, division, customer, scope, quoted value, total cost and its cost-calculation timestamp. For matched CPRs the snapshot takes department and location from CRM first and retains F&O only as a fallback.
+- The W001 store definition reconciled exactly inside the final read: 948 total = 204 open + 48 received awaiting invoice + 685 invoiced + 11 cancelled. The two-order increase from the supplied 946/202 measurement was live source movement; received, invoiced and cancelled were unchanged. The same header read contained 2,252 non-store orders, 3,200 total.
+
+## Problems and risks
+
+- F&O has never supplied the approval step, step date or holder. The three-minute approval capture is the only source for the middle gates after 7 August. If capture stops, the middle must go dark rather than age from a guessed event.
+- Pre-7-August clocks can only be the one-time final-workbook seed or `not recorded`. The supplied audit found 67 orders without a start and 35 placeholder starts on 1 January 1900; both remain visible exclusions from medians and are never converted to zero.
+- PR-to-PO lineage remains incomplete. The supplied 983-row audit linked 743 rows and found 11 order numbers associated with more than one requisition. The refreshed legal-entity-plus-order read linked 740 of 993 current open orders: PO-line route 739, requisition-BI route 740, union 740, 253 unresolved. No current composite order key had multiple requisitions. Both facts are shown; no conversion figure is published.
+- The browser automation surface blocked `file://` navigation under its URL safety policy. I did not bypass that restriction. Offline safety, parsing, interactions and data invariants were verified structurally; a final human visual pass of the local file remains prudent before approval.
+
+## Files changed
+
+- `journey-board.html` — preserved wallboard shell, added clock ownership, honesty, division/store circuits, department expansion, filters and record drill.
+- `journey-preview.html` — generated self-contained 1,016,603-byte offline review snapshot with 1,869 actionable records and no external scripts or styles.
+- `scripts/build_journey_preview.mjs` — repeatable read-only snapshot builder using the proxy, exact CRM quote join, W001 header filter and both line routes.
+- `tests/journey-board-extension.test.js` — offline, reconciliation, department, drill, owner, clock and filter regression checks.
+- `NOTES.md` — source route, point-in-time figures, assumptions and verification.
+
+## Exact changes made
+
+- Kept the existing 1920 × 1080 layout, Montserrat/Gotham fallback stack, Strive colour tokens, headline, trend, main circuit, Pit Wall and existing copy. Added one compact sequence/honesty strip and reused the same circuit/card geometry.
+- Removed the stale “until then excluded” message. Pit Wall now states **753 recovered / 5 unresolved** for the 758 open CRM-born requisitions and explicitly says the 831-record legacy exclusion is removed.
+- Replaced the five mixed division/type rows at snapshot application with Facilities Management, Home Services, FitOut Solutions, Factory — Head Office, explicit Division not recorded, and Store orders. Each opens to canonical departments; zero-current departments remain visible instead of disappearing.
+- Department rows use the same maximum elapsed-time scale as their parent division rows. Store rows use the same card footprint but label their four sections as lifecycle counts, not elapsed time.
+- Added an in-board modal with document number, what it is, gate, holder, waited time, value excluding VAT and next action. Filters cover circuit, work type, gate and text search. Missing and numeric-only owners are normalised to lowercase `not recorded`.
+- Drew the full corrected sequence as three explicitly owned bands: procurement through price-back-to-CRM, customer through LPO/won, and delivery through invoice. Contracted work is labelled as having no customer quote; only variations start in CRM.
+- Added five always-visible honesty cards for capture dependency, pre-August seeds, unmapped approvals, invalid/missing PO starts, line coverage and conversion withholding.
+- `journey-board.html` keeps the normal parent data bridge. Its frozen enrichment renders immediately and its same-session silent token check uses the registered Dynamics delegated scope; failure leaves the clearly stamped snapshot instead of a blank board.
+
+## What I did not change
+
+- `main`, `index.html`, `journey-live.html`, the live site, GitHub Pages, sign-in behaviour, daily emails, workflow capture, `pr.xlsx`, `po.xlsx`, and `.github/workflows/publish-legacy-email-workbooks.yml` were not changed.
+- No Azure Function, Dataverse row, app registration, permission, production setting or source workbook was changed.
+- No Basit export, fuzzy quote match, guessed owner, customer-clock duration or PR-to-PO conversion was introduced.
+- The supplied headline/trend values remain the approved frozen cohort; the new circuit rows are explicitly labelled as current-gate age so an incomplete line link cannot masquerade as end-to-end conversion.
+
+## Testing performed
+
+- `node scripts/build_journey_preview.mjs` — passed; acquired a read-only Dynamics token, rebuilt exact quote/store/line measures and generated both embedded snapshots.
+- `node --test tests/*.test.js` — **30 of 30 passed**, including seven new journey extension tests and all protected sign-in/data/race-control tests.
+- Parsed all six inline scripts in `journey-board.html` and all seven in `journey-preview.html` with `vm.Script` — passed.
+- `node --check scripts/build_journey_preview.mjs` — passed.
+- `git diff --check` — passed; only the existing Git line-ending notice appeared.
+- Offline inspection — preview is 1,016,603 bytes, contains no external `<script src>` or `<link href>`, has the preview guard set before rendering, embeds every required record, and carries the top snapshot stamp.
+- Protected-file hash comparison against starting commit `451a85e65dc14d787b84fab434a27d984f485f29` — `index.html`, the workbook workflow, sign-in script, `pr.xlsx` and `po.xlsx` all matched exactly.
+
+## Remaining risks
+
+- Counts are point-in-time and the source was actively changing; rebuilding the preview later will legitimately change them.
+- Direct visual automation of the offline file was not available because the browser safety layer blocks local-file URLs. The HTML and interaction contracts passed, but Waqas should still open `journey-preview.html` locally for the approval viewing pass.
+- The CRM quote-line `modifiedon`/cost-calculation date is displayed only as evidence of the price-back handover. It is not treated as an approval event or charged to procurement after the handover.
+
+## Recommended next step
+
+Open `journey-preview.html` locally and review the unchanged board composition plus each division/store department drill. If approved, merge/deploy can be authorised separately; this branch does neither.
+
+---
+
 # Sign-in empty-straight correction — 8 September 2026
 
 ## What I found
