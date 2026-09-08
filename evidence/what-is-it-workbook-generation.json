@@ -1,0 +1,119 @@
+{
+  "datasetRevision": "06f20f2aebd0cbfbae522e616534d2a3720cc274b399cf4fb831033bae6b98dd",
+  "sourceState": "LIVE",
+  "routingSource": "live",
+  "pr": {
+    "rows": 1137,
+    "sourceDocuments": 979,
+    "columns": [
+      "Purchase requisition",
+      "Quotation reference",
+      "Name",
+      "Preparer",
+      "Status",
+      "Created date",
+      "Submitted date",
+      "Requisition purpose",
+      "Submission Status",
+      "Accepted By/Assign To",
+      "Department",
+      "Location",
+      "Contract",
+      "Request for quotation case",
+      "Total amount",
+      "Pending Approver/User",
+      "Step name",
+      "Step date and time",
+      "Stage reason code"
+    ],
+    "amountExVat": 21205752.51,
+    "sha256": "d1a2432ef29327c42a246ab21fde90889bc8897046ef35823f91e6ec6a0b01d0",
+    "routingRecovery": {
+      "non-actionable source rows excluded": 3455,
+      "step not reported source documents": 111,
+      "no named owner source documents": 29,
+      "holder attribution rows": 1137,
+      "operations confirmation source documents": 563,
+      "operations mapping missing: Surveying Services": 1,
+      "operations mapping missing: Leisure Services": 2,
+      "operations mapping missing: Housekeeping Services": 1,
+      "operations mapping missing: Accomodation Services": 1,
+      "actionable source documents": 979
+    },
+    "operationsConfirmationDocuments": 563,
+    "operationsConfirmationAttributions": 563,
+    "commaJoinedOwners": 0,
+    "bareNumericOwners": 0,
+    "liveActionableMissingFromWorkbook": 0,
+    "classCountsSourceDocuments": {
+      "NO_CURRENT_WORK_ITEM": 111,
+      "UNMAPPED_ELEMENT": 38,
+      "ACTIVE_LINES_NOT_FULLY_PRICED": 263,
+      "ACTIVE_LINES_PRICED": 563,
+      "ZERO_ACTIVE_LINES": 2,
+      "APPROVAL_CAPTURE": 2
+    },
+    "classCountsWorkbookDocuments": {
+      "NO_CURRENT_WORK_ITEM": 111,
+      "UNMAPPED_ELEMENT": 38,
+      "ACTIVE_LINES_NOT_FULLY_PRICED": 263,
+      "ACTIVE_LINES_PRICED": 563,
+      "ZERO_ACTIVE_LINES": 2,
+      "APPROVAL_CAPTURE": 2
+    }
+  },
+  "po": {
+    "rows": 996,
+    "columns": [
+      "Purchase order",
+      "Vendor account",
+      "Invoice account",
+      "Vendor name",
+      "Purchase type",
+      "Approval status",
+      "Purchase order status",
+      "Currency",
+      "Requested receipt date",
+      "Created date and time",
+      "Purchase requisition",
+      "RFQ number",
+      "Total amount",
+      "Department",
+      "Location",
+      "Contract",
+      "Pending Approver/User",
+      "Step name",
+      "Step date and time",
+      "Created by"
+    ],
+    "amountExVat": 37775301.25,
+    "sha256": "521d40e5418aa5d43092e56d98169fa198d8bab72cb28f89c983b98339de0508",
+    "routingRecovery": {
+      "Invoiced": 2133,
+      "STAGE_NOT_EVIDENCED": 73,
+      "Receipt posted": 1,
+      "holder attribution rows": 996
+    },
+    "commaJoinedOwners": 0
+  },
+  "amountBasis": "live F&O active-line values excl. VAT",
+  "datePolicy": "current live dataset clocks; unreported clocks remain blank",
+  "routingPolicy": "current live dataset, holder-rule.json, work-class-rule.json, and employee-holder-map.json",
+  "outputNote": "Temporary email compatibility output: verified PR/PO routing snapshot with current live ex-VAT amounts.",
+  "contentChanged": false,
+  "noExactOldEquivalent": {
+    "PR": {
+      "Sourcing": "consolidated live stage; mapped to legacy Procurement",
+      "Priced — awaiting approval": "live priced signal; mapped to legacy Operations to Confirm",
+      "Approval — unmapped element": "shown as Step not reported by F&O",
+      "(blank)": "shown as Step not reported by F&O"
+    },
+    "PO": {
+      "Not yet sent": "authoritative F&O state; mapped to legacy Procurement",
+      "Approval — unmapped element": "displayed fallback; mapped to legacy Procurement",
+      "Receipt posted": "routed by Confirmed plus Received to Pending Invoicing",
+      "Invoiced": "excluded by the open-pipeline rule",
+      "STAGE_NOT_EVIDENCED": "must never be open; generation fails if it is"
+    }
+  }
+}

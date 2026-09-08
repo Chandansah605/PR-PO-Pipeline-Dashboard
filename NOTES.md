@@ -6991,3 +6991,136 @@ The before figures are the verified 8 September failure supplied in the task. Th
 - The repository's branch-based GitHub Pages build completed successfully at `2026-09-08T14:08:53Z` from that exact commit.
 - Cache-busted production downloads matched the local workbook hashes exactly. Both public files reopened with the protected headers, `AxTable1`, A1 note and row counts: 1,132 PR attributions and 996 POs.
 - The deployed `index.html` contains the shared holder rule, the **Step not reported by F&O** label and the one-document counting note.
+
+---
+
+# 8 September 2026 — What each item is, and what to do
+
+## What I found
+
+- Both consumers had enough data to classify every actionable requisition, but neither used `Stage reason code`.
+- The workbook generator already made one row per real holder. The sender could therefore use that same holder decision without inventing another rule.
+- Preparer numbers could be resolved from a small repository mapping. System accounts and missing operations mappings needed a visible exception queue, not a personal email.
+- The deployed sender reads columns by name. Appending one PR column does not break its parser.
+
+## Source used
+
+- Saved LIVE revision: `06f20f2aebd0cbfbae522e616534d2a3720cc274b399cf4fb831033bae6b98dd`.
+- Feed generation time: `2026-09-08T14:53:29.146Z`.
+- Saved payload SHA-256: `620B58BE2472EB474826263FF5C4316647E887A1762DF182E25947D03EB25D8F`.
+- The implementation, both generated workbooks, dashboard reconciliation and email render all used that one saved file. An earlier blocker investigation downloaded the endpoint twice; the files were byte-identical. No further live fetch was made after implementation began.
+
+## Exact changes made
+
+- Added one shared, versioned class definition in both repositories. A drift test compares the two JSON files exactly.
+- Added an extendable employee-number mapping. Known people become names; system accounts become `No named owner`; an unknown number becomes `employee number N — name not resolved`.
+- Added `Stage reason code` as the nineteenth and final `pr.xlsx` column. The live generator carries it straight from the feed. The emergency legacy-snapshot path remains available and is still off by default.
+- The dashboard now shows `Class of work`, `What to do` and `Age band` in PR tables and drill-throughs. `Class of work` is a working filter alongside Department.
+- The sender now groups every personal PR line by class, then department, then oldest first and largest first when ages tie. Every visible line includes site, description, class, department, value, age, age band and Pending Internal/Client.
+- Missing named ownership is routed into a `No named owner` section in the procurement digest. No personal email is invented for it.
+- The sender's Excel attachment now includes the source code, plain-English class, action, Pending Internal/Client and age band.
+
+## Class reconciliation — same revision
+
+| Stage reason code | Dashboard | Email workbook |
+| --- | ---: | ---: |
+| `ACTIVE_LINES_PRICED` | 563 | 563 |
+| `ACTIVE_LINES_NOT_FULLY_PRICED` | 263 | 263 |
+| `NO_CURRENT_WORK_ITEM` | 111 | 111 |
+| `UNMAPPED_ELEMENT` | 38 | 38 |
+| `ZERO_ACTIVE_LINES` | 2 | 2 |
+| `APPROVAL_CAPTURE` | 2 | 2 |
+| **Actionable documents** | **979** | **979** |
+
+No item is unclassified. The two `ZERO_ACTIVE_LINES` rows and 111 `NO_CURRENT_WORK_ITEM` rows are the 113 preparer-routed items measured in the task.
+
+## Holder reconciliation — dashboard versus personal email
+
+| Holder | Dashboard | Email |
+| --- | ---: | ---: |
+| dinesh.laxman | 423 | 423 |
+| Adnan.Ullah | 214 | 214 |
+| roderick.red | 95 | 95 |
+| Layusha.cleatus | 90 | 90 |
+| Aparna.Pauly | 53 | 53 |
+
+The procurement-class-only counts also match: Adnan 187, Roderick 83, Layusha 74 and Aparna 52.
+
+## Largest holder — resulting email sections
+
+- **Prices are in — waiting for you to confirm: 381**
+  - Building Services: 329
+  - Landscaping Services: 52
+- **Nobody assigned in F&O — sitting with the person who raised it: 42**
+  - Building Services: 22
+  - Department not reported: 15
+  - Transportation: 3
+  - IT: 1
+  - Landscaping Services: 1
+
+All 423 Dinesh PR lines are present in the local HTML render. The render is 899,102 bytes. Desktop and 390-pixel mobile captures are in `evidence/what-is-it-dinesh-email-desktop.png` and `evidence/what-is-it-dinesh-email-mobile.png`.
+
+## Owner resolution and the visible gap
+
+- Preparer-routed documents: 113.
+- Resolved to named people: 89.
+- Resolved to system accounts: 24.
+- Unresolved employee numbers: 0.
+- Bare numeric holders on the dashboard: 0.
+- Bare numeric holders in `pr.xlsx`: 0.
+- `No named owner` documents in the procurement digest: 29.
+- Departments with no operations person mapped: Leisure Services 2, Surveying Services 1, Housekeeping Services 1, Accomodation Services 1.
+
+The 29-item exception also contains system-account-only work. It remains visible in the procurement digest until a named person is recorded.
+
+## Counting convention
+
+- Headline counts and values use each requisition once: 979 documents, AED 21,201,944.51 excl. VAT.
+- Holder lists use attribution rows: 1,137 rows. Sixty-seven requisitions genuinely name more than one holder, producing 158 extra attributions.
+- The dashboard headline count and amount match the pre-change code on the saved revision. The two approval-capture rows moved from a guessed manager stage into the honest `Step not reported by F&O` group.
+- The PO view is unchanged: 996 live orders and AED 37,775,301.25 excl. VAT, with identical stage counts before and after.
+
+## Pending Internal and Pending Client
+
+- The distinction remains a separate `Queue` value beside the class.
+- This revision contains 563 Pending Client rows and zero Pending Internal rows. A dedicated test proves the Pending Internal route with `Quotation shared to Operations for confirmation`.
+
+## Workbook contract
+
+- `pr.xlsx` opens with 1,137 attribution rows. Its original 18 headers and widths are unchanged; `Stage reason code` is appended with width 30.
+- `po.xlsx` opens with 996 rows. Its headers and widths are unchanged.
+- Both files retain `AxTable1` and the exact existing A1 note. `validate_saved` passes.
+- Final hashes: `pr.xlsx` `D1A2432EF29327C42A246AB21FDE90889BC8897046EF35823F91E6EC6A0B01D0`; `po.xlsx` `521D40E5418AA5D43092E56D98169FA198D8BAB72CB28F89C983B98339DE0508`.
+- The unchanged deployed sender at `f7c96d8a7d87884c8fe348ff847ef4e77d530706` parsed the new workbook without error: 1,137 rows. Sample: `CPR-000004`, `ACTIVE_LINES_PRICED`, `dinesh.laxman`.
+
+## Testing performed
+
+- Dashboard JavaScript checks: holder rule, dead-column scope, race control, live dataset contract, auth flow and sign-in scene — passed.
+- Dashboard Python tests: `python -m unittest discover -s tests -p 'test_*.py'` — 19 passed.
+- Shared class drift check: `python tests/reconcile_work_class_contract.py --proxy-repo C:\Users\w.amjad\Documents\GitHub\pr-po-proxy` — passed.
+- Same-revision reconciliation: `node tests/reconcile_what_is_it.js <saved-dataset> <proxy-repo> ...` — passed, including every Dinesh PR line, class parity, holder parity, no-named digest evidence and PR/PO regression figures.
+- Workbook generation: `python scripts/generate_legacy_email_workbooks.py --dataset-json <saved-dataset> --output-dir . --evidence evidence\what-is-it-workbook-generation.json` — passed; the repeat run reported no content change.
+- Proxy checks: `node --check src/functions/prpoEmail.js`, `npm test`, and `npm run build --if-present` — passed. The proxy has no separate build script; 16 tests are the production code check.
+- Workbook open/contract check with `openpyxl` — passed for headers, widths, `AxTable1`, A1 note and row counts.
+- Existing deployed `parseXlsx` compatibility check — passed with 1,137 rows and the sample above.
+- Email rendered offline only. No email was sent and no deployment workflow was triggered.
+- `git diff --check` passed in both repositories.
+
+Two diagnostic commands were corrected during verification: the generator uses `--evidence`, not `--summary-json`; and the protected-setting comparison was narrowed from the allowed procurement-title wording change to the actual recipient, schedule and test-mode fields. The final checks passed.
+
+## What I did not change
+
+- No recipient address, `USER_EMAIL`, `USER_MANAGER`, `PRPO_*_MAIL_TO`, BCC, schedule, secret, token, app setting or `PRPO_PERSONAL_TEST` default changed.
+- No email was sent. The Function App deployment was not triggered.
+- No dataset-feed logic, Dataverse data, sign-in source, VAT rule or feature branch changed.
+- The emergency `--routing-source legacy-snapshot` path remains available and remains off by default.
+
+## Remaining risk and next step
+
+- The new sender code is not live until Waqas deploys the exact proxy commit recorded below. Until then, the deployed sender safely ignores the added workbook column and continues its previous presentation.
+- Recipient coverage for newly resolved people was not broadened because recipient lists are protected. The rows remain in the workbook and dashboard; any person without an existing configured address will still be reported by the sender as `no address mapped`.
+
+## Proxy deployment handoff
+
+- Commit to deploy: `b000caed560dd0eae0141f004abcdeda23a4b2e2`.
+- The deployment workflow was not triggered.

@@ -26,7 +26,13 @@ from legacy_email_stage_map import (
 
 ROOT = Path(__file__).resolve().parents[1]
 HOLDER_RULE = json.loads((ROOT / "holder-rule.json").read_text(encoding="utf-8"))
+WORK_CLASS_RULE = json.loads((ROOT / "work-class-rule.json").read_text(encoding="utf-8"))
+EMPLOYEE_HOLDER_MAP = json.loads((ROOT / "employee-holder-map.json").read_text(encoding="utf-8"))
+SYSTEM_ACCOUNT_KEYS = {
+    " ".join(name.lower().split()) for name in EMPLOYEE_HOLDER_MAP["systemAccounts"]
+}
 NOT_RECORDED = HOLDER_RULE["notRecorded"]
+NO_NAMED_OWNER = "No named owner"
 
 DEFAULT_DATASET_URL = (
     "https://ssg-prpo-proxy-h4cvfegaduftedhz.uaenorth-01.azurewebsites.net/api/dataset"
@@ -44,7 +50,7 @@ PR_COLUMNS = [
     "Created date", "Submitted date", "Requisition purpose", "Submission Status",
     "Accepted By/Assign To", "Department", "Location", "Contract",
     "Request for quotation case", "Total amount", "Pending Approver/User",
-    "Step name", "Step date and time",
+    "Step name", "Step date and time", "Stage reason code",
 ]
 PO_COLUMNS = [
     "Purchase order", "Vendor account", "Invoice account", "Vendor name",
@@ -53,7 +59,7 @@ PO_COLUMNS = [
     "RFQ number", "Total amount", "Department", "Location", "Contract",
     "Pending Approver/User", "Step name", "Step date and time", "Created by",
 ]
-PR_WIDTHS = [24, 23, 8, 12, 10, 16, 18, 23, 21, 25, 14, 12, 12, 30, 16, 25, 13, 22]
+PR_WIDTHS = [24, 23, 8, 12, 10, 16, 18, 23, 21, 25, 14, 12, 12, 30, 16, 25, 13, 22, 30]
 PO_WIDTHS = [18, 18, 19, 15, 17, 19, 25, 12, 26, 25, 24, 14, 16, 14, 12, 12, 25, 13, 22, 14]
 PR_DATE_COLUMNS = {"Created date": "mm-dd-yy", "Submitted date": "mm-dd-yy", "Step date and time": "m/d/yy h:mm"}
 PO_DATE_COLUMNS = {"Requested receipt date": "mm-dd-yy", "Created date and time": "m/d/yy h:mm", "Step date and time": "m/d/yy h:mm"}
@@ -118,7 +124,8 @@ def load_legacy_rows(filename: str, columns: list[str], commit: str = LEGACY_EMA
     sheet = workbook.active
     values = sheet.iter_rows(values_only=True)
     headers = list(next(values))
-    if headers != columns:
+    compatible_columns = [column for column in columns if column != "Stage reason code"]
+    if headers not in (columns, compatible_columns):
         raise RuntimeError(f"last known-good {filename} headers do not match the protected contract")
     rows = []
     for cells in values:
@@ -133,14 +140,14 @@ def load_legacy_rows(filename: str, columns: list[str], commit: str = LEGACY_EMA
 
 def fallback_pr_rows(live_rows: list[dict], legacy_rows: list[dict]) -> tuple[list[dict], Counter]:
     """Keep the proven routing snapshot but refresh every amount from live F&O."""
-    live_amounts = {}
+    live_source = {}
     for row in live_rows:
         number = str(row.get("Purchase requisition") or "").strip().upper()
         if not number:
             continue
-        if number in live_amounts:
+        if number in live_source:
             raise RuntimeError(f"duplicate requisition in live dataset: {number}")
-        live_amounts[number] = row.get("Total amount")
+        live_source[number] = row
 
     output = []
     evidence = Counter()
@@ -150,7 +157,7 @@ def fallback_pr_rows(live_rows: list[dict], legacy_rows: list[dict]) -> tuple[li
         if number in seen:
             raise RuntimeError(f"duplicate requisition in fallback snapshot: {number}")
         seen.add(number)
-        if number not in live_amounts:
+        if number not in live_source:
             status = str(row.get("Status") or "")
             email_actionable = (
                 str(row.get("Step name") or "") in LEGACY_EMAIL_PR_STEPS
@@ -162,7 +169,8 @@ def fallback_pr_rows(live_rows: list[dict], legacy_rows: list[dict]) -> tuple[li
             evidence["unavailable non-action row omitted"] += 1
             continue
         translated = {column: row.get(column) for column in PR_COLUMNS}
-        translated["Total amount"] = live_amounts[number]
+        translated["Total amount"] = live_source[number].get("Total amount")
+        translated["Stage reason code"] = live_source[number].get("Stage reason code")
         owner = str(translated.get("Pending Approver/User") or "")
         if "," in owner:
             raise RuntimeError(f"fallback requisition has multiple owners: {number}")
@@ -206,45 +214,86 @@ def fallback_po_rows(live_rows: list[dict], legacy_rows: list[dict]) -> tuple[li
     return output, evidence
 
 
+def resolve_owner_name(value) -> tuple[str, bool]:
+    """Resolve one holder token and state whether it identifies a real person."""
+    raw = str(value or "").strip()
+    if not raw:
+        return NOT_RECORDED, False
+    if raw.isdigit():
+        mapped = EMPLOYEE_HOLDER_MAP["employees"].get(raw)
+        if not mapped:
+            return f"employee number {raw} — name not resolved", False
+        raw = mapped
+    if " ".join(raw.lower().split()) in SYSTEM_ACCOUNT_KEYS:
+        return f"{NO_NAMED_OWNER} — {raw}", False
+    key = " ".join(raw.lower().split())
+    return HOLDER_RULE["ownerAliases"].get(key, raw), True
+
+
 def split_holder_names(value) -> list[str]:
-    """Return real holder names once each; never preserve a comma-list as a person."""
-    output = []
+    """Return named holders once each, or one explicit unresolved-owner label."""
+    named = []
+    unresolved = []
     seen = set()
     for part in str(value or "").split(","):
-        name = part.strip()
+        name, is_named = resolve_owner_name(part)
         key = " ".join(name.lower().split())
-        name = HOLDER_RULE["ownerAliases"].get(key, name)
-        key = " ".join(name.lower().split())
-        if not key or key == NOT_RECORDED or key.isdigit() or set(key) == {"0"} or key in seen:
+        if key in seen:
             continue
         seen.add(key)
-        output.append(name)
-    return output
+        (named if is_named else unresolved).append(name)
+    return named or unresolved or [NOT_RECORDED]
+
+
+def work_class(row: dict) -> tuple[str, dict]:
+    code = str(row.get("Stage reason code") or "").strip()
+    if not code:
+        step = str(row.get("Step name") or "").strip()
+        if step in {"Priced — awaiting approval", "Unit prices updated in PR lines", "Quotation shared to Operations for confirmation"}:
+            code = "ACTIVE_LINES_PRICED"
+        elif step in {"Sourcing", "Procurement sends inquiry/RFQ to suppliers", "Quotation received and logged/attached", "Operations confirms material/scope"}:
+            code = "ACTIVE_LINES_NOT_FULLY_PRICED"
+    rule = WORK_CLASS_RULE["classes"].get(code)
+    if rule:
+        return code, rule
+    return code or "NOT_REPORTED", {
+        "order": 999,
+        "label": (
+            f'{WORK_CLASS_RULE["unknownLabel"]} — {code}'
+            if code else "Work class not reported by F&O"
+        ),
+        "action": WORK_CLASS_RULE["unknownAction"],
+        "holderMode": "pending",
+        "headerBucket": HOLDER_RULE["unreportedStage"],
+        "workbookStep": "PurchReqReviewTask",
+    }
 
 
 def pr_holder_route(row: dict) -> dict:
-    """Apply the shared live PR holder/stage rule from holder-rule.json."""
+    """Apply the shared Stage-reason classification and holder rule."""
+    code, class_rule = work_class(row)
     stage = str(row.get("Step name") or "").strip()
-    rule = HOLDER_RULE["stageRules"].get(stage, HOLDER_RULE["unreportedRule"])
     department = str(row.get("Department") or "").strip()
-    if rule["holderMode"] == "departmentOperations":
-        names = split_holder_names(
-            HOLDER_RULE["operationsHolderByDepartment"].get(department)
-            or (row.get("Pending Approver/User") if rule.get("fallbackToPending") else None)
+    if class_rule["holderMode"] == "departmentOperations":
+        mapped = HOLDER_RULE["operationsHolderByDepartment"].get(department)
+        names = (
+            split_holder_names(mapped)
+            if mapped else
+            [f"{NO_NAMED_OWNER} — no operations person mapped for {department or 'department not reported'}"]
         )
+    elif class_rule["holderMode"] == "preparer":
+        names = split_holder_names(row.get("Preparer"))
     else:
         names = split_holder_names(row.get("Pending Approver/User"))
-    workbook_step = rule.get("workbookStep")
-    if rule.get("workbookStepByDepartment"):
-        workbook_step = HOLDER_RULE["managerWorkbookStepByDepartment"].get(
-            department, "Building Services_Asst. Facility Managers 1"
-        )
     return {
         "stage": stage or HOLDER_RULE["unreportedStage"],
-        "stepReported": stage in HOLDER_RULE["stageRules"],
-        "headerBucket": rule["headerBucket"],
-        "holders": names or [NOT_RECORDED],
-        "workbookStep": workbook_step,
+        "stepReported": bool(stage),
+        "classCode": code,
+        "classLabel": class_rule["label"],
+        "classAction": class_rule["action"],
+        "headerBucket": class_rule["headerBucket"],
+        "holders": names,
+        "workbookStep": class_rule["workbookStep"],
     }
 
 
@@ -269,6 +318,10 @@ def live_pr_rows(rows: list[dict]) -> tuple[list[dict], Counter]:
             evidence["step not reported source documents"] += 1
         if route["headerBucket"] == "Operations to Confirm":
             evidence["operations confirmation source documents"] += 1
+        if any(holder == NOT_RECORDED or holder.startswith(NO_NAMED_OWNER) or holder.startswith("employee number ") for holder in route["holders"]):
+            evidence["no named owner source documents"] += 1
+            if route["classCode"] == "ACTIVE_LINES_PRICED":
+                evidence[f"operations mapping missing: {str(row.get('Department') or '').strip() or 'department not reported'}"] += 1
         for holder in route["holders"]:
             translated = {column: row.get(column) for column in PR_COLUMNS}
             translated["Pending Approver/User"] = holder
@@ -277,6 +330,7 @@ def live_pr_rows(rows: list[dict]) -> tuple[list[dict], Counter]:
             # Approved. Keep all three compatibility fields aligned to one rule.
             translated["Preparer"] = holder
             translated["Accepted By/Assign To"] = holder
+            translated["Stage reason code"] = route["classCode"]
             output.append(translated)
             evidence["holder attribution rows"] += 1
     evidence["actionable source documents"] = len(seen_documents)
@@ -439,7 +493,7 @@ def main() -> None:
     pr_path, po_path = output_dir / "pr.xlsx", output_dir / "po.xlsx"
     state_path = output_dir / args.state_file
     state = {
-        "formatVersion": 2,
+        "formatVersion": 3,
         "prContentSha256": content_hash(pr_rows, PR_COLUMNS),
         "poContentSha256": content_hash(po_rows, PO_COLUMNS),
     }
@@ -456,6 +510,18 @@ def main() -> None:
         state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
     validate_saved(pr_path, PR_COLUMNS, len(pr_rows))
     validate_saved(po_path, PO_COLUMNS, len(po_rows))
+    source_class_counts = Counter()
+    for row in dataset["pr"]["rows"]:
+        if str(row.get("Status") or "").strip().lower() in {"draft", "in review", "approved"}:
+            source_class_counts[work_class(row)[0]] += 1
+    workbook_class_documents = Counter()
+    for row in pr_rows:
+        number = str(row.get("Purchase requisition") or "").strip().upper()
+        if number:
+            workbook_class_documents[(str(row.get("Stage reason code") or "NOT_REPORTED"), number)] = 1
+    workbook_class_counts = Counter()
+    for (code, _), count in workbook_class_documents.items():
+        workbook_class_counts[code] += count
     summary = {
         "datasetRevision": dataset["revision"],
         "sourceState": dataset["sourceState"],
@@ -476,7 +542,10 @@ def main() -> None:
                 for row in pr_rows
             ),
             "commaJoinedOwners": sum("," in str(row.get("Pending Approver/User") or "") for row in pr_rows),
+            "bareNumericOwners": sum(str(row.get("Pending Approver/User") or "").strip().isdigit() for row in pr_rows),
             "liveActionableMissingFromWorkbook": 0,
+            "classCountsSourceDocuments": dict(source_class_counts),
+            "classCountsWorkbookDocuments": dict(workbook_class_counts),
         },
         "po": {
             "rows": len(po_rows), "columns": PO_COLUMNS,
@@ -487,7 +556,7 @@ def main() -> None:
         "amountBasis": "live F&O active-line values excl. VAT",
         "datePolicy": "current live dataset clocks; unreported clocks remain blank",
         "routingPolicy": (
-            "current live dataset and holder-rule.json"
+            "current live dataset, holder-rule.json, work-class-rule.json, and employee-holder-map.json"
             if args.routing_source == "live" else
             f"emergency legacy snapshot {LEGACY_EMAIL_COMMIT} with current live ex-VAT amounts"
         ),

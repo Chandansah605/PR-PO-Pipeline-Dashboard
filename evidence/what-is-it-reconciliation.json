@@ -1,0 +1,245 @@
+{
+  "provedAt": "2026-09-08T16:04:05.958Z",
+  "datasetRevision": "06f20f2aebd0cbfbae522e616534d2a3720cc274b399cf4fb831033bae6b98dd",
+  "datasetGeneratedAt": "2026-09-08T14:53:29.146Z",
+  "liveActionableDocuments": 979,
+  "workbookAttributionRows": 1137,
+  "senderParsedRows": 1137,
+  "senderSampleRow": {
+    "requisition": "CPR-000004",
+    "stageReasonCode": "ACTIVE_LINES_PRICED",
+    "holder": "dinesh.laxman"
+  },
+  "classCounts": {
+    "dashboard": {
+      "ACTIVE_LINES_NOT_FULLY_PRICED": 263,
+      "ACTIVE_LINES_PRICED": 563,
+      "APPROVAL_CAPTURE": 2,
+      "NO_CURRENT_WORK_ITEM": 111,
+      "UNMAPPED_ELEMENT": 38,
+      "ZERO_ACTIVE_LINES": 2
+    },
+    "email": {
+      "ACTIVE_LINES_NOT_FULLY_PRICED": 263,
+      "ACTIVE_LINES_PRICED": 563,
+      "APPROVAL_CAPTURE": 2,
+      "NO_CURRENT_WORK_ITEM": 111,
+      "UNMAPPED_ELEMENT": 38,
+      "ZERO_ACTIVE_LINES": 2
+    }
+  },
+  "holderComparison": {
+    "dinesh.laxman": {
+      "dashboard": 423,
+      "email": 423
+    },
+    "adnan.ullah": {
+      "dashboard": 214,
+      "email": 214
+    },
+    "roderick.red": {
+      "dashboard": 95,
+      "email": 95
+    },
+    "layusha.cleatus": {
+      "dashboard": 90,
+      "email": 90
+    },
+    "aparna.pauly": {
+      "dashboard": 53,
+      "email": 53
+    }
+  },
+  "procurementClassHolderComparison": {
+    "dinesh.laxman": {
+      "dashboard": 0,
+      "email": 0
+    },
+    "adnan.ullah": {
+      "dashboard": 187,
+      "email": 187
+    },
+    "roderick.red": {
+      "dashboard": 83,
+      "email": 83
+    },
+    "layusha.cleatus": {
+      "dashboard": 74,
+      "email": 74
+    },
+    "aparna.pauly": {
+      "dashboard": 52,
+      "email": 52
+    }
+  },
+  "preparerResolution": {
+    "sourceDocuments": 113,
+    "namedPeople": 89,
+    "systemAccounts": 24,
+    "unresolvedNumbers": 0
+  },
+  "largestHolder": {
+    "user": "dinesh.laxman",
+    "count": 423,
+    "everyPrLineRendered": true,
+    "htmlBytes": 899102,
+    "sections": [
+      {
+        "code": "ACTIVE_LINES_PRICED",
+        "label": "Prices are in — waiting for you to confirm",
+        "count": 381,
+        "departments": [
+          {
+            "department": "Building Services",
+            "count": 329
+          },
+          {
+            "department": "Landscaping Services",
+            "count": 52
+          }
+        ]
+      },
+      {
+        "code": "NO_CURRENT_WORK_ITEM",
+        "label": "Nobody assigned in F&O — sitting with the person who raised it",
+        "count": 42,
+        "departments": [
+          {
+            "department": "Building Services",
+            "count": 22
+          },
+          {
+            "department": "Department not reported",
+            "count": 15
+          },
+          {
+            "department": "Transportation",
+            "count": 3
+          },
+          {
+            "department": "IT",
+            "count": 1
+          },
+          {
+            "department": "Landscaping Services",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "noNamedOwner": {
+    "documents": 29,
+    "procurementDigestEvidencePresent": true,
+    "departments": {
+      "Accomodation Services": 1,
+      "Building Services": 4,
+      "Contracted Cleaning Services": 2,
+      "Department not reported": 8,
+      "FitOut Services": 8,
+      "Home Maintenance Services": 1,
+      "Housekeeping Services": 1,
+      "IT": 1,
+      "Leisure Services": 2,
+      "Surveying Services": 1
+    },
+    "classCounts": {
+      "ACTIVE_LINES_PRICED": 5,
+      "NO_CURRENT_WORK_ITEM": 22,
+      "ZERO_ACTIVE_LINES": 2
+    }
+  },
+  "attributionConvention": {
+    "headlineDocuments": 979,
+    "holderAttributionRows": 1137,
+    "multiHolderDocuments": 67,
+    "extraAttributions": 158
+  },
+  "pendingSplit": {
+    "Not operations confirmation": 574,
+    "Pending Client": 563
+  },
+  "dashboardUi": {
+    "classFilter": true,
+    "mainColumns": [
+      "PR #",
+      "Type",
+      "Name",
+      "Department",
+      "Project / Location",
+      "Class of work",
+      "What to do",
+      "Bucket",
+      "Sub-bucket (Step)",
+      "Status",
+      "Created",
+      "Step Date & Time",
+      "Aging",
+      "Age band",
+      "Pending With"
+    ],
+    "drillColumns": [
+      "PR #",
+      "Type",
+      "Quote Ref",
+      "Name",
+      "Department",
+      "Project",
+      "Class of work",
+      "What to do",
+      "Sub-bucket (Step)",
+      "Status",
+      "Created",
+      "Step Date",
+      "Aging",
+      "Age band",
+      "Pending With"
+    ]
+  },
+  "regression": {
+    "prBaseline": {
+      "documents": 979,
+      "amount": 21201944.51,
+      "stages": {
+        "Dep Managers": 2,
+        "Operations to Confirm": 563,
+        "Procurement": 263,
+        "Step not reported by F&O": 151
+      }
+    },
+    "prCurrent": {
+      "documents": 979,
+      "amount": 21201944.51,
+      "stages": {
+        "Operations to Confirm": 563,
+        "Procurement": 263,
+        "Step not reported by F&O": 153
+      }
+    },
+    "poBaseline": {
+      "documents": 996,
+      "amount": 37775301.25,
+      "stages": {
+        "Director": 3,
+        "Finance": 3,
+        "Procurement": 97,
+        "Receipt posted": 510,
+        "Sent to supplier": 383
+      }
+    },
+    "poCurrent": {
+      "documents": 996,
+      "amount": 37775301.25,
+      "stages": {
+        "Director": 3,
+        "Finance": 3,
+        "Procurement": 97,
+        "Receipt posted": 510,
+        "Sent to supplier": 383
+      }
+    }
+  },
+  "bareNumericDashboardHolders": 0,
+  "bareNumericWorkbookHolders": 0,
+  "sendsPerformed": 0
+}

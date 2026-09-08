@@ -13,8 +13,7 @@ const deadOwnerOrMetricFields = [
   'Purchase type',
   'RFQ number',
   'Created by',
-  'Created By',
-  'Preparer'
+  'Created By'
 ];
 
 for (const file of displaySources) {
@@ -22,6 +21,16 @@ for (const file of displaySources) {
   for (const field of deadOwnerOrMetricFields) {
     assert.equal(source.includes(field), false, `${file} still reads or names dead field ${field}`);
   }
+}
+
+// Preparer is the one formerly unusable field that now has an authorised,
+// mapped use: routing NO_CURRENT_WORK_ITEM rows to a resolved employee name.
+// It must not leak into another display or calculation path.
+const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+assert.equal((indexSource.match(/r\['Preparer'\]/g) || []).length, 1);
+assert.match(indexSource, /holderMode==='preparer'\)holders=holderNames\(r\['Preparer'\]\)/);
+for (const file of ['divisions.html', 'race-control.js']) {
+  assert.equal(fs.readFileSync(path.join(root, file), 'utf8').includes('Preparer'), false);
 }
 
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');

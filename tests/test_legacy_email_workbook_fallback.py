@@ -84,6 +84,7 @@ class LegacyEmailFallbackTests(unittest.TestCase):
         rows, evidence = generator.live_pr_rows([legacy_row(**{
             "Purchase requisition": "PR-NEW-AFTER-SNAPSHOT",
             "Step name": None,
+            "Stage reason code": "UNMAPPED_ELEMENT",
             "Pending Approver/User": "roderick.red",
         })])
         self.assertEqual(rows[0]["Purchase requisition"], "PR-NEW-AFTER-SNAPSHOT")
@@ -93,6 +94,7 @@ class LegacyEmailFallbackTests(unittest.TestCase):
     def test_priced_routes_to_department_operations_confirmer(self):
         rows, evidence = generator.live_pr_rows([legacy_row(**{
             "Step name": "Priced — awaiting approval",
+            "Stage reason code": "ACTIVE_LINES_PRICED",
             "Department": "Building Services",
             "Pending Approver/User": "Adnan.Ullah",
         })])
@@ -100,13 +102,52 @@ class LegacyEmailFallbackTests(unittest.TestCase):
         self.assertEqual(rows[0]["Step name"], "Unit prices updated in PR lines")
         self.assertEqual(evidence["operations confirmation source documents"], 1)
 
-    def test_priced_uses_live_holder_when_department_has_no_ops_mapping(self):
-        rows, _ = generator.live_pr_rows([legacy_row(**{
+    def test_priced_without_department_mapping_goes_to_no_named_owner(self):
+        rows, evidence = generator.live_pr_rows([legacy_row(**{
             "Step name": "Priced — awaiting approval",
+            "Stage reason code": "ACTIVE_LINES_PRICED",
             "Department": "Surveying Services",
             "Pending Approver/User": "Aparna.Pauly",
         })])
-        self.assertEqual(rows[0]["Pending Approver/User"], "Aparna.Pauly")
+        self.assertEqual(rows[0]["Pending Approver/User"], "No named owner — no operations person mapped for Surveying Services")
+        self.assertEqual(evidence["operations mapping missing: Surveying Services"], 1)
+
+    def test_every_stage_reason_code_has_a_plain_english_class(self):
+        for code, rule in generator.WORK_CLASS_RULE["classes"].items():
+            with self.subTest(code=code):
+                _, resolved = generator.work_class(legacy_row(**{"Stage reason code": code}))
+                self.assertEqual(resolved["label"], rule["label"])
+                self.assertTrue(resolved["action"])
+
+    def test_preparer_employee_number_resolves_to_a_name(self):
+        rows, _ = generator.live_pr_rows([legacy_row(**{
+            "Step name": None,
+            "Stage reason code": "NO_CURRENT_WORK_ITEM",
+            "Preparer": "310523",
+            "Pending Approver/User": None,
+        })])
+        self.assertEqual(rows[0]["Pending Approver/User"], "dinesh.laxman")
+        self.assertEqual(rows[0]["Preparer"], "dinesh.laxman")
+
+    def test_unknown_preparer_employee_number_is_explicit(self):
+        rows, evidence = generator.live_pr_rows([legacy_row(**{
+            "Step name": None,
+            "Stage reason code": "NO_CURRENT_WORK_ITEM",
+            "Preparer": "999999",
+            "Pending Approver/User": None,
+        })])
+        self.assertEqual(rows[0]["Pending Approver/User"], "employee number 999999 — name not resolved")
+        self.assertEqual(evidence["no named owner source documents"], 1)
+
+    def test_system_account_preparer_goes_to_no_named_owner(self):
+        rows, evidence = generator.live_pr_rows([legacy_row(**{
+            "Step name": None,
+            "Stage reason code": "NO_CURRENT_WORK_ITEM",
+            "Preparer": "000000",
+            "Pending Approver/User": None,
+        })])
+        self.assertEqual(rows[0]["Pending Approver/User"], "No named owner — D365CRM ADMIN")
+        self.assertEqual(evidence["no named owner source documents"], 1)
 
     def test_preserves_routing_and_replaces_amount_from_live_source(self):
         live = [{"Purchase requisition": "pr-test-001", "Total amount": 100.0}]
@@ -140,6 +181,7 @@ class LegacyEmailFallbackTests(unittest.TestCase):
         sheet = load_workbook(io.BytesIO(payload), read_only=False, data_only=True).active
         headers = [sheet.cell(1, index).value for index in range(1, sheet.max_column + 1)]
         self.assertEqual(headers, generator.PR_COLUMNS)
+        self.assertEqual(headers[-1], "Stage reason code")
         self.assertEqual(list(sheet.tables), ["AxTable1"])
 
     def test_po_fallback_preserves_routing_and_replaces_live_amount(self):

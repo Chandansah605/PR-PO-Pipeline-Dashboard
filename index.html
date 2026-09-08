@@ -507,6 +507,7 @@ table.dataTable thead{background:#f8fafc}
 
     <div class="filter-group"><label>Bucket</label><select id="filterBucket"><option value="">All</option></select></div>
     <div class="filter-group"><label>Sub-bucket (Step)</label><select id="filterStep"><option value="">All</option></select></div>
+    <div class="filter-group" id="classFilterGroup"><label>Class of work</label><select id="filterClass"><option value="">All</option></select></div>
     <div class="filter-group"><label>Department</label><select id="filterDept"><option value="">All</option></select></div>
     <div class="filter-group"><label>Status</label><select id="filterStatus"><option value="">All</option></select></div>
     <div class="filter-group"><label>Project</label><select id="filterProject"><option value="">All</option></select></div>
@@ -630,6 +631,8 @@ table.dataTable thead{background:#f8fafc}
 const PR_DATA = [];
 const PO_DATA = [];
 const HOLDER_RULE = {"version":1,"notRecorded":"not recorded","unreportedStage":"Step not reported by F&O","stageRules":{"Sourcing":{"headerBucket":"Procurement","holderMode":"pending","workbookStep":"Procurement sends inquiry/RFQ to suppliers"},"Priced — awaiting approval":{"headerBucket":"Operations to Confirm","holderMode":"departmentOperations","fallbackToPending":true,"workbookStep":"Unit prices updated in PR lines"},"Dep Managers":{"headerBucket":"Dep Managers","holderMode":"pending","workbookStepByDepartment":true},"Finance":{"headerBucket":"Finance","holderMode":"pending","workbookStep":"Finance & Accounts_Accounting Manager"},"Director":{"headerBucket":"Director","holderMode":"pending","workbookStep":"Facilities Management_Director"},"CEO":{"headerBucket":"CEO","holderMode":"pending","workbookStep":"Executive Management_CEO"}},"unreportedRule":{"headerBucket":"Step not reported by F&O","holderMode":"pending","workbookStep":"PurchReqReviewTask"},"operationsHolderByDepartment":{"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"},"ownerAliases":{"dinesh laxman laxman":"dinesh.laxman","gokul krishna pillai":"Gokul.Krishna","pramod chandrasenan chandrasenan":"pramod.c","shijil choyaprath chandran":"shijil.c","zaheer ahmed ameer":"Zaheer.Ahmed","d365crm admin":"it.solutions","d365crmadmin":"it.solutions","it department":"it.solutions"},"managerWorkbookStepByDepartment":{"Building Services":"Building Services_Asst. Facility Managers 1","Contracted Cleaning Services":"PAC Services_Manager","Concierge Services":"Concierge Services_Manager","Security Services":"Security Services_Manager","Home Maintenance Services":"Home Services_Operations Manager","FitOut Services":"Home Services_Operations Manager","Landscaping Services":"Landscaping_Manager"}};
+const WORK_CLASS_RULE = {"version":1,"unknownLabel":"Work class not recognised","unknownAction":"Check the requisition and classify the next action.","classes":{"ACTIVE_LINES_PRICED":{"order":1,"label":"Prices are in — waiting for you to confirm","action":"Confirm the material, scope and price.","holderMode":"departmentOperations","headerBucket":"Operations to Confirm","workbookStep":"Unit prices updated in PR lines"},"ACTIVE_LINES_NOT_FULLY_PRICED":{"order":2,"label":"With procurement to price","action":"Procurement must obtain and complete the pricing.","holderMode":"pending","headerBucket":"Procurement","workbookStep":"Procurement sends inquiry/RFQ to suppliers"},"NO_CURRENT_WORK_ITEM":{"order":3,"label":"Nobody assigned in F&O — sitting with the person who raised it","action":"The person who raised it must move it forward.","holderMode":"preparer","headerBucket":"Step not reported by F&O","workbookStep":"PurchReqReviewTask"},"UNMAPPED_ELEMENT":{"order":4,"label":"At an approval step F&O cannot name","action":"Check the requisition and identify the approver.","holderMode":"pending","headerBucket":"Step not reported by F&O","workbookStep":"PurchReqReviewTask"},"ZERO_ACTIVE_LINES":{"order":5,"label":"No live lines","action":"Review the requisition lines or close the request.","holderMode":"preparer","headerBucket":"Step not reported by F&O","workbookStep":"PurchReqReviewTask"},"APPROVAL_CAPTURE":{"order":6,"label":"Approval recorded","action":"Check that the requisition moves to its next step.","holderMode":"pending","headerBucket":"Step not reported by F&O","workbookStep":"PurchReqReviewTask"}}};
+const EMPLOYEE_HOLDER_MAP = {"version":1,"employees":{"000000":"D365CRM ADMIN","310523":"Dinesh Laxman Laxman","312005":"Gokul Krishna Pillai","971559811447":"Qasim Jahangir","311141":"Zaheer Ahmed Ameer","310718":"Pramod Chandrasenan Chandrasenan","1111111111":"IT DEPARTMENT","311905":"Shakir Ameer Bakhsh","310083":"Shijil Choyaprath Chandran","000000000":"Sirinikhil","311428":"Ahamed Noorullah Mohamed","311863":"Muhammad Shehzad Ahmeduddin","311322":"Joe Orlain Jamisola","312281":"Abdul Basit Raza","0123456789":"Roderick Red Palma","123456789":"Buying Agent Concierge"},"systemAccounts":["D365CRM ADMIN","IT DEPARTMENT"]};
 const PR_STEPS_MAP = Object.fromEntries(Object.keys(HOLDER_RULE.stageRules).map(name=>[name,name]));
 const PO_STEPS_MAP = {"Advance payment request submitted (if applicable)":"Procurement","Procurement Manager":"Procurement","Accounting Manager":"Finance","Finance and Accounts Director":"Director","CEO":"CEO","Not yet sent":"Not yet sent","Sent to supplier":"Sent to supplier","Receipt posted":"Receipt posted","Invoiced":"Invoiced"};
 
@@ -645,20 +648,46 @@ const DEPT_OPSUSER=HOLDER_RULE.operationsHolderByDepartment;
 function opsUserForDept(d){return DEPT_OPSUSER[String(d==null?'':d).trim()]||'';}
 function roleOf(u){const d=deptForUser(u),ul=_rnorm(u);if(d==='Accounts & Tax'){if(ul==='ayman.g')return 'Director';if(ul==='patrick.smith')return 'CEO';return 'Finance';}if(d==='Procurement')return 'Procurement';return '';}
 const NOT_RECORDED=HOLDER_RULE.notRecorded;
-function ownerText(value){const v=String(value==null?'':value).trim();return (!v||/^0+$/.test(v)||/^\d+$/.test(v))?NOT_RECORDED:v;}
-function splitHolderNames(value){
-  const out=[],seen=new Set();
-  String(value==null?'':value).split(',').forEach(part=>{let name=ownerText(part),key=_rnorm(name);name=HOLDER_RULE.ownerAliases[key]||name;key=_rnorm(name);if(name===NOT_RECORDED||seen.has(key))return;seen.add(key);out.push(name);});
-  return out;
+const NO_NAMED_OWNER='No named owner';
+const SYSTEM_ACCOUNTS=new Set(EMPLOYEE_HOLDER_MAP.systemAccounts.map(_rnorm));
+function resolveOwner(value){
+  let v=String(value==null?'':value).trim();
+  if(!v)return {name:NOT_RECORDED,named:false};
+  if(/^\d+$/.test(v)){
+    const mapped=EMPLOYEE_HOLDER_MAP.employees[v];
+    if(!mapped)return {name:`employee number ${v} — name not resolved`,named:false};
+    v=mapped;
+  }
+  if(SYSTEM_ACCOUNTS.has(_rnorm(v)))return {name:`${NO_NAMED_OWNER} — ${v}`,named:false};
+  const name=HOLDER_RULE.ownerAliases[_rnorm(v)]||v;
+  return {name,named:true};
 }
-function holderNames(value){const names=splitHolderNames(value);return names.length?names:[NOT_RECORDED];}
+function ownerText(value){return resolveOwner(value).name;}
+function splitHolderNames(value){
+  const named=[],unresolved=[],seen=new Set();
+  String(value==null?'':value).split(',').forEach(part=>{const resolved=resolveOwner(part),key=_rnorm(resolved.name);if(seen.has(key))return;seen.add(key);(resolved.named?named:unresolved).push(resolved.name);});
+  return named.length?named:(unresolved.length?unresolved:[NOT_RECORDED]);
+}
+function holderNames(value){return splitHolderNames(value);}
 function holderDisplay(r){return ((r&&r.holders)||holderNames(r&&r.pendingUser)).join(' · ');}
+function workClassFor(r){
+  let code=String(r&&r['Stage reason code']||'').trim();
+  if(!code){const step=String(r&&r['Step name']||'').trim();if(['Priced — awaiting approval','Unit prices updated in PR lines','Quotation shared to Operations for confirmation'].includes(step))code='ACTIVE_LINES_PRICED';else if(['Sourcing','Procurement sends inquiry/RFQ to suppliers','Quotation received and logged/attached','Operations confirms material/scope'].includes(step))code='ACTIVE_LINES_NOT_FULLY_PRICED';}
+  const rule=WORK_CLASS_RULE.classes[code];
+  if(rule)return {code,label:rule.label,action:rule.action,order:rule.order,rule};
+  return {code:code||'NOT_REPORTED',label:code?`${WORK_CLASS_RULE.unknownLabel} — ${code}`:'Work class not reported by F&O',action:WORK_CLASS_RULE.unknownAction,order:999,rule:{holderMode:'pending',headerBucket:HOLDER_RULE.unreportedStage}};
+}
+function ageBand(days){if(days==null)return 'Age not recorded';if(days<=7)return '0–7';if(days<=30)return '8–30';if(days<=60)return '31–60';if(days<=90)return '61–90';return 'Over 90';}
 function prReconstruct(r,bucket){
-  const rule=HOLDER_RULE.stageRules[bucket]||HOLDER_RULE.unreportedRule;
+  const work=workClassFor(r),rule=work.rule;
   const rowdept=String(r['Department']||'').trim();
-  const raw=rule.holderMode==='departmentOperations'?(opsUserForDept(rowdept)||(rule.fallbackToPending?r['Pending Approver/User']:'')):r['Pending Approver/User'];
-  const holders=holderNames(raw);
-  return {hdr:rule.headerBucket,owner:holders[0],holders,disp:bucket||HOLDER_RULE.unreportedStage};
+  let holders;
+  if(rule.holderMode==='departmentOperations'){
+    const mapped=opsUserForDept(rowdept);
+    holders=mapped?holderNames(mapped):[`${NO_NAMED_OWNER} — no operations person mapped for ${rowdept||'department not reported'}`];
+  }else if(rule.holderMode==='preparer')holders=holderNames(r['Preparer']);
+  else holders=holderNames(r['Pending Approver/User']);
+  return {hdr:rule.headerBucket,owner:holders[0],holders,disp:bucket||HOLDER_RULE.unreportedStage,work};
 }
 function poReconstruct(r,bucket){
   // returns {hdr, owner} for a mapped/live PO record
@@ -726,7 +755,7 @@ let filteredRecords=[];
 let dataTableInstance=null;
 let currentDrillSubset=[];
 let currentDrillTitle='';
-let activeFilters={prtype:'all',bucket:'',step:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:''};
+let activeFilters={prtype:'all',bucket:'',step:'',workClass:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:''};
 let WEEKLY_SNAPSHOTS=null;   // weekly_snapshots.json — week-end (Sunday) live-pipeline snapshots
 let DATA_STATE={source:'loading',detail:'Connecting to the live F&O dataset',checking:true,error:null,freshness:null};
 let liveRequest=null;
@@ -826,7 +855,8 @@ function buildPRRecords(prData){
       project:r['Location']||'—', contract:r['Contract']||'',
       bucket, subBucket: step || HOLDER_RULE.unreportedStage, hdrBucket: rec_.hdr, dispBucket: rec_.disp||bucket,
       status:r['Status']||'—',
-      createdDate:created, stepDate, aging, amount:Number(r['Total amount'])||0,
+      classCode:rec_.work.code, workClass:rec_.work.label, workAction:rec_.work.action,
+      createdDate:created, stepDate, aging, ageBand:ageBand(aging), amount:Number(r['Total amount'])||0,
       pendingUser:rec_.owner, holders:rec_.holders, raw:r,
       _isClosed: isClosed,
       _isOpenPipeline: ['draft','in review','approved'].includes(String(r['Status']||'').trim().toLowerCase()),
@@ -894,6 +924,7 @@ function populateFilters(records){
   const fill=(id,items)=>{const sel=document.getElementById(id);const cur=sel.value;sel.innerHTML=`<option value="">All</option>`+items.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');if(cur)sel.value=cur;};
   fill('filterBucket', bucketOrder().filter(b=>records.some(r=>(r.dispBucket||r.bucket)===b)));
   fill('filterStep', uniqueSorted(records.map(r=>r.subBucket)));
+  fill('filterClass', mode==='PR'?uniqueSorted(records.map(r=>r.workClass)):[]);
   fill('filterDept', uniqueSorted(records.map(r=>r.department)));
   fill('filterStatus', uniqueSorted(records.map(r=>r.status)));
   fill('filterProject', uniqueSorted(records.map(r=>r.project)));
@@ -925,8 +956,9 @@ function setMode(m, btn, options){
   const prefixLabel = document.getElementById('prefixLabel');
   if(prefixLabel) prefixLabel.innerText = 'PR Prefix';
   // reset filters when mode changes
-  ['filterBucket','filterStep','filterDept','filterStatus','filterProject','filterFrom','filterTo','filterAging'].forEach(id=>document.getElementById(id).value='');
-  activeFilters={prtype:'all',bucket:'',step:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:document.getElementById('globalSearch').value.trim().toLowerCase()};
+  ['filterBucket','filterStep','filterClass','filterDept','filterStatus','filterProject','filterFrom','filterTo','filterAging'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('classFilterGroup').classList.toggle('hidden',m!=='PR');
+  activeFilters={prtype:'all',bucket:'',step:'',workClass:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:document.getElementById('globalSearch').value.trim().toLowerCase()};
   document.querySelectorAll('[data-prtype]').forEach(b=>b.classList.remove('active'));
   const allBtn = document.querySelector('[data-prtype="all"]'); if(allBtn) allBtn.classList.add('active');
   showLoader(`Switching to ${m} mode...`);
@@ -2349,6 +2381,7 @@ function setPRTypeFilter(t,btn){
 function applyFilters(){
   activeFilters.bucket=document.getElementById('filterBucket').value;
   activeFilters.step=document.getElementById('filterStep').value;
+  activeFilters.workClass=document.getElementById('filterClass').value;
   activeFilters.dept=document.getElementById('filterDept').value;
   activeFilters.status=document.getElementById('filterStatus').value;
   activeFilters.project=document.getElementById('filterProject').value;
@@ -2361,6 +2394,7 @@ function applyFilters(){
     if(mode==='PR'&&activeFilters.prtype!=='all'&&r.prType!==activeFilters.prtype)return false;
     if(activeFilters.bucket && (r.dispBucket||r.bucket)!==activeFilters.bucket) return false;
     if(activeFilters.step && r.subBucket!==activeFilters.step) return false;
+    if(activeFilters.workClass && r.workClass!==activeFilters.workClass) return false;
     if(activeFilters.dept && r.department!==activeFilters.dept) return false;
     if(activeFilters.status && r.status!==activeFilters.status) return false;
     if(activeFilters.project && r.project!==activeFilters.project) return false;
@@ -2375,7 +2409,7 @@ function applyFilters(){
       if(activeFilters.aging==='4-7' && !(a>=4&&a<=7)) return false;
       if(activeFilters.aging==='8+'  && !(a>=8)) return false;}
     if(activeFilters.search){
-      const blob=`${r.docNumber||''} ${r.name||''} ${r.vendorName||''} ${r.department} ${r.project} ${r.bucket} ${r.subBucket} ${r.status} ${holderDisplay(r)}`.toLowerCase();
+      const blob=`${r.docNumber||''} ${r.name||''} ${r.vendorName||''} ${r.department} ${r.project} ${r.bucket} ${r.subBucket} ${r.workClass||''} ${r.workAction||''} ${r.ageBand||''} ${r.status} ${holderDisplay(r)}`.toLowerCase();
       if(!blob.includes(activeFilters.search)) return false;
     }
     return true;
@@ -2390,10 +2424,10 @@ function applyFilters(){
 }
 
 function clearFilters(){
-  ['filterBucket','filterStep','filterDept','filterStatus','filterProject','filterFrom','filterTo','filterAging'].forEach(id=>document.getElementById(id).value='');
+  ['filterBucket','filterStep','filterClass','filterDept','filterStatus','filterProject','filterFrom','filterTo','filterAging'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('globalSearch').value='';
   raceHolderFilter='';
-  activeFilters={prtype:'all',bucket:'',step:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:''};
+  activeFilters={prtype:'all',bucket:'',step:'',workClass:'',dept:'',status:'',project:'',from:'',to:'',aging:'',search:''};
   document.querySelectorAll('[data-prtype]').forEach(b=>b.classList.remove('active'));
   const allBtn=document.querySelector('[data-prtype="all"]');if(allBtn)allBtn.classList.add('active');
   applyFilters();
@@ -2694,7 +2728,7 @@ function renderCharts(records){
 
 /* ============ Main table - mode-aware ============ */
 function getMainColumns(){
-  if(mode==='PR') return ['PR #','Type','Name','Department','Project / Location','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Aging','Pending With'];
+  if(mode==='PR') return ['PR #','Type','Name','Department','Project / Location','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Aging','Age band','Pending With'];
   return ['PO #','Vendor','Department','Project / Location','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Aging','Amount','Pending With'];
 }
 function renderTable(records){
@@ -2703,19 +2737,19 @@ function renderTable(records){
   document.getElementById('mainTableHead').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
   let rows;
   if(mode==='PR'){
-    rows=records.map(r=>[r.docNumber,`<b style="color:${r.prType==='CPR'?'#0ea5e9':'#8b5cf6'}">${r.prType||'—'}</b>`,r.name,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(r.subBucket),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),escapeHtml(holderDisplay(r))]);
+    rows=records.map(r=>[r.docNumber,`<b style="color:${r.prType==='CPR'?'#0ea5e9':'#8b5cf6'}">${r.prType||'—'}</b>`,r.name,r.department,r.project,escapeHtml(r.workClass),escapeHtml(r.workAction),`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(r.subBucket),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),escapeHtml(r.ageBand),escapeHtml(holderDisplay(r))]);
   } else {
     rows=records.map(r=>[r.docNumber,r.vendorName,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(stepText(r)),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2}),escapeHtml(holderDisplay(r))]);
   }
   $('#mainTable tbody').empty();
-  const sortCol = mode==='PR' ? 8 : 7;
+  const sortCol = mode==='PR' ? 10 : 7;
   dataTableInstance=$('#mainTable').DataTable({data:rows,pageLength:15,lengthMenu:[10,15,25,50,100],order:[[sortCol,'desc']],deferRender:true,dom:'lfrtip',language:{search:'Search:'}});
   document.getElementById('recordCount').innerText=`Showing ${records.length.toLocaleString()} ${mode} record(s)`;
 }
 
 /* ============ Drill-through ============ */
 function getDrillColumns(){
-  if(mode==='PR') return ['PR #','Type','Quote Ref','Name','Department','Project','Sub-bucket (Step)','Status','Created','Step Date','Aging','Pending With'];
+  if(mode==='PR') return ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Sub-bucket (Step)','Status','Created','Step Date','Aging','Age band','Pending With'];
   return ['PO #','Vendor','Department','Project','Sub-bucket (Step)','Status','Created','Step Date','Aging','Amount','Pending With'];
 }
 /* Shared modal renderer — used by both bucket/dept drill and Overall-KPI drill */
@@ -2755,11 +2789,14 @@ function showDrillModal(subset, title){
         <td>${escapeHtml(r.name)}</td>
         <td>${escapeHtml(r.department)}</td>
         <td>${escapeHtml(r.project)}</td>
+        <td>${escapeHtml(r.workClass)}</td>
+        <td>${escapeHtml(r.workAction)}</td>
         <td>${escapeHtml(stepText(r))}</td>
         <td>${statusBadge(r.status)}</td>
         <td>${fmtDate(r.createdDate)}</td>
         <td>${fmtDateTime(r.stepDate)}</td>
         <td>${agingLabel(r.aging)}</td>
+        <td>${escapeHtml(r.ageBand)}</td>
         <td>${escapeHtml(holderDisplay(r))}</td>
       </tr>`).join('');
   } else {
@@ -2830,11 +2867,11 @@ function closeDrill(){document.getElementById('drillModal').classList.remove('ac
 function exportDrillToExcel(){
   if(!currentDrillSubset||!currentDrillSubset.length){alert('Nothing to export.');return;}
   const cols=mode==='PR'
-    ? ['PR #','Type','Quote Ref','Name','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Pending With','Amount']
+    ? ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Age band','Pending With','Amount']
     : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With'];
   const wsData=[cols];
   currentDrillSubset.forEach(r=>{
-    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,holderDisplay(r),r.amount]);
+    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.workClass,r.workAction,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.ageBand,holderDisplay(r),r.amount]);
     else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,holderDisplay(r)]);
   });
   const wb=XLSX.utils.book_new();
@@ -2846,11 +2883,11 @@ function exportDrillToExcel(){
 
 function exportToExcel(){
   const cols=mode==='PR'
-    ? ['PR #','Type','Quote Ref','Name','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Pending With','Amount']
+    ? ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Age band','Pending With','Amount']
     : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With'];
   const wsData=[cols];
   filteredRecords.forEach(r=>{
-    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,holderDisplay(r),r.amount]);
+    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.workClass,r.workAction,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.ageBand,holderDisplay(r),r.amount]);
     else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,holderDisplay(r)]);
   });
   const wb=XLSX.utils.book_new();

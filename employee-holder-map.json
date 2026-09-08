@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "employees": {
+    "000000": "D365CRM ADMIN",
+    "310523": "Dinesh Laxman Laxman",
+    "312005": "Gokul Krishna Pillai",
+    "971559811447": "Qasim Jahangir",
+    "311141": "Zaheer Ahmed Ameer",
+    "310718": "Pramod Chandrasenan Chandrasenan",
+    "1111111111": "IT DEPARTMENT",
+    "311905": "Shakir Ameer Bakhsh",
+    "310083": "Shijil Choyaprath Chandran",
+    "000000000": "Sirinikhil",
+    "311428": "Ahamed Noorullah Mohamed",
+    "311863": "Muhammad Shehzad Ahmeduddin",
+    "311322": "Joe Orlain Jamisola",
+    "312281": "Abdul Basit Raza",
+    "0123456789": "Roderick Red Palma",
+    "123456789": "Buying Agent Concierge"
+  },
+  "systemAccounts": [
+    "D365CRM ADMIN",
+    "IT DEPARTMENT"
+  ]
+}
