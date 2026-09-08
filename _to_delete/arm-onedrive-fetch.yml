@@ -1,0 +1,23 @@
+# Re-arms the "Fetch PR/PO from OneDrive" workflow each morning. That workflow
+# disables itself the moment it processes the day's new file (so it stops polling);
+# this one switches it back on before the next morning's email arrives.
+name: Arm OneDrive fetch
+on:
+  schedule:
+    - cron: "30 3 * * *"   # 07:30 Dubai time (UTC+4), before the morning email
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  arm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable the fetch workflow for today
+        run: |
+          curl -s -X PUT \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/fetch-from-onedrive.yml/enable" \
+            && echo "Fetch workflow armed for today." || echo "Enable call failed."
