@@ -6349,3 +6349,51 @@ Monitor the next scheduled morning email and first weekly live snapshot. Repair 
 
 - GitHub scheduled workflows can start late, so eight attempts are intentional; the current files are already published before the first scheduled attempt.
 - Delete both workbooks, the generator, mapping, sidecar and workflow as soon as production sending moves to `ssg-prpo-proxy`.
+
+# Popup-window sign-in repair — 2026-09-08
+
+## What I found
+
+- `index.html` was the only page with an MSAL sign-in implementation. `divisions.html`, `journey-board.html` and `journey-live.html` contain no copied login code.
+- `signIn()` always called `loginPopup()`, including when the dashboard itself was a popup. MSAL rejects that nested-popup request.
+- The boot path called `handleRedirectPromise()` but discarded both its successful response and its failure.
+- Azure app registration `8a4338bf-6c78-4a70-9c62-478bb19b171c` already has the exact SPA redirect URI `https://strive-services-group.github.io/PR-PO-Pipeline-Dashboard/`. No Entra change was needed or made.
+
+## Exact changes made
+
+- Commit `bd667e91f60d51fb1b4103142a1687f2c1891c41` keeps `loginPopup()` for an ordinary unnamed tab.
+- Popup, named and standalone display-mode windows use `loginRedirect()` in the same window.
+- A popup-related MSAL error automatically retries with `loginRedirect()` instead of exposing the library error.
+- Successful popup and redirect responses share one completion path: set the active account, write `strive_auth` and `strive_user`, then call `enterDashboard()`.
+- Interactive sign-in waits for the initial `handleRedirectPromise()` check to finish, preventing overlapping MSAL interactions.
+- A cancelled or otherwise failed sign-in now uses plain English. The library-load and placeholder-config paths are unchanged.
+
+## Production browser evidence
+
+- GitHub Pages deployment `34187067482` completed successfully for `bd667e9` at `2026-09-08T04:28:24Z`.
+- A normal Chrome browser tab completed sign-in and rendered the live dashboard. The live source badge and 1,805-item Race Control population loaded.
+- A same-origin acceptance page opened the production dashboard with `window.open(..., 'popup=yes,width=1200,height=800')`. The chromeless child used redirect sign-in, returned to the registered Pages URI, hid the login overlay and loaded the live dashboard.
+- The acceptance page observed the returned child DOM and reported: `PASS: popup returned signed in and rendered the dashboard.`
+- The temporary acceptance page was removed immediately after this proof and is not part of the final production surface.
+
+![Chrome popup sign-in proof](evidence/popup-sign-in-proof.jpg)
+
+## Testing performed
+
+- `node --test tests/auth-flow.test.js tests/dataverse-live.test.js tests/race-control.test.js`: 9/9 passed.
+- Auth tests cover popup detection, named/standalone windows, unchanged normal-tab popup completion, popup-error fallback, redirect-return completion, cancellation wording and redirect-handler ordering.
+- Both inline scripts in `index.html` parsed under `vm.Script`.
+- Existing live-dataset and Race Control tests passed. The staged diff contains no dashboard data, figure, label, bucket, email or workbook code change.
+- Microsoft documents `handleRedirectPromise()` as mandatory for redirect responses and lists `popup_window_error`, `block_nested_popups` and `block_iframe_reload` as browser error codes; the implementation follows those contracts.
+
+## What I did not change
+
+- MSAL client ID, tenant, scopes, redirect URI and cache configuration.
+- Dashboard data, Race Control, figures, labels, buckets, emails or the legacy workbook publisher.
+- `ssg-prpo-proxy`, Azure resources and the Entra app registration.
+- Login visuals or the separate approved overlay redesign.
+
+## Remaining risks
+
+- The browser cannot reliably expose whether a tab strip is visible. The proactive check therefore uses opener, window name and standalone display mode; the error fallback covers other chromeless cases MSAL identifies at runtime.
+- Chrome automation could not directly drive a separate popup window, so the temporary same-origin acceptance page invoked the popup's existing SIGN IN button and independently observed the hidden overlay after the redirect return. No authentication dialog, credential or token was automated or recorded.
