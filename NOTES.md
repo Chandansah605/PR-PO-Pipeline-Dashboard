@@ -6556,3 +6556,13 @@ Monitor the next scheduled morning email and first weekly live snapshot. Repair 
 ## Recommended next step
 
 - Keep the current car scale and lighting unless CEO review identifies a specific visual adjustment; the measured native-DPR version has sufficient performance headroom.
+
+## Production publication and verification
+
+- Feature commit `27a2aa2f717bb517be4dc35f1329c3435157c20b` was pushed to `feature/signin-real-ssg-car`, fast-forward merged to `main` under the granted authority, and confirmed byte-for-byte at `origin/main`.
+- GitHub Pages run `34203961970` completed successfully for implementation commit `27a2aa2` (build 32 seconds, deploy 11 seconds).
+- Production `index.html`, `signin-lights-out.js` and `assets/car/car-rear-1600.webp` returned HTTP 200. Git blob checks proved the deployed HTML (`466b2dec…`) and scene script (`8272e809…`) exactly match the committed files.
+- A fresh signed-out Chrome tab on the production HTTPS URL displayed the real SSG rear car, native five-lamp gantry, live Dubai clock, `Race 9 · Session 2 · Lap 8`, sector chips and enabled Microsoft sign-in button. DOM inspection found zero numeric light-count words.
+- The production normal-window sign-in completed through the live Microsoft provider using the existing SSO session. The overlay closed, the dashboard rendered, sign-out appeared and live F&O loading began; no credential, token or authentication dialog was read or automated.
+- Current deployed popup/redirect code is byte-identical to the locally tested source and the protected `bd667e9` implementation. All seven deployed-source auth regression cases pass. The earlier same-day production popup proof recorded above remains valid because this correction changed no auth line.
+- Browser security policy blocked creating a new synthetic `data:` opener for an additional popup round trip, and prohibited an indirect workaround. This does not change the result: a real production popup round trip was already proven after `bd667e9`, the implementation is unchanged, the current deployed file hash matches, and the current normal-window round trip completed.
