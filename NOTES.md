@@ -6880,3 +6880,107 @@ The before figures are the verified 8 September failure supplied in the task. Th
 ## Recommended next step
 
 - Before removing the fallback, extend the capture contract to store the authoritative workflow step ID/name and one current responsible user per document. Validate that replacement person-by-person against this 17-group baseline, then return the sender to the live dataset.
+
+---
+
+# One live holder rule — 8 September 2026
+
+## What I found
+
+- The default workbook generator still read every routing field from commit `d1fbf0482684b0f467cd9f8552af30cc28216ad0`. Only amounts came from the current feed, so new and moved requisitions could not reach the right digest.
+- `index.html` and `divisions.html` treated a comma-separated holder list as one person. They also checked old step labels that the current feed cannot return, leaving operations routing unreachable.
+- The captured live feed revision was `46d7ba45b982b25457c42ae2d325d169e60c18cc966548089b91142c5c6169c5`, generated `2026-09-08T13:41:45.675Z`: 4,432 requisitions and 3,203 orders.
+- The current actionable requisition population is 977: 897 In review, 54 Draft and 26 Approved. The 3,455 excluded source rows are 2,294 Closed, 1,005 Cancelled and 156 Rejected; these are not daily-action items.
+
+## Problems and risks
+
+- The frozen default was already 47 live requisitions behind on the earlier measurement and would keep falling further behind.
+- The live feed does not expose the original detailed F&O workflow element. A friendly old step cannot be reconstructed honestly from text or user-name guesses.
+- The sender's protected workbook contract allows only one holder cell per row. A genuinely shared item therefore needs one compatibility row per distinct holder.
+
+## Exact holder rule
+
+`holder-rule.json` is the source of truth. The generator reads it directly. `index.html` and `divisions.html` carry the same browser-safe literal, and `tests/holder-rule.test.js` fails if either copy or the Race Control aliases drift.
+
+- Split holders on commas, trim them, normalise known aliases, and remove repeats without regard to case.
+- Sourcing uses every distinct live pending holder.
+- Priced — awaiting approval routes to the requisition department's configured operations confirmer. Where that department has no configured confirmer, it uses the distinct live pending holder instead of inventing a name.
+- Dep Managers, Finance, Director and CEO use every distinct live pending holder.
+- Blank or unrecognised steps are displayed as **Step not reported by F&O**. The workbook uses `PurchReqReviewTask` only as the frozen sender's compatibility token; the dashboard does not present it as a recovered F&O step.
+- A missing, zero-only or personnel-number holder is displayed and emitted as **not recorded**.
+
+## Counting convention
+
+- Pipeline cards, stage totals, amounts and journey gates count each requisition once.
+- Personal holder tables and daily digests attribute a shared requisition once to every distinct named holder.
+- The generated `pr.xlsx` therefore contains 977 unique actionable requisitions and 1,132 holder-attribution rows. The unique live action value is AED 21,195,214.51 excl. VAT. Summing attribution rows is not a pipeline total because shared items repeat by design; this convention is stated on the dashboard pages.
+
+## Same-revision reconciliation
+
+| Holder | Dashboard items | Daily-email workbook items |
+|---|---:|---:|
+| Adnan.Ullah | 216 | 216 |
+| Aparna.Pauly | 54 | 54 |
+| Layusha.cleatus | 91 | 91 |
+| roderick.red | 93 | 93 |
+
+- Live actionable requisitions missing from `pr.xlsx`: **0**.
+- Comma-joined holder cells or dashboard labels: **0**.
+- Operations confirmation: **561 unique requisitions** on the dashboard and **561** in the email workbook. Three shared items create 564 personal attributions, without increasing the stage total.
+- The journey board's **Prices Updated** gate is **561**, matching the dashboard's **Operations to Confirm** card. The card now says that its live signal is prices updated.
+- **Step not reported by F&O**: **153** actionable requisitions. They are included in cards, tables, searches and drill-through instead of being discarded.
+- The dashboard live action population rose from 824 to 977 and its live value rose by AED 5,830,222.19 solely because those 153 previously hidden records are now visible. Full-source PR count and amount stayed 4,432 and AED 49,044,438.25.
+- Purchase orders stayed at 996 live records and AED 37,775,301.25. No PO stage, amount or visibility count changed.
+
+## Workbook contract
+
+- `pr.xlsx` keeps all 18 headers in the same order, the same widths, `AxTable1`, and the exact existing A1 note. It opens with 1,132 attribution rows.
+- `po.xlsx` keeps all 20 headers in the same order, the same widths, `AxTable1`, and the exact existing A1 note. It opens with 996 live rows.
+- `validate_saved` passed for both files. Final local hashes: `pr.xlsx` `DA837BFE4BA9CF9DAA7F9C59D43AD36E554FDA40243A6D21D418A9ED1C38B5AF`; `po.xlsx` `D485CB35C8F1F4507F580FD28F0E2B1D61EAE5860496B2C4F3AD999FFFC73DD1`.
+- The A1 note still contains the word “snapshot” because the task explicitly protected its exact text. It does not control routing.
+
+## Files changed
+
+- `holder-rule.json`: shared stages, operations owners, aliases and fallback rule.
+- `scripts/generate_legacy_email_workbooks.py`, `scripts/legacy_email_stage_map.py`: live default, singular attribution rows, explicit emergency fallback.
+- `index.html`, `divisions.html`, `race-control.js`, `journey-board.html`: live shared-holder display, visible unreported group, consistent gate and counting note.
+- `pr.xlsx`, `po.xlsx`, `.legacy-email-workbook-content.json`: same-revision live outputs.
+- Tests: holder edge cases, mirrored-rule drift, live-vs-workbook reconciliation, regression checks.
+
+## What I did not change
+
+- No Dataverse or F&O write was made.
+- No proxy repository, running proxy service, sender, Power Automate flow, recipients, tokens or OneDrive location was changed.
+- No sign-in source or asset was changed.
+- No VAT or source amount rule was changed.
+- No feature branch was merged.
+- `publish-legacy-email-workbooks.yml` was not changed.
+
+## Testing performed
+
+- `node tests/holder-rule.test.js`: passed, including repeated multi-holder, single holder, blank holder, missing step, operations fallback and mirrored-rule checks.
+- `node tests/race-control.test.js`: passed.
+- `node tests/dead-source-columns.test.js`: passed.
+- `node tests/dataverse-live.test.js`: passed.
+- `node tests/auth-flow.test.js`: 7/7 passed, covering normal and popup sign-in completion.
+- `node tests/signin-lights-out.test.js`: 13/13 passed.
+- `python -m unittest tests/test_legacy_email_workbook_fallback.py`: 15/15 passed, including a new live requisition absent from the old snapshot and proof that the default path never calls the snapshot reader.
+- `PRPO_DATASET_JSON=<captured revision> node tests/live-display-check.js`: passed with unchanged full-source counts/amounts and unchanged PO live figures.
+- `python tests/reconcile_holder_routing.py <captured revision> pr.xlsx po.xlsx`: passed with zero missing actionable PRs and exact holder/gate parity.
+- `python scripts/generate_legacy_email_workbooks.py --dataset-json <captured revision> --output-dir .`: passed; a second run reported no content change.
+- `git diff --check`: passed.
+- There is no `package.json` or separate production build in this static Pages repository. The generator and browser-script checks are the applicable production build checks.
+
+## Frozen snapshot status
+
+- **Default path: no frozen snapshot is read.** It reads the current LIVE dataset and `holder-rule.json`.
+- Emergency-only path: `--routing-source legacy-snapshot`, or `PRPO_WORKBOOK_ROUTING_SOURCE=legacy-snapshot`. The old code remains available but is not selected by the workflow or normal command.
+
+## Remaining risks
+
+- The source still does not expose a detailed original F&O workflow element. The implementation labels that gap instead of guessing it.
+- Shared-holder attribution rows must not be summed as a document total; the page now states this plainly.
+
+## Recommended next step
+
+- Add an authoritative stable workflow element identifier to the live capture when F&O exposes one. Until then, keep the explicit **Step not reported by F&O** group and monitor its count.

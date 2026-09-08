@@ -16,7 +16,7 @@
     'it department': 'it.solutions'
   };
 
-  const PR_STAGES = ['Re-Assigned/Rejected', 'Procurement', 'Operations to Confirm', 'Dep Managers', 'Finance', 'Director', 'CEO'];
+  const PR_STAGES = ['Procurement', 'Operations to Confirm', 'Step not reported by F&O', 'Dep Managers', 'Finance', 'Director', 'CEO'];
   const PO_STAGES = ['Procurement', 'Finance', 'Director', 'CEO', 'Not yet sent', 'Sent to supplier', 'Receipt posted'];
   const NOT_RECORDED = 'not recorded';
 
@@ -32,6 +32,19 @@
     const original = clean(value);
     if (!original || /^0+$/.test(original) || /^\d+$/.test(original)) return NOT_RECORDED;
     return OWNER_ALIASES[ownerKey(original)] || original;
+  }
+
+  function holderNames(row) {
+    const source = row && Array.isArray(row.holders) ? row.holders : [row && row.pendingUser];
+    const seen = new Set(), output = [];
+    source.forEach(function (value) {
+      String(value == null ? '' : value).split(',').forEach(function (part) {
+        const owner = canonicalOwner(part), key = ownerKey(owner);
+        if (owner === NOT_RECORDED || seen.has(key)) return;
+        seen.add(key); output.push(owner);
+      });
+    });
+    return output.length ? output : [NOT_RECORDED];
   }
 
   function finiteAges(rows) {
@@ -106,7 +119,7 @@
         reportedBy: clean(item.reportedBy) || '—',
         reportedDate: clean(item.reportedDate) || null,
         age: ageOf(row),
-        holder: row ? canonicalOwner(row.pendingUser) : NOT_RECORDED,
+        holder: row ? holderNames(row).join(' · ') : NOT_RECORDED,
         active: !!row,
         automatic: false
       });
@@ -121,7 +134,7 @@
         reportedBy: 'Automatic live check',
         reportedDate: null,
         age: ageOf(row),
-        holder: canonicalOwner(row.pendingUser),
+        holder: holderNames(row).join(' · '),
         active: true,
         automatic: true
       });
@@ -141,9 +154,9 @@
   }
 
   function personOwner(row, type) {
-    if (type === 'PR') return canonicalOwner(row.pendingUser);
+    if (type === 'PR') return holderNames(row)[0];
     const approval = clean(row.raw && row.raw['Approval status']);
-    if (approval === 'In review' || approval === 'InReview' || approval === 'Draft') return canonicalOwner(row.pendingUser);
+    if (approval === 'In review' || approval === 'InReview' || approval === 'Draft') return holderNames(row)[0];
     return '';
   }
 
@@ -151,15 +164,19 @@
     const combined = [];
     (prRows || []).forEach(function (row) {
       const stage = stageName(row);
-      const owner = personOwner(row, 'PR');
-      if (!owner || owner === NOT_RECORDED || stage === 'Director' || stage === 'CEO') return;
-      combined.push({ row: row, type: 'PR', owner: owner });
+      if (stage === 'Director' || stage === 'CEO') return;
+      holderNames(row).forEach(function (owner) {
+        if (owner !== NOT_RECORDED) combined.push({ row: row, type: 'PR', owner: owner });
+      });
     });
     (poRows || []).forEach(function (row) {
       const stage = stageName(row);
-      const owner = personOwner(row, 'PO');
-      if (!owner || owner === NOT_RECORDED || ['Director', 'CEO', 'Sent to supplier', 'Receipt posted'].includes(stage)) return;
-      combined.push({ row: row, type: 'PO', owner: owner });
+      const approval = clean(row.raw && row.raw['Approval status']);
+      if (!['In review', 'InReview', 'Draft'].includes(approval)) return;
+      if (['Director', 'CEO', 'Sent to supplier', 'Receipt posted'].includes(stage)) return;
+      holderNames(row).forEach(function (owner) {
+        if (owner !== NOT_RECORDED) combined.push({ row: row, type: 'PO', owner: owner });
+      });
     });
     return combined;
   }
@@ -328,7 +345,7 @@
     const oldestStuck = stuckAges.length ? Math.max.apply(null, stuckAges) : null;
     const excludedText = model.excludedCount + ' stuck item' + (model.excludedCount === 1 ? '' : 's') + ' excluded — see lane';
     container.innerHTML = '<div class="rc-shell">' +
-      '<header class="rc-hero"><div><span class="rc-eyebrow"><i class="fa-solid fa-flag-checkered"></i> Race Control</span><h2>Who is holding what — and is it getting better?</h2><p>Live action queue · current-step clock · ' + esc(model.source) + '</p></div><div class="rc-exclusion"><b>' + model.excludedCount + '</b><span>' + esc(excludedText) + '</span></div></header>' +
+      '<header class="rc-hero"><div><span class="rc-eyebrow"><i class="fa-solid fa-flag-checkered"></i> Race Control</span><h2>Who is holding what — and is it getting better?</h2><p>Live action queue · current-step clock · ' + esc(model.source) + '. Each document counts once overall; shared holders each receive one personal attribution.</p></div><div class="rc-exclusion"><b>' + model.excludedCount + '</b><span>' + esc(excludedText) + '</span></div></header>' +
       '<section class="rc-block"><div class="rc-block-head"><span>01</span><div><h3>How long are things taking?</h3><p>Live pipeline only. Stuck IT clean-up items are excluded.</p></div></div>' +
         '<div class="rc-overall"><div><span>Average at current step</span><b>' + one(overall.averageDays) + '<small>d</small></b></div><div><span>Median at current step</span><b>' + one(overall.medianDays) + '<small>d</small></b></div><div><span>Live action items</span><b>' + whole(overall.items) + '</b></div><div><span>Past seven days</span><b class="danger">' + whole(overall.over7) + '</b></div></div>' +
         '<div class="rc-table-wrap"><table class="rc-table rc-stage-table"><thead><tr><th>Header stage</th><th>Items</th><th>Average</th><th>Median</th><th>&gt;7d</th></tr></thead><tbody>' + stageRows + '</tbody></table></div></section>' +
@@ -347,6 +364,7 @@
     NOT_RECORDED: NOT_RECORDED,
     ownerKey: ownerKey,
     canonicalOwner: canonicalOwner,
+    holderNames: holderNames,
     median: median,
     average: average,
     metric: metric,

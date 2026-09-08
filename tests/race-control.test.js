@@ -71,6 +71,7 @@ assert.equal(race.canonicalOwner(''), 'not recorded');
 assert.equal(race.canonicalOwner('000000'), 'not recorded');
 assert.equal(race.canonicalOwner('310032'), 'not recorded');
 assert.equal(race.personOwner(row('PO-DRAFT', '', 1, 'Procurement', 0, { 'Approval status': 'Draft', 'Created by': 'guessed.owner' }), 'PO'), 'not recorded');
+assert.deepEqual(race.holderNames(row('PR-SHARED', 'Adnan.Ullah, adnan.ullah, Layusha.cleatus', 1, 'Procurement', 10)), ['Adnan.Ullah', 'Layusha.cleatus']);
 assert.equal(race.median([7, 1, 3, 9]), 5);
 assert.deepEqual(race.metric([row('PR-NO-DATE', 'Owner', null, 'Procurement', 10)]), {
   items: 1, value: 10, averageDays: null, medianDays: null, oldestDays: null, over7: 0

@@ -24,6 +24,10 @@ from legacy_email_stage_map import (
     PO_STAGE_RULES,
 )
 
+ROOT = Path(__file__).resolve().parents[1]
+HOLDER_RULE = json.loads((ROOT / "holder-rule.json").read_text(encoding="utf-8"))
+NOT_RECORDED = HOLDER_RULE["notRecorded"]
+
 DEFAULT_DATASET_URL = (
     "https://ssg-prpo-proxy-h4cvfegaduftedhz.uaenorth-01.azurewebsites.net/api/dataset"
 )
@@ -202,6 +206,97 @@ def fallback_po_rows(live_rows: list[dict], legacy_rows: list[dict]) -> tuple[li
     return output, evidence
 
 
+def split_holder_names(value) -> list[str]:
+    """Return real holder names once each; never preserve a comma-list as a person."""
+    output = []
+    seen = set()
+    for part in str(value or "").split(","):
+        name = part.strip()
+        key = " ".join(name.lower().split())
+        name = HOLDER_RULE["ownerAliases"].get(key, name)
+        key = " ".join(name.lower().split())
+        if not key or key == NOT_RECORDED or key.isdigit() or set(key) == {"0"} or key in seen:
+            continue
+        seen.add(key)
+        output.append(name)
+    return output
+
+
+def pr_holder_route(row: dict) -> dict:
+    """Apply the shared live PR holder/stage rule from holder-rule.json."""
+    stage = str(row.get("Step name") or "").strip()
+    rule = HOLDER_RULE["stageRules"].get(stage, HOLDER_RULE["unreportedRule"])
+    department = str(row.get("Department") or "").strip()
+    if rule["holderMode"] == "departmentOperations":
+        names = split_holder_names(
+            HOLDER_RULE["operationsHolderByDepartment"].get(department)
+            or (row.get("Pending Approver/User") if rule.get("fallbackToPending") else None)
+        )
+    else:
+        names = split_holder_names(row.get("Pending Approver/User"))
+    workbook_step = rule.get("workbookStep")
+    if rule.get("workbookStepByDepartment"):
+        workbook_step = HOLDER_RULE["managerWorkbookStepByDepartment"].get(
+            department, "Building Services_Asst. Facility Managers 1"
+        )
+    return {
+        "stage": stage or HOLDER_RULE["unreportedStage"],
+        "stepReported": stage in HOLDER_RULE["stageRules"],
+        "headerBucket": rule["headerBucket"],
+        "holders": names or [NOT_RECORDED],
+        "workbookStep": workbook_step,
+    }
+
+
+def live_pr_rows(rows: list[dict]) -> tuple[list[dict], Counter]:
+    """Create one legacy-email attribution row per live actionable PR holder."""
+    output = []
+    evidence = Counter()
+    seen_documents = set()
+    for row in rows:
+        status = str(row.get("Status") or "").strip()
+        if status.lower() not in {"draft", "in review", "approved"}:
+            evidence["non-actionable source rows excluded"] += 1
+            continue
+        number = str(row.get("Purchase requisition") or "").strip().upper()
+        if not number:
+            raise RuntimeError("actionable live requisition has no document number")
+        if number in seen_documents:
+            raise RuntimeError(f"duplicate requisition in live dataset: {number}")
+        seen_documents.add(number)
+        route = pr_holder_route(row)
+        if not route["stepReported"]:
+            evidence["step not reported source documents"] += 1
+        if route["headerBucket"] == "Operations to Confirm":
+            evidence["operations confirmation source documents"] += 1
+        for holder in route["holders"]:
+            translated = {column: row.get(column) for column in PR_COLUMNS}
+            translated["Pending Approver/User"] = holder
+            translated["Step name"] = route["workbookStep"]
+            # The frozen sender selects a different holder column for Draft and
+            # Approved. Keep all three compatibility fields aligned to one rule.
+            translated["Preparer"] = holder
+            translated["Accepted By/Assign To"] = holder
+            output.append(translated)
+            evidence["holder attribution rows"] += 1
+    evidence["actionable source documents"] = len(seen_documents)
+    return output, evidence
+
+
+def live_po_rows(rows: list[dict]) -> tuple[list[dict], Counter]:
+    """Use current live PO routing and keep each holder cell singular."""
+    routed, evidence = dashboard_po_rows(rows)
+    output = []
+    for row in routed:
+        holders = split_holder_names(row.get("Pending Approver/User")) or [NOT_RECORDED]
+        for holder in holders:
+            translated = dict(row)
+            translated["Pending Approver/User"] = holder
+            output.append(translated)
+    evidence["holder attribution rows"] = len(output)
+    return output, evidence
+
+
 def dashboard_po_rows(rows: list[dict]) -> tuple[list[dict], Counter]:
     output = []
     excluded = Counter()
@@ -322,14 +417,23 @@ def main() -> None:
     parser.add_argument("--output-dir", default=".")
     parser.add_argument("--state-file", default=".legacy-email-workbook-content.json")
     parser.add_argument("--evidence")
+    parser.add_argument(
+        "--routing-source", choices=("live", "legacy-snapshot"),
+        default=os.environ.get("PRPO_WORKBOOK_ROUTING_SOURCE", "live"),
+        help="Use current live routing by default; legacy-snapshot is emergency-only.",
+    )
     args = parser.parse_args()
     dataset = json.loads(Path(args.dataset_json).read_text(encoding="utf-8")) if args.dataset_json else fetch_dataset(args.dataset_url)
     if dataset.get("sourceState") != "LIVE":
         raise RuntimeError("refusing to generate from a stale or failed dataset")
-    legacy_pr_rows = load_legacy_rows("pr.xlsx", PR_COLUMNS)
-    legacy_po_rows = load_legacy_rows("po.xlsx", PO_COLUMNS)
-    pr_rows, pr_excluded = fallback_pr_rows(dataset["pr"]["rows"], legacy_pr_rows)
-    po_rows, po_excluded = fallback_po_rows(dataset["po"]["rows"], legacy_po_rows)
+    if args.routing_source == "legacy-snapshot":
+        legacy_pr_rows = load_legacy_rows("pr.xlsx", PR_COLUMNS)
+        legacy_po_rows = load_legacy_rows("po.xlsx", PO_COLUMNS)
+        pr_rows, pr_excluded = fallback_pr_rows(dataset["pr"]["rows"], legacy_pr_rows)
+        po_rows, po_excluded = fallback_po_rows(dataset["po"]["rows"], legacy_po_rows)
+    else:
+        pr_rows, pr_excluded = live_pr_rows(dataset["pr"]["rows"])
+        po_rows, po_excluded = live_po_rows(dataset["po"]["rows"])
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     pr_path, po_path = output_dir / "pr.xlsx", output_dir / "po.xlsx"
@@ -355,18 +459,24 @@ def main() -> None:
     summary = {
         "datasetRevision": dataset["revision"],
         "sourceState": dataset["sourceState"],
+        "routingSource": args.routing_source,
         "pr": {
-            "rows": len(pr_rows), "columns": PR_COLUMNS,
+            "rows": len(pr_rows), "sourceDocuments": pr_excluded["actionable source documents"], "columns": PR_COLUMNS,
             "amountExVat": round(sum(float(row.get("Total amount") or 0) for row in pr_rows), 2),
             "sha256": sha256(pr_path), "routingRecovery": dict(pr_excluded),
-            "operationsConfirmationRows": sum(
-                row.get("Step name") in {
+            "operationsConfirmationDocuments": len({
+                str(row.get("Purchase requisition") or "").strip().upper()
+                for row in pr_rows if row.get("Step name") in {
                     "Quotation shared to Operations for confirmation",
                     "Unit prices updated in PR lines",
                 }
+            }),
+            "operationsConfirmationAttributions": sum(
+                row.get("Step name") in {"Quotation shared to Operations for confirmation", "Unit prices updated in PR lines"}
                 for row in pr_rows
             ),
             "commaJoinedOwners": sum("," in str(row.get("Pending Approver/User") or "") for row in pr_rows),
+            "liveActionableMissingFromWorkbook": 0,
         },
         "po": {
             "rows": len(po_rows), "columns": PO_COLUMNS,
@@ -375,10 +485,11 @@ def main() -> None:
             "commaJoinedOwners": sum("," in str(row.get("Pending Approver/User") or "") for row in po_rows),
         },
         "amountBasis": "live F&O active-line values excl. VAT",
-        "datePolicy": "last successful PR/PO routing snapshot",
+        "datePolicy": "current live dataset clocks; unreported clocks remain blank",
         "routingPolicy": (
-            f"temporary one-morning PR/PO fallback from {LEGACY_EMAIL_COMMIT}; exact document-number join; "
-            "all amounts replaced from the current live ex-VAT dataset"
+            "current live dataset and holder-rule.json"
+            if args.routing_source == "live" else
+            f"emergency legacy snapshot {LEGACY_EMAIL_COMMIT} with current live ex-VAT amounts"
         ),
         "outputNote": OUTPUT_NOTE,
         "contentChanged": content_changed,

@@ -1,7 +1,9 @@
 import io
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from openpyxl import load_workbook
 
@@ -43,6 +45,69 @@ def legacy_po_row(**overrides):
 
 
 class LegacyEmailFallbackTests(unittest.TestCase):
+    def test_default_main_path_never_reads_the_frozen_snapshot(self):
+        dataset = {
+            "revision": "test-live-revision", "sourceState": "LIVE",
+            "pr": {"rows": [legacy_row(**{"Step name": "Sourcing"})]},
+            "po": {"rows": [legacy_po_row(**{"Live stage": "Not yet sent", "Open pipeline": True})]},
+        }
+        with tempfile.TemporaryDirectory() as output_dir, patch.object(
+            generator, "fetch_dataset", return_value=dataset
+        ), patch.object(
+            generator, "load_legacy_rows", side_effect=AssertionError("snapshot read")
+        ), patch.object(sys, "argv", ["generate", "--output-dir", output_dir]):
+            generator.main()
+
+    def test_live_holder_split_deduplicates_case_insensitively(self):
+        source = legacy_row(**{
+            "Step name": "Sourcing",
+            "Pending Approver/User": "Adnan.Ullah, adnan.ullah, Layusha.cleatus",
+        })
+        rows, evidence = generator.live_pr_rows([source])
+        self.assertEqual([row["Pending Approver/User"] for row in rows], ["Adnan.Ullah", "Layusha.cleatus"])
+        self.assertEqual(evidence["actionable source documents"], 1)
+
+    def test_live_single_holder_stays_single(self):
+        rows, _ = generator.live_pr_rows([legacy_row(**{
+            "Step name": "Sourcing", "Pending Approver/User": "Aparna.Pauly"
+        })])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["Pending Approver/User"], "Aparna.Pauly")
+
+    def test_live_blank_holder_is_explicit(self):
+        rows, _ = generator.live_pr_rows([legacy_row(**{
+            "Step name": "Sourcing", "Pending Approver/User": ""
+        })])
+        self.assertEqual(rows[0]["Pending Approver/User"], "not recorded")
+
+    def test_live_missing_step_is_kept_with_compatibility_route(self):
+        rows, evidence = generator.live_pr_rows([legacy_row(**{
+            "Purchase requisition": "PR-NEW-AFTER-SNAPSHOT",
+            "Step name": None,
+            "Pending Approver/User": "roderick.red",
+        })])
+        self.assertEqual(rows[0]["Purchase requisition"], "PR-NEW-AFTER-SNAPSHOT")
+        self.assertEqual(rows[0]["Step name"], "PurchReqReviewTask")
+        self.assertEqual(evidence["step not reported source documents"], 1)
+
+    def test_priced_routes_to_department_operations_confirmer(self):
+        rows, evidence = generator.live_pr_rows([legacy_row(**{
+            "Step name": "Priced — awaiting approval",
+            "Department": "Building Services",
+            "Pending Approver/User": "Adnan.Ullah",
+        })])
+        self.assertEqual(rows[0]["Pending Approver/User"], "dinesh.laxman")
+        self.assertEqual(rows[0]["Step name"], "Unit prices updated in PR lines")
+        self.assertEqual(evidence["operations confirmation source documents"], 1)
+
+    def test_priced_uses_live_holder_when_department_has_no_ops_mapping(self):
+        rows, _ = generator.live_pr_rows([legacy_row(**{
+            "Step name": "Priced — awaiting approval",
+            "Department": "Surveying Services",
+            "Pending Approver/User": "Aparna.Pauly",
+        })])
+        self.assertEqual(rows[0]["Pending Approver/User"], "Aparna.Pauly")
+
     def test_preserves_routing_and_replaces_amount_from_live_source(self):
         live = [{"Purchase requisition": "pr-test-001", "Total amount": 100.0}]
         rows, evidence = generator.fallback_pr_rows(live, [legacy_row()])

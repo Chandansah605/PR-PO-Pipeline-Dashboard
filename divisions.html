@@ -82,10 +82,9 @@
 </div>
 
 <script>
-/* ================= ROUTING LOGIC (ported 1:1 from prpoEmail.js) ================= */
-const PR_MAP={"Sourcing":"Sourcing","Priced — awaiting approval":"Priced — awaiting approval","Dep Managers":"Dep Managers","Finance":"Finance","Director":"Director","CEO":"CEO"};
-const PROC=new Set(["PR In Review","RFQ to suppliers","Qt received & Logged","OP confirms material","Procurement (in process)"]);
-const OPS=new Set(["Qt Shared to Op","Unit Price Updated"]);
+/* ================= SHARED LIVE HOLDER RULE ================= */
+const HOLDER_RULE = {"version":1,"notRecorded":"not recorded","unreportedStage":"Step not reported by F&O","stageRules":{"Sourcing":{"headerBucket":"Procurement","holderMode":"pending","workbookStep":"Procurement sends inquiry/RFQ to suppliers"},"Priced — awaiting approval":{"headerBucket":"Operations to Confirm","holderMode":"departmentOperations","fallbackToPending":true,"workbookStep":"Unit prices updated in PR lines"},"Dep Managers":{"headerBucket":"Dep Managers","holderMode":"pending","workbookStepByDepartment":true},"Finance":{"headerBucket":"Finance","holderMode":"pending","workbookStep":"Finance & Accounts_Accounting Manager"},"Director":{"headerBucket":"Director","holderMode":"pending","workbookStep":"Facilities Management_Director"},"CEO":{"headerBucket":"CEO","holderMode":"pending","workbookStep":"Executive Management_CEO"}},"unreportedRule":{"headerBucket":"Step not reported by F&O","holderMode":"pending","workbookStep":"PurchReqReviewTask"},"operationsHolderByDepartment":{"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"},"ownerAliases":{"dinesh laxman laxman":"dinesh.laxman","gokul krishna pillai":"Gokul.Krishna","pramod chandrasenan chandrasenan":"pramod.c","shijil choyaprath chandran":"shijil.c","zaheer ahmed ameer":"Zaheer.Ahmed","d365crm admin":"it.solutions","d365crmadmin":"it.solutions","it department":"it.solutions"},"managerWorkbookStepByDepartment":{"Building Services":"Building Services_Asst. Facility Managers 1","Contracted Cleaning Services":"PAC Services_Manager","Concierge Services":"Concierge Services_Manager","Security Services":"Security Services_Manager","Home Maintenance Services":"Home Services_Operations Manager","FitOut Services":"Home Services_Operations Manager","Landscaping Services":"Landscaping_Manager"}};
+const PR_MAP=Object.fromEntries(Object.keys(HOLDER_RULE.stageRules).map(name=>[name,name]));
 const PO_MAP={"Advance payment request submitted (if applicable)":"Procurement","Procurement Manager":"Procurement","Accounting Manager":"Finance","Finance and Accounts Director":"Director","CEO":"CEO","Not yet sent":"Not yet sent","Sent to supplier":"Sent to supplier","Receipt posted":"Receipt posted"};
 const USER_DEPT={"Abdul Basit Raza":"Building Services","Abdul.basit":"IT","Abdul.Muqeet":"Security Services","Admin":"IT","admin.hk":"Housekeeping Services","Adnan.Ullah":"Procurement","Ahamed Noorullah Mohamed":"Accomodation Services","Ahmed.Odeh":"Building Services","Aparna.Pauly":"Procurement","arman.b":"Accounts & Tax","ayman.g":"Accounts & Tax","Ayman.ismail":"Accounts & Tax","Buying Agent Concierge":"Concierge Services","D365CRM ADMIN":"IT","D365CRMADMIN":"IT","Dinesh Laxman Laxman":"Building Services","dinesh.laxman":"Building Services","Gokul Krishna Pillai":"Contracted Cleaning Services","Gokul.Krishna":"Contracted Cleaning Services","IT DEPARTMENT":"IT","Joe Orlain Jamisola":"Concierge Services","Judhin.prabhakar":"Contracted Cleaning Services","Layusha.cleatus":"Procurement","Mohamed.Ashraf":"Procurement","Mohammad.w":"Building Services","Muhammad Shehzad Ahmeduddin":"IT","muhammad.mustajab":"Accounts & Tax","Nathan.Buys":"Building Services","Patrick.Smith":"Accounts & Tax","Pramod Chandrasenan Chandrasenan":"Security Services","pramod.c":"Security Services","Qasim Jahangir":"QHSE","Roderick Red Palma":"Procurement","roderick.red":"Procurement","Shaik.baba":"Housekeeping Services","Shakir Ameer Bakhsh":"FitOut Services","Shijil Choyaprath Chandran":"Home Maintenance Services","shijil.c":"Home Maintenance Services","Sirinikhil":"Housekeeping Services","teena.k":"Concierge Services","Ubaid":"IT","Zaheer Ahmed Ameer":"Accomodation Services","Zaheer.Ahmed":"Accomodation Services"};
 const _norm=s=>String(s==null?'':s).trim().toLowerCase().replace(/\s+/g,' ');
@@ -93,32 +92,29 @@ const _UN={}; for(const k in USER_DEPT){_UN[_norm(k)]=USER_DEPT[k];}
 function deptForUser(u){return _UN[_norm(u)]||'';}
 const DEPT_DIV={'Procurement':'procurement','Accounts & Tax':'finance','Home Maintenance Services':'ops_hm','FitOut Services':'ops_hm'};
 function divForDept(d){return DEPT_DIV[d]||'ops_all';}
-const DEPT_OPSUSER={"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"};
+const DEPT_OPSUSER=HOLDER_RULE.operationsHolderByDepartment;
 function opsUserForDept(d){return DEPT_OPSUSER[String(d==null?'':d).trim()]||'';}
 function roleOf(u){const d=deptForUser(u),ul=_norm(u);if(d==='Accounts & Tax'){if(ul==='ayman.g')return 'Director';if(ul==='patrick.smith')return 'CEO';return 'Finance';}if(d==='Procurement')return 'Procurement';return '';}
-const NOT_RECORDED='not recorded';
+const NOT_RECORDED=HOLDER_RULE.notRecorded;
 function ownerText(value){const v=String(value==null?'':value).trim();return (!v||/^0+$/.test(v)||/^\d+$/.test(v))?NOT_RECORDED:v;}
+function holderNames(value){const out=[],seen=new Set();String(value==null?'':value).split(',').forEach(part=>{let name=ownerText(part),key=_norm(name);name=HOLDER_RULE.ownerAliases[key]||name;key=_norm(name);if(name===NOT_RECORDED||seen.has(key))return;seen.add(key);out.push(name);});return out.length?out:[NOT_RECORDED];}
 function opsDivFor(reqdept){return (reqdept==='Home Maintenance Services'||reqdept==='FitOut Services')?'ops_hm':'ops_all';}
 function amt(r){const v=Number(r['Total amount']);return isFinite(v)?v:0;}
 function xd(v){if(v instanceof Date)return isNaN(v)?null:v; if(typeof v==='number'&&isFinite(v)){const o=XLSX.SSF.parse_date_code(v);if(!o||!o.y)return null;return new Date(Date.UTC(o.y,o.m-1,o.d,o.H||0,o.M||0,Math.floor(o.S||0)));} if(typeof v==='string'&&v){const d=new Date(v);return isNaN(d)?null:d;} return null;}
 function ageDays(v){const d=xd(v);return d?Math.max(0,Math.floor((Date.now()-d.getTime())/86400000)):null;}
-function prLive(r){const st=String(r['Status']||'').trim().toLowerCase();return !!PR_MAP[r['Step name']]&&['in review','approved'].includes(st);}
+function prLive(r){const st=String(r['Status']||'').trim().toLowerCase();return ['draft','in review','approved'].includes(st);}
 function poBucket(r){const step=r['Live stage']||r['Step name'];const appr=String(r['Approval status']||''),pos=String(r['Purchase order status']||'');let b=PO_MAP[step]||(['Procurement','Finance','Director','CEO'].includes(step)?step:null);if(step==='Approval — unmapped element')b='Procurement';if(appr==='Rejected'||['Canceled','Cancelled','Closed','Invoiced'].includes(pos)||step==='Invoiced'||!b)return null;return b;}
-function prHb(b){return PROC.has(b)?'Procurement':(OPS.has(b)?'Operations to Confirm':b);}
 function prAge(r){const sd=r['Step date and time'];return ageDays(sd!=null?sd:r['Created date']);}
 function poAge(r){const sd=r['Step date and time'];return ageDays(sd!=null?sd:(r['Created date and time']!=null?r['Created date and time']:r['Requested receipt date']));}
 function prPendingWith(r){return ownerText(r['Pending Approver/User']);}
 function itemDivision(it){ return it.div; }
 function buildItems(prRows,poRows){
   const items=[];
-  for(const r of prRows){ if(!prLive(r))continue; const hb=prHb(PR_MAP[r['Step name']]); const rowdept=String(r['Department']||'').trim(); const pw0=prPendingWith(r); const inrev=(String(r['Status']||'').trim()==='In review');
-    const owner=ownerText(hb==='Operations to Confirm'?(opsUserForDept(rowdept)||pw0):pw0);
-    const rl=roleOf(owner); let stage,div;
-    if(hb==='Sourcing'||hb==='Priced — awaiting approval'){stage=hb;div='procurement';}
-    else if(rl==='Finance'||rl==='Director'||rl==='CEO'){stage=rl;div='finance';}
-    else if(rl==='Procurement'){div='procurement';stage=(hb==='Operations to Confirm'&&inrev)?'Re-Assigned/Rejected':'Procurement';}
-    else{div=opsDivFor(rowdept);stage=(hb==='Procurement'&&inrev)?'Re-Assigned/Rejected':(hb==='Operations to Confirm')?'Operations to Confirm':'Dep Managers';}
-    items.push({ref:r['Purchase requisition'],doc:'PR',typ:String(r['Purchase requisition']||'').startsWith('CPR')?'CPR':'PR',stage:stage,div:div,age:prAge(r),owner:owner,dept:rowdept,value:amt(r),vendor:'',ppend:true,step:String(r['Step name']||''),status:String(r['Status']||'')}); }
+  for(const r of prRows){ if(!prLive(r))continue; const rawStage=String(r['Step name']||'').trim();const rule=HOLDER_RULE.stageRules[rawStage]||HOLDER_RULE.unreportedRule;const rowdept=String(r['Department']||'').trim();
+    const owners=holderNames(rule.holderMode==='departmentOperations'?(opsUserForDept(rowdept)||(rule.fallbackToPending?r['Pending Approver/User']:'')):r['Pending Approver/User']);
+    const stage=rule.headerBucket;const rl=roleOf(owners[0]);let div;
+    if(stage==='Procurement')div='procurement';else if(stage==='Finance'||stage==='Director'||stage==='CEO')div='finance';else if(stage==='Operations to Confirm'||stage==='Dep Managers')div=opsDivFor(rowdept);else div=rl==='Procurement'?'procurement':opsDivFor(rowdept);
+    items.push({ref:r['Purchase requisition'],doc:'PR',typ:String(r['Purchase requisition']||'').startsWith('CPR')?'CPR':'PR',stage:stage,div:div,age:prAge(r),owner:owners.join(' · '),owners:owners,dept:rowdept,value:amt(r),vendor:'',ppend:true,step:rawStage||HOLDER_RULE.unreportedStage,status:String(r['Status']||'')}); }
   for(const r of poRows){ const bk=poBucket(r); if(!bk)continue; const ven=ownerText(r['Vendor name']); const poStat=String(r['Approval status']||''); const poPend=ownerText(r['Pending Approver/User']); const isVenBk=(bk==='Sent to supplier'||bk==='Receipt posted'); let own,ppend; if(isVenBk){own=ven;ppend=false;}else if(poStat==='In review'||poStat==='InReview'||poStat==='Draft'){own=poPend;ppend=true;}else{own=poPend;ppend=false;}
     let stage,div;
     if(bk==='Sent to supplier'){stage=bk;div='procurement';}
@@ -134,9 +130,9 @@ const DIVS=[
  {key:'ops_hm',title:'Operations · HM + FitOut',heading:'PR / PO Pipeline — Operations (Home Maintenance &amp; FitOut)',sub:'Operations-to-confirm &amp; dep-manager PRs whose requisition department is Home Maintenance or FitOut.',accent:'#14b8a6'},
  {key:'ops_all',title:'Operations · All Depts',heading:'PR / PO Pipeline — Operations (All Departments)',sub:'Operations-to-confirm &amp; dep-manager PRs for all other requisition departments.',accent:'#8b5cf6'},
 ];
-const STAGE_ORDER=[['PR','Re-Assigned/Rejected'],['PR','Sourcing'],['PR','Priced — awaiting approval'],['PR','Dep Managers'],['PR','Finance'],['PR','Director'],['PR','CEO'],['PO','Procurement'],['PO','Finance'],['PO','Director'],['PO','CEO'],['PO','Not yet sent'],['PO','Sent to supplier'],['PO','Receipt posted']];
-const COLOR={'Procurement':'#3b82f6','Sourcing':'#0ea5e9','Priced — awaiting approval':'#84cc16','Operations to Confirm':'#14b8a6','Dep Managers':'#8b5cf6','Finance':'#22c55e','Director':'#ec4899','CEO':'#f59e0b','Not yet sent':'#0ea5e9','Sent to supplier':'#a855f7','Receipt posted':'#f97316','Re-Assigned/Rejected':'#dc2626'};
-const GRAD={'Procurement':'#eff5ff','Sourcing':'#effbff','Priced — awaiting approval':'#f5fae8','Operations to Confirm':'#ebfbf7','Dep Managers':'#f4f1fe','Finance':'#eefbf3','Director':'#fdeff7','CEO':'#fff9ec','Not yet sent':'#eff5ff','Sent to supplier':'#f9f2ff','Receipt posted':'#fff4e8','Re-Assigned/Rejected':'#fef2f2'};
+const STAGE_ORDER=[['PR','Procurement'],['PR','Operations to Confirm'],['PR','Step not reported by F&O'],['PR','Dep Managers'],['PR','Finance'],['PR','Director'],['PR','CEO'],['PO','Procurement'],['PO','Finance'],['PO','Director'],['PO','CEO'],['PO','Not yet sent'],['PO','Sent to supplier'],['PO','Receipt posted']];
+const COLOR={'Procurement':'#3b82f6','Operations to Confirm':'#14b8a6','Step not reported by F&O':'#64748b','Dep Managers':'#8b5cf6','Finance':'#22c55e','Director':'#ec4899','CEO':'#f59e0b','Not yet sent':'#0ea5e9','Sent to supplier':'#a855f7','Receipt posted':'#f97316'};
+const GRAD={'Procurement':'#eff5ff','Operations to Confirm':'#ebfbf7','Step not reported by F&O':'#f1f5f9','Dep Managers':'#f4f1fe','Finance':'#eefbf3','Director':'#fdeff7','CEO':'#fff9ec','Not yet sent':'#eff5ff','Sent to supplier':'#f9f2ff','Receipt posted':'#fff4e8'};
 const DOCCOL={'PR':'#2563eb','CPR':'#7c3aed','PO':'#0891b2'};
 
 /* ================= UI ================= */
@@ -172,7 +168,7 @@ function renderCards(items){
 function renderOwners(items){
   const persons=items.filter(it=>it.ppend!==false&&it.stage!=='Sent to supplier'&&it.stage!=='Receipt posted');
   const g={};
-  for(const it of persons){const key=_norm(it.owner)+'|'+it.doc;const e=g[key]||(g[key]={n:0,ages:[],val:0,br:0,doc:it.doc,disp:{}});e.n++;e.val+=it.value;e.disp[it.owner]=(e.disp[it.owner]||0)+1;if(it.age!=null){e.ages.push(it.age);if(it.age>7)e.br++;}}
+  for(const it of persons){for(const owner of (it.owners||holderNames(it.owner))){const key=_norm(owner)+'|'+it.doc;const e=g[key]||(g[key]={n:0,ages:[],val:0,br:0,doc:it.doc,disp:{}});e.n++;e.val+=it.value;e.disp[owner]=(e.disp[owner]||0)+1;if(it.age!=null){e.ages.push(it.age);if(it.age>7)e.br++;}}}
   const rows=Object.entries(g).filter(([k])=>{const o=k.slice(0,k.lastIndexOf('|'));return o!==''&&o!==NOT_RECORDED;}).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
   if(!rows.length)return '';
   return '<h2 class="sec">🔍 Pending with — who to chase (click a row to drill)</h2><table class="owners"><tr><th>Pending with</th><th>Doc</th><th class="r">Items</th><th class="r">Avg</th><th class="r">Oldest</th><th class="r">Br&gt;7</th><th class="r">Value (AED excl. VAT)</th></tr>'+
@@ -185,7 +181,7 @@ function filteredDetail(items){
   let rows=items.slice();
   const f=state.filter;
   if(f&&f.t==='b')rows=rows.filter(it=>it.doc===f.doc&&it.stage===f.stage);
-  if(f&&f.t==='o')rows=rows.filter(it=>_norm(it.owner)===_norm(f.owner)&&it.doc===f.doc&&it.ppend!==false&&it.stage!=='Sent to supplier'&&it.stage!=='Receipt posted');
+  if(f&&f.t==='o')rows=rows.filter(it=>(it.owners||holderNames(it.owner)).some(owner=>_norm(owner)===_norm(f.owner))&&it.doc===f.doc&&it.ppend!==false&&it.stage!=='Sent to supplier'&&it.stage!=='Receipt posted');
   if(state.q){const q=state.q.toLowerCase();rows=rows.filter(it=>[it.ref,it.owner,it.dept,it.stage,it.step,it.status,it.vendor].join(' ').toLowerCase().includes(q));}
   const s=state.sort;const dir=s.dir;
   rows.sort((a,b)=>{let x=a[s.col],y=b[s.col];if(s.col==='value'||s.col==='age'){x=x==null?-1:x;y=y==null?-1:y;return (x-y)*dir;}return String(x).localeCompare(String(y))*dir;});
@@ -223,7 +219,7 @@ function render(){
   const tv=items.reduce((a,it)=>a+it.value,0);
   renderTabs();
   $('#content').innerHTML=
-    `<div class="qsum">This queue: <b>${items.length}</b> open items · <b>AED ${money(tv)} excl. VAT</b> · live-pipeline logic, reconciles to the dashboard &amp; the daily emails.</div>`+
+    `<div class="qsum">This queue: <b>${items.length}</b> open items · <b>AED ${money(tv)} excl. VAT</b> · each document counts once; shared holders each receive one personal attribution.</div>`+
     renderCards(items)+
     '<div class="note">ℹ️ <b>Data source of truth:</b> all counts are the live F&amp;O PR / PO data (Dynamics 365 Finance &amp; Operations) — the same feed behind the dashboard and the 10:00 AM emails.</div>'+
     renderOwners(items)+

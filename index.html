@@ -629,44 +629,36 @@ table.dataTable thead{background:#f8fafc}
 /* ============ Data & config ============ */
 const PR_DATA = [];
 const PO_DATA = [];
-const PR_STEPS_MAP = {"Sourcing":"Sourcing","Priced — awaiting approval":"Priced — awaiting approval","Dep Managers":"Dep Managers","Finance":"Finance","Director":"Director","CEO":"CEO"};
+const HOLDER_RULE = {"version":1,"notRecorded":"not recorded","unreportedStage":"Step not reported by F&O","stageRules":{"Sourcing":{"headerBucket":"Procurement","holderMode":"pending","workbookStep":"Procurement sends inquiry/RFQ to suppliers"},"Priced — awaiting approval":{"headerBucket":"Operations to Confirm","holderMode":"departmentOperations","fallbackToPending":true,"workbookStep":"Unit prices updated in PR lines"},"Dep Managers":{"headerBucket":"Dep Managers","holderMode":"pending","workbookStepByDepartment":true},"Finance":{"headerBucket":"Finance","holderMode":"pending","workbookStep":"Finance & Accounts_Accounting Manager"},"Director":{"headerBucket":"Director","holderMode":"pending","workbookStep":"Facilities Management_Director"},"CEO":{"headerBucket":"CEO","holderMode":"pending","workbookStep":"Executive Management_CEO"}},"unreportedRule":{"headerBucket":"Step not reported by F&O","holderMode":"pending","workbookStep":"PurchReqReviewTask"},"operationsHolderByDepartment":{"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"},"ownerAliases":{"dinesh laxman laxman":"dinesh.laxman","gokul krishna pillai":"Gokul.Krishna","pramod chandrasenan chandrasenan":"pramod.c","shijil choyaprath chandran":"shijil.c","zaheer ahmed ameer":"Zaheer.Ahmed","d365crm admin":"it.solutions","d365crmadmin":"it.solutions","it department":"it.solutions"},"managerWorkbookStepByDepartment":{"Building Services":"Building Services_Asst. Facility Managers 1","Contracted Cleaning Services":"PAC Services_Manager","Concierge Services":"Concierge Services_Manager","Security Services":"Security Services_Manager","Home Maintenance Services":"Home Services_Operations Manager","FitOut Services":"Home Services_Operations Manager","Landscaping Services":"Landscaping_Manager"}};
+const PR_STEPS_MAP = Object.fromEntries(Object.keys(HOLDER_RULE.stageRules).map(name=>[name,name]));
 const PO_STEPS_MAP = {"Advance payment request submitted (if applicable)":"Procurement","Procurement Manager":"Procurement","Accounting Manager":"Finance","Finance and Accounts Director":"Director","CEO":"CEO","Not yet sent":"Not yet sent","Sent to supplier":"Sent to supplier","Receipt posted":"Receipt posted","Invoiced":"Invoiced"};
 
-/* ==== APPROVER-BASED HEADER-BUCKET RECONSTRUCTION (same logic as the 4 daily division emails) ====
-   The F&O step name is unreliable for the finance chain, so header buckets are computed from WHO
-   currently holds the item in approval capture. Ops-confirm steps remap to the requisition
-   department's ops confirmer; then
-   roleOf(owner) decides Finance/Director/CEO vs Procurement vs Operations. "Re-Assigned/Rejected"
-   flags In-review bounce-backs only. */
+/* ==== SHARED LIVE HOLDER RULE (same logic as the 4 daily division emails) ====
+   The feed's stage selects the header bucket. Holder lists are split and de-duplicated.
+   Priced requisitions route to the department operations confirmer; missing/unrecognised
+   feed stages stay visible under the explicit source-gap label. */
 const USER_DEPT={"Abdul Basit Raza":"Building Services","Abdul.basit":"IT","Abdul.Muqeet":"Security Services","Admin":"IT","admin.hk":"Housekeeping Services","Adnan.Ullah":"Procurement","Ahamed Noorullah Mohamed":"Accomodation Services","Ahmed.Odeh":"Building Services","Aparna.Pauly":"Procurement","arman.b":"Accounts & Tax","ayman.g":"Accounts & Tax","Ayman.ismail":"Accounts & Tax","Buying Agent Concierge":"Concierge Services","D365CRM ADMIN":"IT","D365CRMADMIN":"IT","Dinesh Laxman Laxman":"Building Services","dinesh.laxman":"Building Services","Gokul Krishna Pillai":"Contracted Cleaning Services","Gokul.Krishna":"Contracted Cleaning Services","IT DEPARTMENT":"IT","Joe Orlain Jamisola":"Concierge Services","Judhin.prabhakar":"Contracted Cleaning Services","Layusha.cleatus":"Procurement","Mohamed.Ashraf":"Procurement","Mohammad.w":"Building Services","Muhammad Shehzad Ahmeduddin":"IT","muhammad.mustajab":"Accounts & Tax","Nathan.Buys":"Building Services","Patrick.Smith":"Accounts & Tax","Pramod Chandrasenan Chandrasenan":"Security Services","pramod.c":"Security Services","Qasim Jahangir":"QHSE","Roderick Red Palma":"Procurement","roderick.red":"Procurement","Shaik.baba":"Housekeeping Services","Shakir Ameer Bakhsh":"FitOut Services","Shijil Choyaprath Chandran":"Home Maintenance Services","shijil.c":"Home Maintenance Services","Sirinikhil":"Housekeeping Services","teena.k":"Concierge Services","Ubaid":"IT","Zaheer Ahmed Ameer":"Accomodation Services","Zaheer.Ahmed":"Accomodation Services"};
 const _rnorm=s=>String(s==null?'':s).trim().toLowerCase().replace(/\s+/g,' ');
 const _RUN={}; for(const k in USER_DEPT){_RUN[_rnorm(k)]=USER_DEPT[k];}
 function deptForUser(u){return _RUN[_rnorm(u)]||'';}
-const DEPT_OPSUSER={"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"};
+const DEPT_OPSUSER=HOLDER_RULE.operationsHolderByDepartment;
 function opsUserForDept(d){return DEPT_OPSUSER[String(d==null?'':d).trim()]||'';}
 function roleOf(u){const d=deptForUser(u),ul=_rnorm(u);if(d==='Accounts & Tax'){if(ul==='ayman.g')return 'Director';if(ul==='patrick.smith')return 'CEO';return 'Finance';}if(d==='Procurement')return 'Procurement';return '';}
-const NOT_RECORDED='not recorded';
+const NOT_RECORDED=HOLDER_RULE.notRecorded;
 function ownerText(value){const v=String(value==null?'':value).trim();return (!v||/^0+$/.test(v)||/^\d+$/.test(v))?NOT_RECORDED:v;}
-const PR_PROC_STEPBUCKETS=new Set(["PR In Review","RFQ to suppliers","Qt received & Logged","OP confirms material","Procurement (in process)"]);
-const PR_OPS_STEPBUCKETS=new Set(["Qt Shared to Op","Unit Price Updated"]);
+function splitHolderNames(value){
+  const out=[],seen=new Set();
+  String(value==null?'':value).split(',').forEach(part=>{let name=ownerText(part),key=_rnorm(name);name=HOLDER_RULE.ownerAliases[key]||name;key=_rnorm(name);if(name===NOT_RECORDED||seen.has(key))return;seen.add(key);out.push(name);});
+  return out;
+}
+function holderNames(value){const names=splitHolderNames(value);return names.length?names:[NOT_RECORDED];}
+function holderDisplay(r){return ((r&&r.holders)||holderNames(r&&r.pendingUser)).join(' · ');}
 function prReconstruct(r,bucket){
-  // returns {hdr, owner} for a mapped PR record
-  const st=String(r['Status']||'').trim();
-  if(bucket==='Sourcing'||bucket==='Priced — awaiting approval') return {hdr:bucket, owner:ownerText(r['Pending Approver/User']), disp:bucket};
-  const pw0=ownerText(r['Pending Approver/User']);
-  const hb=PR_PROC_STEPBUCKETS.has(bucket)?'Procurement':(PR_OPS_STEPBUCKETS.has(bucket)?'Operations to Confirm':bucket);
+  const rule=HOLDER_RULE.stageRules[bucket]||HOLDER_RULE.unreportedRule;
   const rowdept=String(r['Department']||'').trim();
-  const owner=ownerText(hb==='Operations to Confirm'?(opsUserForDept(rowdept)||pw0):pw0);
-  const inrev=(st==='In review');
-  const rl=roleOf(owner); let hdr;
-  if(rl==='Finance'||rl==='Director'||rl==='CEO') hdr=rl;
-  else if(rl==='Procurement') hdr=(hb==='Operations to Confirm'&&inrev)?'Re-Assigned/Rejected':'Procurement';
-  else hdr=(hb==='Procurement'&&inrev)?'Re-Assigned/Rejected':(hb==='Operations to Confirm')?'Operations to Confirm':'Dep Managers';
-  // disp = sub-bucket for the dept sections: keep the granular step card only when the step agrees
-  // with the reconstructed home; otherwise use the reconstructed header bucket as the card.
-  const disp=(hdr==='Procurement')?(PR_PROC_STEPBUCKETS.has(bucket)?bucket:'Procurement')
-            :(hdr==='Operations to Confirm')?bucket:hdr;
-  return {hdr, owner, disp};
+  const raw=rule.holderMode==='departmentOperations'?(opsUserForDept(rowdept)||(rule.fallbackToPending?r['Pending Approver/User']:'')):r['Pending Approver/User'];
+  const holders=holderNames(raw);
+  return {hdr:rule.headerBucket,owner:holders[0],holders,disp:bucket||HOLDER_RULE.unreportedStage};
 }
 function poReconstruct(r,bucket){
   // returns {hdr, owner} for a mapped/live PO record
@@ -706,13 +698,9 @@ const STEP_LABELS = {
   "LPO sent/shared with supplier":"LPO Sent to Supplier"
 };
 function stepLabel(s){ return STEP_LABELS[s] || String(s||'').replace(/_/g,' · '); }
-const PR_BUCKET_ORDER = ["Re-Assigned/Rejected", "Sourcing", "Priced — awaiting approval", "Dep Managers", "Finance", "Director", "CEO", "Needs Step Name"];
+const PR_BUCKET_ORDER = ["Sourcing", "Priced — awaiting approval", "Step not reported by F&O", "Dep Managers", "Finance", "Director", "CEO"];
 const PO_BUCKET_ORDER = ["Procurement", "Finance", "Director", "CEO", "Not yet sent", "Sent to supplier", "Receipt posted", "Invoiced"];
-// PR: Procurement (header card) aggregates these 4 step-buckets
-const PR_PROCUREMENT_GROUP = ["PR In Review", "RFQ to suppliers", "Qt received & Logged", "OP confirms material", "Procurement (in process)"];
-// PR: NEW "Operations to Confirm" (header card) aggregates these 2 step-buckets
-const PR_OPERATIONS_GROUP = ["Qt Shared to Op", "Unit Price Updated"];
-const PR_HEADER_BUCKETS = ["Re-Assigned/Rejected", "Sourcing", "Priced — awaiting approval", "Dep Managers", "Finance", "Director", "CEO"];
+const PR_HEADER_BUCKETS = ["Procurement", "Operations to Confirm", "Step not reported by F&O", "Dep Managers", "Finance", "Director", "CEO"];
 const PO_HEADER_BUCKETS = ["Procurement", "Finance", "Director", "CEO", "Not yet sent", "Sent to supplier", "Receipt posted", "Invoiced"];
 const DEPARTMENTS = ["Building Services", "Contracted Cleaning Services", "Security Services", "Landscaping Services", "Concierge Services", "FitOut Services", "Home Maintenance Services", "Others"];
 const DEPT_COLORS = {"Building Services": "#135573", "Contracted Cleaning Services": "#4FB0E5", "Security Services": "#ED8624", "Landscaping Services": "#3CC24A", "Concierge Services": "#B13BB4", "FitOut Services": "#DC2626", "Home Maintenance Services": "#E63B2E", "Others": "#1F6FB5"};
@@ -725,7 +713,7 @@ const BUCKET_COLORS = {
   'PR In Review':'#3b82f6','RFQ to suppliers':'#0ea5e9','Qt received & Logged':'#06b6d4',
   'Qt Shared to Op':'#14b8a6','OP confirms material':'#10b981','Unit Price Updated':'#84cc16',
   'Dep Managers':'#8b5cf6','Finance':'#22c55e','Director':'#ec4899','CEO':'#f59e0b',
-  'Operations to Confirm':'#14b8a6','Re-Assigned/Rejected':'#dc2626','Sourcing':'#0ea5e9','Priced — awaiting approval':'#84cc16',
+  'Operations to Confirm':'#14b8a6','Re-Assigned/Rejected':'#dc2626','Sourcing':'#0ea5e9','Priced — awaiting approval':'#84cc16','Step not reported by F&O':'#64748b',
   // PO
   'Procurement':'#0ea5e9','Not yet sent':'#0ea5e9','Sent to supplier':'#a855f7','Receipt posted':'#f97316','Invoiced':'#16a34a'
 };
@@ -825,24 +813,25 @@ function buildPRRecords(prData){
     const mapped = !!(step && PR_STEPS_MAP[step]);
     const isClosed = (r['Status']||'').toLowerCase() === 'closed';
     const docNumber=r['Purchase requisition']||'';
-    const bucket = mapped ? PR_STEPS_MAP[step] : null;
+    const bucket = mapped ? PR_STEPS_MAP[step] : HOLDER_RULE.unreportedStage;
     const created=parseDate(r['Created date']);
     const stepDate=parseDate(r['Step date and time']);
     const refDate=stepDate||created;
     const aging=refDate?daysBetween(refDate,TODAY):null;
-    const rec_=mapped?prReconstruct(r,bucket):{hdr:null,owner:ownerText(r['Pending Approver/User'])};
+    const rec_=prReconstruct(r,mapped?bucket:null);
     recs.push({
       docNumber, prType:prType(docNumber),
       name:r['Name']||'', vendorName:'', quotationRef:r['Quotation reference']||'',
       department:r['Department']||'—', deptGroup:normalizeDept(r['Department']),
       project:r['Location']||'—', contract:r['Contract']||'',
-      bucket, subBucket: step || null, hdrBucket: rec_.hdr, dispBucket: rec_.disp||bucket,
+      bucket, subBucket: step || HOLDER_RULE.unreportedStage, hdrBucket: rec_.hdr, dispBucket: rec_.disp||bucket,
       status:r['Status']||'—',
       createdDate:created, stepDate, aging, amount:Number(r['Total amount'])||0,
-      pendingUser:ownerText(rec_.owner||r['Pending Approver/User']), raw:r,
+      pendingUser:rec_.owner, holders:rec_.holders, raw:r,
       _isClosed: isClosed,
-      _isOpenPipeline: ['in review','approved'].includes(String(r['Status']||'').trim().toLowerCase()),
-      _isUnmapped: !mapped
+      _isOpenPipeline: ['draft','in review','approved'].includes(String(r['Status']||'').trim().toLowerCase()),
+      _isStepUnreported: !mapped,
+      _isUnmapped: false
     });
   });
   return recs;
@@ -879,7 +868,7 @@ function buildPORecords(poData){
       poStatus: poStatusRaw,
       currency:r['Currency']||'',
       createdDate:created, stepDate, aging, amount:Number(r['Total amount'])||0,
-      pendingUser:ownerText(rec_.owner||r['Pending Approver/User']), raw:r,
+      pendingUser:ownerText(rec_.owner||r['Pending Approver/User']), holders:holderNames(rec_.owner||r['Pending Approver/User']), raw:r,
       clockProvenance:r['Clock provenance']||'', clockLabel:r['Clock label']||'',
       _isUnmapped: !mapped,
       _isInvoiced: isInvoiced,
@@ -1088,6 +1077,8 @@ const JB_GATE_MAP = {
   'OP confirms material'    : 'Ops Confirmation',
   'Operations to Confirm'   : 'Ops Confirmation',
   'Unit Price Updated'      : 'Prices Updated',
+  'Priced — awaiting approval': 'Prices Updated',
+  'Step not reported by F&O': 'Step not reported by F&O',
   'Dep Managers'            : 'Mgmt Approvals',
   'Finance'                 : 'Mgmt Approvals',
   'Director'                : 'Mgmt Approvals',
@@ -1160,7 +1151,7 @@ function buildJourneyCore(){
   const PRR = buildPRRecords(PR_DATA), POR = buildPORecords(PO_DATA);
   const alive  = r => !['Rejected', 'Cancelled'].includes(r.status);
   const prAll  = PRR.filter(alive);
-  const prLive = PRR.filter(r => r._isOpenPipeline && !r._isUnmapped && alive(r));
+  const prLive = PRR.filter(r => r._isOpenPipeline && alive(r));
 
   const poByPR = {};
   POR.forEach(p => {
@@ -1375,7 +1366,7 @@ function buildJourneyData(){
       windowStart: _jbDayKey(windowStart),
       prRows: PR_DATA.length, poRows: PO_DATA.length, eligiblePrs: jr.length,
       missingTerminalTimestamp: true,
-      excluded: { rejectedOrCancelled: PRR.length - prAll.length, unmapped: PRR.filter(r => r._isUnmapped).length },
+      excluded: { rejectedOrCancelled: PRR.length - prAll.length, unmapped: 0, stepNotReported: PRR.filter(r => r._isOpenPipeline && r._isStepUnreported).length },
       source: 'live dashboard data'
     },
     headline: headline,
@@ -1412,7 +1403,7 @@ function _jbDrill(rows, lv){
 
 function _jbHolders(recs, n){
   const o = {};
-  recs.forEach(r => (o[r.pendingUser || '—'] = o[r.pendingUser || '—'] || []).push(r));
+  recs.forEach(r => (r.holders||holderNames(r.pendingUser)).forEach(name => (o[name] = o[name] || []).push(r)));
   return Object.keys(o).map(k => ({
     name: k, count: o[k].length,
     medianAgeWd: _jbR(_jbMed(o[k].map(r => _jbWd(r.createdDate, TODAY))), 0),
@@ -1424,7 +1415,7 @@ function _jbOldest(recs, n){
   return recs.map(r => ({
     number: r.docNumber || '—', name: r.name || '',
     department: r.department || '—', project: r.project || '—',
-    holder: r.pendingUser || '—', step: stepText(r),
+    holder: holderDisplay(r), step: stepText(r),
     amount: r.amount || 0, ageWd: _jbWd(r.createdDate, TODAY) || 0,
     dwellDays: r.aging == null ? null : r.aging
   })).sort((a, b) => b.ageWd - a.ageWd).slice(0, n);
@@ -1593,7 +1584,7 @@ function _jbWorklist(){
       number: r.docNumber || '—', type: r.prType === 'CPR' ? 'CPR' : 'PR',
       name: r.name || '', division: r.deptGroup || 'Others',
       department: r.department || '—', project: r.project || '—',
-      holder: r.pendingUser || '—', gate: gateOf(r), step: stepText(r),
+      holder: holderDisplay(r), gate: gateOf(r), step: stepText(r),
       ageWd: age, dwellDays: r.aging == null ? 0 : r.aging,
       amount: r.amount || 0,
       flag: age > 20 ? 'Critical' : age > JB_TARGET_WD ? 'Watch' : 'On track'
@@ -2133,7 +2124,7 @@ function initAnalysisSubTabs(){
 function renderAnalysis(){
   const host=document.getElementById('analysisSection');
   const PRR=buildPRRecords(PR_DATA), POR=buildPORecords(PO_DATA);
-  const prLive=PRR.filter(r=>r._isOpenPipeline&&!r._isUnmapped&&!['Rejected','Cancelled'].includes(r.status));
+  const prLive=PRR.filter(r=>r._isOpenPipeline&&!['Rejected','Cancelled'].includes(r.status));
   const poLive=POR.filter(r=>!r._isUnmapped&&!r._isPORejected&&!r._isPOCanceled&&!r._isInvoiced);
   const live=prLive.map(r=>({...r,_doc:'PR'})).concat(poLive.map(r=>({...r,_doc:'PO'})));
   const totV=live.reduce((a,r)=>a+(r.amount||0),0);
@@ -2141,7 +2132,7 @@ function renderAnalysis(){
   let h=AN_CSS+`<div class="anSubPane on" id="anSubCurrent"><div class="anWrap">`;
   /* ---------- HERO ---------- */
   h+=`<div class="anHero"><div><h2><i class="fa-solid fa-magnifying-glass-chart" style="color:#FAC775;margin-right:10px"></i>Procurement Action Centre</h2>
-      <div class="sub">Who must act today, where the pipeline leaks, and how suppliers perform — computed with the approver-based logic (same as the daily division emails). Live pipeline only.</div></div>
+      <div class="sub">Who must act today, where the pipeline leaks, and how suppliers perform — the same live holder rule as the daily division emails. Each document counts once in pipeline totals; shared holders each receive one personal attribution.</div></div>
       <div class="anHeroStats">
         <div class="anHeroStat"><div class="v">${live.length.toLocaleString()}</div><div class="l">Open items</div></div>
         <div class="anHeroStat"><div class="v">${(totV/1e6).toFixed(1)}M</div><div class="l">AED excl. VAT</div></div>
@@ -2155,14 +2146,14 @@ function renderAnalysis(){
   /* ---------- PENDING BY PERSON + ESCALATIONS ---------- */
   const pg={};
   live.forEach(r=>{ if(r._doc==='PO'&&(r.hdrBucket==='Sent to supplier'||r.hdrBucket==='Receipt posted'))return;
-    const o=ownerText(r.pendingUser); if(o===NOT_RECORDED)return;
-    const k=o.toLowerCase(); const e=pg[k]||(pg[k]={disp:o,pr:0,po:0,v:0,old:0,br:0}); if(r._doc==='PR')e.pr++;else e.po++; e.v+=(r.amount||0); if(r.aging!=null){if(r.aging>e.old)e.old=r.aging; if(r.aging>7)e.br++;}});
+    (r.holders||holderNames(r.pendingUser)).forEach(o=>{if(o===NOT_RECORDED)return;
+      const k=o.toLowerCase(); const e=pg[k]||(pg[k]={disp:o,pr:0,po:0,v:0,old:0,br:0}); if(r._doc==='PR')e.pr++;else e.po++; e.v+=(r.amount||0); if(r.aging!=null){if(r.aging>e.old)e.old=r.aging; if(r.aging>7)e.br++;}});});
   const people=Object.values(pg).sort((a,b)=>(b.pr+b.po)-(a.pr+a.po)).slice(0,12);
   const prows=people.map((e,i)=>[`${_anInit(e.disp,i)}<b>${escapeHtml(e.disp)}</b>`,escapeHtml(deptForUser(e.disp)||'—'),
     e.pr?`<span class="anPill" style="background:#e4edff;color:#1d4ed8">${e.pr} PR</span>`:'<span style="color:#c3ccda">—</span>',
     e.po?`<span class="anPill" style="background:#dff3f6;color:#0e7490">${e.po} PO</span>`:'<span style="color:#c3ccda">—</span>',
     _anAgeB(e.old),e.br?`<span class="anPill" style="background:#fee2e2;color:#b91c1c">${e.br}</span>`:'<span style="color:#c3ccda">0</span>',`<b>${_anMoney(e.v)}</b>`]);
-  const unas=live.filter(r=>ownerText(r.pendingUser)===NOT_RECORDED&&!(r._doc==='PO'&&(r.hdrBucket==='Sent to supplier'||r.hdrBucket==='Receipt posted')));
+  const unas=live.filter(r=>(r.holders||holderNames(r.pendingUser)).every(o=>o===NOT_RECORDED)&&!(r._doc==='PO'&&(r.hdrBucket==='Sent to supplier'||r.hdrBucket==='Receipt posted')));
   const escAgg={};
   live.forEach(r=>{const b=r.hdrBucket||r.bucket;const e=escAgg[b]||(escAgg[b]={a:0,b:0,n:0});e.n++;if(r.aging!=null){if(r.aging>14)e.b++;else if(r.aging>7)e.a++;}});
   const escRows=Object.entries(escAgg).filter(([,e])=>e.a+e.b>0).sort((x,y)=>(y[1].a+y[1].b)-(x[1].a+x[1].b));
@@ -2182,7 +2173,7 @@ function renderAnalysis(){
   /* ---------- HIGH VALUE ---------- */
   const hv=live.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)).slice(0,8);
   const hvMax=hv.length?(hv[0].amount||1):1;
-  const hvHtml=hv.map((r,i)=>`<div class="anBarRow"><div class="lbl">${escapeHtml(r.docNumber)} <span style="color:#8a99b3;font-weight:500">· ${escapeHtml(String(r.pendingUser||r.vendorName||'—').slice(0,16))}</span></div>
+  const hvHtml=hv.map((r,i)=>`<div class="anBarRow"><div class="lbl">${escapeHtml(r.docNumber)} <span style="color:#8a99b3;font-weight:500">· ${escapeHtml(String(holderDisplay(r)||r.vendorName||'—').slice(0,24))}</span></div>
       <div class="trk"><div class="fill" style="width:${Math.max(6,(r.amount||0)/hvMax*100).toFixed(1)}%;background:${AN_PALETTE[i%AN_PALETTE.length]}">${_anMoney(r.amount)}</div></div>
       <div class="val">${escapeHtml(r.hdrBucket||r.bucket)} ${_anAgeB(r.aging)}</div></div>`).join('');
   /* ---------- JOURNEY ---------- */
@@ -2205,8 +2196,8 @@ function renderAnalysis(){
   const e3=poLive.filter(r=>['Procurement','Finance','Director','CEO'].includes(r.hdrBucket)&&['Confirmed','Approved'].includes(r.status)&&r.poStatus==='Open order');
   const e4=poLive.filter(r=>r.hdrBucket==='Sent to supplier'&&(()=>{const d=parseDate(r.raw['Requested receipt date']);return d&&d<TODAY;})());
   const e5=poLive.filter(r=>r.hdrBucket==='Receipt posted');
-  const exDef=[['No quotation recorded','fa-file-circle-question','#dc2626','Procurement-stage PR &gt;7d without a quotation reference',e1,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(ownerText(r.pendingUser).slice(0,18)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
-               ['Ops confirmation overdue','fa-hourglass-half','#c2410c','Operations sitting &gt;7d on confirmation',e2,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(String(r.pendingUser||'').slice(0,18)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
+  const exDef=[['No quotation recorded','fa-file-circle-question','#dc2626','Procurement-stage PR &gt;7d without a quotation reference',e1,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(holderDisplay(r).slice(0,24)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
+               ['Ops confirmation overdue','fa-hourglass-half','#c2410c','Operations sitting &gt;7d on confirmation',e2,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(holderDisplay(r).slice(0,24)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
                ['Approved PO not sent','fa-paper-plane','#7c3aed','Confirmed / approved but never sent to the supplier',e3,r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,20)),escapeHtml(r.status+' / '+r.poStatus),_anAgeB(r.aging),_anMoney(r.amount)],['PO','Vendor','Status','r:Age','r:Value']],
                ['Late delivery','fa-truck-ramp-box','#b45309','Past the requested receipt date, still not received',e4,r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,20)),escapeHtml((typeof fmtDate==='function')?fmtDate(parseDate(r.raw['Requested receipt date'])):String(r.raw['Requested receipt date']||'')),_anAgeB(r.aging),_anMoney(r.amount)],['PO','Vendor','Promised','r:Age','r:Value']],
                ['Received, not invoiced','fa-file-invoice','#ea580c','GRN done — invoice still not posted',e5,r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,20)),escapeHtml(r.department),_anAgeB(r.aging),_anMoney(r.amount)],['PO','Vendor','Department','r:Age','r:Value']]];
@@ -2374,8 +2365,8 @@ function applyFilters(){
     if(activeFilters.status && r.status!==activeFilters.status) return false;
     if(activeFilters.project && r.project!==activeFilters.project) return false;
     if(raceHolderFilter&&window.RACE_CONTROL){
-      const person=RACE_CONTROL.personOwner(r,mode)||RACE_CONTROL.canonicalOwner(r.pendingUser);
-      if(RACE_CONTROL.ownerKey(person)!==raceHolderFilter)return false;
+      const people=RACE_CONTROL.holderNames(r);
+      if(!people.some(person=>RACE_CONTROL.ownerKey(person)===raceHolderFilter))return false;
     }
     if(activeFilters.from){const f=new Date(activeFilters.from);if(!r.createdDate||r.createdDate<f)return false;}
     if(activeFilters.to){const t=new Date(activeFilters.to);t.setHours(23,59,59);if(!r.createdDate||r.createdDate>t)return false;}
@@ -2384,7 +2375,7 @@ function applyFilters(){
       if(activeFilters.aging==='4-7' && !(a>=4&&a<=7)) return false;
       if(activeFilters.aging==='8+'  && !(a>=8)) return false;}
     if(activeFilters.search){
-      const blob=`${r.docNumber||''} ${r.name||''} ${r.vendorName||''} ${r.department} ${r.project} ${r.bucket} ${r.subBucket} ${r.status} ${r.pendingUser}`.toLowerCase();
+      const blob=`${r.docNumber||''} ${r.name||''} ${r.vendorName||''} ${r.department} ${r.project} ${r.bucket} ${r.subBucket} ${r.status} ${holderDisplay(r)}`.toLowerCase();
       if(!blob.includes(activeFilters.search)) return false;
     }
     return true;
@@ -2485,16 +2476,9 @@ function renderBucketKPIs(records){
   const groupCount={};
   order.forEach(g=>groupCount[g]={count:0,sum:0,c:0,breach:0});
   records.forEach(r=>{
-    // Header buckets use the approver-based reconstruction (same as the daily division emails);
-    // fall back to the old step-group mapping only if hdrBucket is missing.
+    // Header buckets use the shared live holder rule used by the daily emails.
     let g = r.hdrBucket;
-    if(!g){
-      g = r.bucket;
-      if(mode==='PR'){
-        if(PR_PROCUREMENT_GROUP.includes(r.bucket)) g='Procurement';
-        else if(PR_OPERATIONS_GROUP.includes(r.bucket)) g='Operations to Confirm';
-      }
-    }
+    if(!g) g = r.bucket;
     if(!groupCount[g]) groupCount[g]={count:0,sum:0,c:0,breach:0};
     groupCount[g].count++;
     if(r.aging!=null){groupCount[g].sum+=r.aging;groupCount[g].c++;}
@@ -2509,7 +2493,7 @@ function renderBucketKPIs(records){
       <div class="kpi-card" style="border-left:4px solid ${col}" onclick="openDrill('headerGroup',${JSON.stringify(g).replace(/"/g,'&quot;')})">
         <div class="kpi-label">${escapeHtml(g)}</div>
         <div class="kpi-value" style="color:${col}">${d.count.toLocaleString()}</div>
-        <div class="kpi-sub">Avg <b style="color:${sev}">${avg}d</b> · ${d.breach} breach</div>
+        <div class="kpi-sub">${mode==='PR'&&g==='Operations to Confirm'?'Prices updated signal · ':''}Avg <b style="color:${sev}">${avg}d</b> · ${d.breach} breach</div>
       </div>`;
   }).join('');
 }
@@ -2719,9 +2703,9 @@ function renderTable(records){
   document.getElementById('mainTableHead').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
   let rows;
   if(mode==='PR'){
-    rows=records.map(r=>[r.docNumber,`<b style="color:${r.prType==='CPR'?'#0ea5e9':'#8b5cf6'}">${r.prType||'—'}</b>`,r.name,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(r.subBucket),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),r.pendingUser]);
+    rows=records.map(r=>[r.docNumber,`<b style="color:${r.prType==='CPR'?'#0ea5e9':'#8b5cf6'}">${r.prType||'—'}</b>`,r.name,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(r.subBucket),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),escapeHtml(holderDisplay(r))]);
   } else {
-    rows=records.map(r=>[r.docNumber,r.vendorName,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(stepText(r)),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2}),r.pendingUser]);
+    rows=records.map(r=>[r.docNumber,r.vendorName,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(stepText(r)),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2}),escapeHtml(holderDisplay(r))]);
   }
   $('#mainTable tbody').empty();
   const sortCol = mode==='PR' ? 8 : 7;
@@ -2776,7 +2760,7 @@ function showDrillModal(subset, title){
         <td>${fmtDate(r.createdDate)}</td>
         <td>${fmtDateTime(r.stepDate)}</td>
         <td>${agingLabel(r.aging)}</td>
-        <td>${escapeHtml(r.pendingUser)}</td>
+        <td>${escapeHtml(holderDisplay(r))}</td>
       </tr>`).join('');
   } else {
     tbody.innerHTML = sorted.map(r=>`
@@ -2791,7 +2775,7 @@ function showDrillModal(subset, title){
         <td>${fmtDateTime(r.stepDate)}</td>
         <td>${agingLabel(r.aging)}</td>
         <td>${(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2})}</td>
-        <td>${escapeHtml(r.pendingUser)}</td>
+        <td>${escapeHtml(holderDisplay(r))}</td>
       </tr>`).join('');
   }
   document.getElementById('drillModal').classList.add('active');
@@ -2805,13 +2789,7 @@ function openDrill(kind,payload){
     // Header cards are aggregated on the reconstructed hdrBucket, so drill on the same key
     subset=subset.filter(r=>{
       let g=r.hdrBucket;
-      if(!g){
-        g=r.bucket;
-        if(mode==='PR'){
-          if(PR_PROCUREMENT_GROUP.includes(r.bucket)) g='Procurement';
-          else if(PR_OPERATIONS_GROUP.includes(r.bucket)) g='Operations to Confirm';
-        }
-      }
+      if(!g) g=r.bucket;
       return g===payload;
     });
     title=`Header bucket: ${payload}`;
@@ -2856,8 +2834,8 @@ function exportDrillToExcel(){
     : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With'];
   const wsData=[cols];
   currentDrillSubset.forEach(r=>{
-    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.pendingUser,r.amount]);
-    else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,r.pendingUser]);
+    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,holderDisplay(r),r.amount]);
+    else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,holderDisplay(r)]);
   });
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(wsData);
@@ -2872,8 +2850,8 @@ function exportToExcel(){
     : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With'];
   const wsData=[cols];
   filteredRecords.forEach(r=>{
-    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.pendingUser,r.amount]);
-    else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,r.pendingUser]);
+    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,holderDisplay(r),r.amount]);
+    else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,holderDisplay(r)]);
   });
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(wsData);
@@ -3044,7 +3022,7 @@ function renderSuggestions(records){
       icon:'fa-stopwatch',
       text: `Average aging is <b>${avgAging.toFixed(1)} days</b>. Oldest pending record <b>${escapeHtml(oldest.docNumber)}</b> ` +
             `has been sitting in <b>${escapeHtml(oldest.bucket)}</b> for <b>${oldest.aging} days</b>` +
-            (oldest.pendingUser?` (with <b>${escapeHtml(oldest.pendingUser)}</b>)`:'') + ' — chase this first.'
+            (oldest.pendingUser?` (with <b>${escapeHtml(holderDisplay(oldest))}</b>)`:'') + ' — chase this first.'
     });
   } else {
     bullets.push({

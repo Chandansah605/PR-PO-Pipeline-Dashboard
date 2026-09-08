@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "notRecorded": "not recorded",
+  "unreportedStage": "Step not reported by F&O",
+  "stageRules": {
+    "Sourcing": {
+      "headerBucket": "Procurement",
+      "holderMode": "pending",
+      "workbookStep": "Procurement sends inquiry/RFQ to suppliers"
+    },
+    "Priced — awaiting approval": {
+      "headerBucket": "Operations to Confirm",
+      "holderMode": "departmentOperations",
+      "fallbackToPending": true,
+      "workbookStep": "Unit prices updated in PR lines"
+    },
+    "Dep Managers": {
+      "headerBucket": "Dep Managers",
+      "holderMode": "pending",
+      "workbookStepByDepartment": true
+    },
+    "Finance": {
+      "headerBucket": "Finance",
+      "holderMode": "pending",
+      "workbookStep": "Finance & Accounts_Accounting Manager"
+    },
+    "Director": {
+      "headerBucket": "Director",
+      "holderMode": "pending",
+      "workbookStep": "Facilities Management_Director"
+    },
+    "CEO": {
+      "headerBucket": "CEO",
+      "holderMode": "pending",
+      "workbookStep": "Executive Management_CEO"
+    }
+  },
+  "unreportedRule": {
+    "headerBucket": "Step not reported by F&O",
+    "holderMode": "pending",
+    "workbookStep": "PurchReqReviewTask"
+  },
+  "operationsHolderByDepartment": {
+    "Building Services": "dinesh.laxman",
+    "Landscaping Services": "dinesh.laxman",
+    "Contracted Cleaning Services": "Gokul.Krishna",
+    "Security Services": "pramod.c",
+    "FitOut Services": "Shakir Ameer Bakhsh",
+    "Home Maintenance Services": "shijil.c"
+  },
+  "ownerAliases": {
+    "dinesh laxman laxman": "dinesh.laxman",
+    "gokul krishna pillai": "Gokul.Krishna",
+    "pramod chandrasenan chandrasenan": "pramod.c",
+    "shijil choyaprath chandran": "shijil.c",
+    "zaheer ahmed ameer": "Zaheer.Ahmed",
+    "d365crm admin": "it.solutions",
+    "d365crmadmin": "it.solutions",
+    "it department": "it.solutions"
+  },
+  "managerWorkbookStepByDepartment": {
+    "Building Services": "Building Services_Asst. Facility Managers 1",
+    "Contracted Cleaning Services": "PAC Services_Manager",
+    "Concierge Services": "Concierge Services_Manager",
+    "Security Services": "Security Services_Manager",
+    "Home Maintenance Services": "Home Services_Operations Manager",
+    "FitOut Services": "Home Services_Operations Manager",
+    "Landscaping Services": "Landscaping_Manager"
+  }
+}
