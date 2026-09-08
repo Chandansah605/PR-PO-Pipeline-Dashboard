@@ -47,6 +47,17 @@ test('scene lifecycle caps pixel density and stops all recurring work', ()=>{
   assert.match(html, /if\(window\.stopLightsOutSignin\) window\.stopLightsOutSignin\(\)/);
 });
 
+test('signed-out load defers dashboard-only libraries and layout', ()=>{
+  for(const asset of ['plotly-2.27.0.min.js','jquery-3.7.1.min.js','xlsx.full.min.js','dataverse-live.js','race-control.js']){
+    assert.doesNotMatch(html, new RegExp(`<script[^>]+src="[^"]*${asset.replaceAll('.', '\\.')}`));
+  }
+  assert.match(html, /function ensureDashboardAssets\(\)/);
+  assert.match(html, /await ensureDashboardAssets\(\)/);
+  assert.match(html, /body\.login-active>:not\(#loginOverlay\):not\(script\)/);
+  assert.match(html, /function loadDashboardEvidence\(\)/);
+  assert.doesNotMatch(html, /window\.addEventListener\('load', function \(\) \{\s*try \{\s*var bust/);
+});
+
 test('reduced motion is an immediate lights-out state', ()=>{
   assert.match(scene, /motion=!window\.matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches/);
   assert.match(scene, /if\(!motion\)\{showLightsOutState\(\);drawScene\(performance\.now\(\),0\);return\}/);
