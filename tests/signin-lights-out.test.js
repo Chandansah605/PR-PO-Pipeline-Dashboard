@@ -38,16 +38,40 @@ test('inline logo geometry is the repository logo geometry', ()=>{
   assert.deepEqual(tagAttributes(inlineSvg[0]), tagAttributes(logo));
 });
 
-test('scene lifecycle caps pixel density and stops all recurring work', ()=>{
-  assert.match(scene, /deviceDpr=Math\.min\(2,window\.devicePixelRatio\|\|1\)/);
-  assert.match(scene, /DPR=Math\.min\(deviceDpr,Math\.sqrt\(500000\/Math\.max\(1,area\)\)\)/);
-  assert.match(scene, /if\(slowFrames>=2\)\{adaptivePaused=true;return\}/);
-  assert.match(scene, /function redrawAdaptive\(\)/);
+test('scene lifecycle renders at native DPR and stops all recurring work', ()=>{
+  assert.match(scene, /DPR=window\.devicePixelRatio\|\|1/);
+  assert.match(scene, /cv\.width=Math\.round\(W\*DPR\)/);
+  assert.match(scene, /cv\.height=Math\.round\(H\*DPR\)/);
+  assert.match(scene, /ctx\.imageSmoothingQuality='high'/);
+  assert.match(scene, /matchMedia\('\(resolution: '\+DPR\+'dppx\)'\)/);
+  assert.doesNotMatch(scene, /adaptivePaused|slowFrames|redrawAdaptive/);
   assert.match(scene, /document\.hidden/);
   assert.match(scene, /cancelAnimationFrame\(frameId\)/);
   assert.match(scene, /window\.clearInterval\(clockId\)/);
   assert.match(scene, /window\.stopLightsOutSignin=stop/);
   assert.match(html, /if\(window\.stopLightsOutSignin\) window\.stopLightsOutSignin\(\)/);
+});
+
+test('real rear car asset is decoded before the first rendered sequence', ()=>{
+  for(const asset of ['car-rear-700.webp','car-rear-1100.webp','car-rear-1600.webp','car-rear-1100.png']) assert.match(scene,new RegExp(asset.replaceAll('.', '\\.')));
+  assert.match(scene, /await prepareCar\(\)/);
+  assert.match(scene, /if\(carImage\.decode\)\{try\{await carImage\.decode\(\)/);
+  assert.match(scene, /function drawHeroVehicle\(now\)/);
+  const legacyCarName='draw'+'Car';
+  assert.doesNotMatch(scene,new RegExp(`function ${legacyCarName}\\(|${legacyCarName}\\(`));
+});
+
+test('five start-light panels fill left-to-right without track wording', ()=>{
+  assert.match(scene, /for\(let n=0;n<5;n\+\+\)drawLamp\(start\+n\*step,lampY,radius,L===lap&&phase==='lights'&&n<lit\)/);
+  assert.doesNotMatch(scene, /function say\(|'5 lights'|'1 light'|'Lights out','green'|'Lap complete'/);
+  assert.doesNotMatch(html, /loginCallout|login-callout/);
+});
+
+test('repository car assets stay below the one-megabyte limit', ()=>{
+  const carDir=path.join(root,'assets','car');
+  const files=fs.readdirSync(carDir).filter(name=>/\.(?:png|webp)$/i.test(name));
+  assert.equal(files.length,7);
+  for(const file of files)assert.ok(fs.statSync(path.join(carDir,file)).size<1024*1024,`${file} exceeds 1 MB`);
 });
 
 test('signed-out load defers dashboard-only libraries and layout', ()=>{

@@ -6472,3 +6472,87 @@ Monitor the next scheduled morning email and first weekly live snapshot. Repair 
 - The first deployed desktop audit scored 38 and exposed eager dashboard libraries plus unconstrained canvas work. Those two measured causes were corrected before the final 97 result; no package was installed.
 - Live authentication dialogs and credentials were not automated. Successful dashboard entry was regression-checked with the existing authenticated session path: the overlay closed, all deferred assets loaded, Race Control initialized and no sign-in scene or recurring scene work was created.
 - Final desktop evidence is 1440 × 860, SHA-256 `404C8970DA0B26DE718BDC1FC142B24A17C5B81DC03238B55CEC8DDBCC4351DB`. Final mobile evidence is 390 × 844, SHA-256 `2910C1886E5FDA8935D296A7CF98BDA2DF392989A12B0952609AEB95C82E3DBF`.
+
+# Lights-out sign-in correction 02 — real SSG car — 2026-09-08
+
+## What I found
+
+- `main` now contains the seven authorised transparent car assets from commit `4da6a4e`. Their dimensions, RGBA channels, alpha transparency, byte counts and Git tracking status were checked before use.
+- The live scene still used the vector `drawCar()` implementation, a DOM callout for `1 LIGHT` through `5 LIGHTS`, and a canvas backing-store cap of 500,000 pixels. Those three items were the correction's confirmed faults.
+- The authentication source remains the implementation from `bd667e9`: normal windows use `loginPopup()`, popup/named/standalone windows use `loginRedirect()`, popup-related failures fall back to redirect, and `authGate()` awaits `handleRedirectPromise()`.
+
+## Problems and risks
+
+- A real transparent render can read as a sticker unless its road contact, scene lighting and reflection are tied to the track projection.
+- Loading the selected image after animation starts would produce a visible pop. The sequence therefore starts only after image load and decode complete; the sign-in control remains immediately usable in the DOM.
+- Native DPR removes the earlier performance safety cap. The full scene had to be measured at the required 1920 × 1080 rather than assumed safe.
+
+## Files changed
+
+- `signin-lights-out.js` — real-car loading and rendering, five start lights, native-DPR lifecycle.
+- `index.html` — removed the obsolete countdown callout markup and scoped CSS only.
+- `tests/signin-lights-out.test.js` — updated lifecycle assertions and added correction regressions.
+- `evidence/signin-correction-02/measure-performance.js` — reproducible Chrome DevTools measurement harness.
+- `evidence/signin-correction-02/*.jpg` — required desktop and HiDPI visual evidence.
+- `NOTES.md` — this implementation, verification and deployment record.
+
+## Exact changes made
+
+- Deleted `drawCar()` and every caller. The scene selects `car-rear-700.webp`, `car-rear-1100.webp` or `car-rear-1600.webp` from CSS width and physical pixel width, with `car-rear-1100.png` as the decode/load fallback.
+- The selected car is loaded and decoded before `resize()`, the clock and the first animation sequence begin. A one-time offscreen texture adds restrained Strive-blue floodlight colour without per-frame image processing.
+- The real rear render is sized through the existing perspective projection. Its wheel line meets the road plane, with a soft elliptical contact shadow, faint compressed asphalt reflection, subtle floodlight pool and low-cost heat trails after launch.
+- Replaced the word callout with five separate dark lamp housings on the first overhead gantry. Each red lens fills left-to-right, the fifth holds for 650–1,050 ms, all five extinguish together, and acceleration starts on release.
+- Removed `loginCallout`, `say()`, `Lap complete`, all numeric light wording and the unused callout CSS. The allowed stage labels, chips, sign-in panel and button wording remain.
+- Canvas DPR is now the actual `window.devicePixelRatio`. Backing dimensions are rounded `clientWidth × DPR` and `clientHeight × DPR`; the transform and high-quality image smoothing are reapplied on resize and a resolution-media-query watcher handles DPR changes.
+- Removed the adaptive low-resolution/animation-stop fallback because it violated native sharpness and the required sustained sequence. Visibility pausing, permanent shutdown and reduced motion are unchanged.
+
+## Strive brand-system influence
+
+- The authorised SSG livery render is used without redrawing or altering its logo geometry.
+- Scene lighting uses the existing Strive steel blue `#618FB4`, deep blue `#145A95` and restrained white highlight; the approved sign-in panel, typography and wording were not restyled.
+
+## Visual evidence
+
+![Correction 02 at 1920 by 1080](evidence/signin-correction-02/signin-1920x1080.jpg)
+
+![Correction 02 at 1366 by 768](evidence/signin-correction-02/signin-1366x768.jpg)
+
+![Correction 02 at 1440 by 900 and DPR 2](evidence/signin-correction-02/signin-hidpi-1440x900@2x.jpg)
+
+- 1920 × 1080 screenshot: 251,964 bytes, SHA-256 `78A6D149D711C808BE9097099303018F0DE7A1A6C01D2F3444E46E435462970C`.
+- 1366 × 768 screenshot: 170,429 bytes, SHA-256 `2917655DEDBEB5A25660CD804271FD449D77CFA4933D59C1270DF650A9E085E6`.
+- HiDPI screenshot: CSS 1440 × 900 at DPR 2, 2,880 × 1,800 pixels, 497,847 bytes, SHA-256 `FCE1EBDA52A506A44F6DDA4AFF64661010DF2D6F92A0F382D344F1E868E6F998`.
+- All three were reopened at original resolution and visually inspected. The car reads as the SSG photographic render, the tires meet the asphalt, the soft shadow/reflection ground it, and no countdown words appear.
+
+## Testing performed before publication
+
+- `node --check signin-lights-out.js` passed.
+- The one inline script in `index.html` parsed under Node `vm.Script`.
+- `node --test tests/auth-flow.test.js tests/signin-lights-out.test.js tests/dataverse-live.test.js tests/race-control.test.js`: 19/19 passed.
+- Auth regression tests passed all seven popup, normal-window, redirect-return, cancellation and redirect-handler-order cases without changing auth code.
+- At an exact foreground CDP viewport of 1920 × 1080 and DPR 1, canvas CSS/backing dimensions were `1920 × 1080` / `1920 × 1080`.
+- After resize to 1366 × 768 and DPR 1, dimensions were `1366 × 768` / `1366 × 768`.
+- After DPR change to 2 at CSS 1440 × 900, dimensions were `1440 × 900` / `2880 × 1800`.
+- The full seven-second start sequence recorded 420 frames over 7,000.1 ms: 59.999 fps, 16.7 ms median, 16.9 ms p95, 17.6 ms maximum, and zero frames above 20 ms. `document.hidden` was false throughout the foreground measurement.
+- Runtime text inspection returned no element whose text matched `1 LIGHT` through `5 LIGHTS`.
+- Reduced-motion emulation produced the immediate final state: no animation frame, five completed sector chips, active clock and `Lights out · Sign in` button.
+- Chrome lifecycle freezing emitted a hidden visibility event with both `frameActive: false` and `clockActive: false`, confirming background pausing remains effective.
+- A fresh 1366 × 768 load selected `assets/car/car-rear-1100.webp`; the 1920 and HiDPI loads selected `car-rear-1600.webp`. Code and tests cover the ≤720 px `car-rear-700.webp` selection.
+- This is a static GitHub Pages application with no `package.json` or production build command. The JavaScript syntax, inline-script parse and full repository test suite are the available build-equivalent checks.
+- The seven repository car files total 853,258 bytes. Largest is the existing 452,844-byte PNG fallback; selected WebP transfer is 37,184, 70,534 or 118,258 bytes. No new car image or source render was added.
+
+## What I did not change
+
+- No MSAL client, tenant, scopes, redirect URI, popup detection, redirect fallback, session key, token or sign-out code.
+- No clock, Dubai Race / Session / Lap formula, sector-strip structure, session target, eyebrow, panel copy or panel layout.
+- No dashboard data, Dataverse, Race Control, email, workbook, workflow or GitHub Actions file.
+- No car source render outside the repository and no image over 1 MB was added.
+
+## Remaining risks
+
+- Real Microsoft credentials and authentication dialogs are intentionally not automated. Deployed verification therefore uses the existing successful real-browser proof plus live-provider launch/return checks that do not capture credentials or tokens.
+- WebP decode failure uses the 452,844-byte PNG fallback; this path is code- and unit-verified but was not forced in the production browser because current Chrome supports WebP.
+
+## Recommended next step
+
+- Keep the current car scale and lighting unless CEO review identifies a specific visual adjustment; the measured native-DPR version has sufficient performance headroom.
