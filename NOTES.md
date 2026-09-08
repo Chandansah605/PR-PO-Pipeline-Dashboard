@@ -1,3 +1,120 @@
+# Dead source-column correction — 8 September 2026
+
+## What I found
+
+- Six source fields used by the screen cannot provide the values the UI expected: `Submission Status`, `Accepted By/Assign To`, `Request for quotation case`, `Purchase type`, `RFQ number`, and `Created by`. The supplied 820-row PR and 983-row PO snapshots had no populated values in those columns.
+- `Preparer` is not a displayable owner. In the supplied PR snapshot, 753 of 820 rows were `000000`; the other 67 rows contained five distinct personnel numbers. All five numbers matched `mserp_hcmworkerbientities`, but that entity exposes only personnel number and person RecId. The available person/name entity sets returned zero rows, so none of the five could be resolved to a name.
+- The old `No RFQ issued` card selected a Procurement-stage requisition older than seven days when `Request for quotation case` was blank. Because that field was blank everywhere, it measured stage membership and age rather than missing quotation activity. Basit's own pre-cutover export also had RFQ case blank on all 802 open requisitions, so the finding was wrong before the cutover as well as after it.
+- `Quotation reference` is a populated, document-level source signal. It is the only honest available substitute for whether quotation activity was recorded, so the card is now `No quotation recorded` and uses that field.
+- No purchase-order header route provides requisition lineage: `po.xlsx` had a requisition number on 0 of 983 supplied rows, and the live purchase-order header entity does not expose one.
+
+## Purchase-order to requisition join audit
+
+The line-level entity check was read-only against the production Dataverse organisation. Counts below use all 983 rows in the supplied open-order workbook; that file contains 961 distinct purchase-order numbers because 22 rows repeat an order number.
+
+| Route tested | Joined workbook rows | Joined distinct orders | Finding |
+|---|---:|---:|---|
+| `po.xlsx` `Purchase requisition` | 0 / 983 | 0 / 961 | Column is wholly empty |
+| Live PO header entity | 0 / 983 | 0 / 961 | No requisition field is exposed |
+| `mserp_purchaserequisitionlinev2entities` | 0 / 983 | 0 / 961 | No purchase-order field is exposed |
+| `mserp_purchreqlinebientities` | 743 / 983 | 728 / 961 | Joined through requisition BI header source key |
+| Purchase-order line entity | 742 / 983 | 727 / 961 | Joined through `mserp_purchaserequisitionid` |
+| Union of the two usable line routes | 743 / 983 | 728 / 961 | 240 workbook rows remain unlinked |
+| Basit's daily export, supplied finding | 469 / 983 | not supplied | 887 orders appear; 469 carry a requisition |
+
+An authoritative purchase-order-to-requisition join therefore exists in live line data, but it is incomplete: the union covers 75.6% of the supplied workbook rows, leaves 240 unlinked, and maps 11 distinct orders to more than one requisition. Where both live line routes return a link, their requisition sets agree; the BI route adds one order cohort missed by the PO-line route. This is not reliable enough to publish a root-to-fruit conversion journey, so no conversion count or order-to-requisition link is displayed.
+
+## Problems and risks
+
+- Treating a blank unavailable source column as a business exception creates false counts.
+- Showing `000000`, a personnel number, or an empty owner implies knowledge the source does not contain.
+- A journey conversion built from the current line join would silently exclude 24.4% of supplied rows and would need a defined rule for orders linked to multiple requisitions.
+- The source files are refreshed independently of code deployments. While this correction was being rebased, automation commit `52b8d76` refreshed PR from 820 to 821 rows and PO from 983 to 984 rows. That refresh was not produced by this change.
+
+## Files changed
+
+- `index.html` — removed dead display/calculation paths, corrected owner fallback and quotation exception, and withheld incomplete journey metrics.
+- `divisions.html` — removed dead owner inputs from the daily-email display path and made unresolved owners explicit.
+- `race-control.js` — canonicalised unavailable owners to `not recorded` and excluded that placeholder from person rankings.
+- `tests/dead-source-columns.test.js` — guards against reintroducing the dead source fields or invalid journey labels.
+- `tests/live-display-check.js` — compares the pre-change and current UI models against one live dataset revision.
+- `tests/race-control.test.js` — covers blank, zero, and personnel-number owner fallbacks.
+
+## Exact changes made
+
+- Replaced `No RFQ issued` with `No quotation recorded`. It now selects requisitions in Procurement, Sourcing, or Priced — awaiting approval that are older than seven days and have no `Quotation reference`.
+- Removed displayed RFQ-issued and PO-created funnel steps. The remaining `Procurement activity` panel presents PR and PO activity separately and explicitly says PR-to-PO conversion is withheld because lineage is incomplete.
+- Removed the visible linked-PR and purchase-type PO fields, filters, cells, and exports. The dormant journey sub-tabs are not rendered or initialised.
+- Removed `Preparer`, `Accepted By/Assign To`, and `Created by` as owner inputs. PR ownership now uses only the captured pending approver; PO approval stages use the pending approver and supplier-side stages use the vendor.
+- Every blank, all-zero, or numeric-only unresolved owner renders lowercase `not recorded`. The race-control summary says `Owner not recorded in source`, and the placeholder is excluded from person rankings.
+- The Ops confirmer mapping, live data path, approval capture, seeded-clock treatment, sign-in implementation, amounts, stages, and reconciled counts were left intact.
+
+## What I did not change
+
+- `pr.xlsx`, `po.xlsx`, and `.github/workflows/publish-legacy-email-workbooks.yml` were not edited by this correction.
+- The workbook headers and column order remain the publishing contract, including the intentionally empty legacy columns.
+- No source render, package, API write, Dataverse row, sign-in file, stage mapping, amount formula, or seeded clock was changed.
+- I did not publish the partial line-level join as a journey metric. A business rule and better source coverage are required first.
+
+## Regression and display figures
+
+`tests/live-display-check.js` evaluated the pre-change UI logic and the corrected UI logic against the same live dataset revision, `7ecdc5a3eaf68d6f26ae646cecdc2022f959525745c5e09e85a276c4ef328b6f`. The figures below were identical before and after:
+
+| Measure | Before | After |
+|---|---:|---:|
+| Loaded PR rows | 4,422 | 4,422 |
+| Loaded PO rows | 3,189 | 3,189 |
+| Open PR rows | 824 | 824 |
+| Open PO rows | 984 | 984 |
+| PR amount | AED 49,016,441.25 | AED 49,016,441.25 |
+| PO amount | AED 52,630,137.30 | AED 52,630,137.30 |
+| Open PR amount | AED 15,392,219.32 | AED 15,392,219.32 |
+| Open PO amount | AED 37,694,491.25 | AED 37,694,491.25 |
+| PR stages | Sourcing 267; Priced 555; Dep Managers 2 | unchanged |
+| PO stages | Procurement 84; Receipt posted 510; Sent 384; Director 2; Finance 4 | unchanged |
+
+The corrected owner model produced zero blank owners, zero `000000` owners, zero numeric-only owners, and 82 explicit `not recorded` owners. The corrected production exception shows **39** requisitions and **AED 5,455 excl. VAT**.
+
+## Workbook-shape verification
+
+The original supplied 820-row/983-row headers were captured before implementation. After deployment, both GitHub Pages workbooks opened with `openpyxl`; a header-array diff against the baseline was empty. The independently refreshed production files now contain 821 PR rows and 984 PO rows.
+
+- `pr.xlsx`: 18 headers, 92,122 bytes, SHA-256 `699E59579F7B1028B6FCC1AB1D6FE8209BBF67DE1A20318F5563A9A7ACA741B8`.
+- `po.xlsx`: 20 headers, 90,222 bytes, SHA-256 `09484D9C79353BD407B2ABA1CEBA4E009DAA9F280B3AAD58EE88B8A7ADA7C2E9`.
+- PR header order remains: Purchase requisition; Quotation reference; Name; Preparer; Status; Created date; Submitted date; Requisition purpose; Submission Status; Accepted By/Assign To; Department; Location; Contract; Request for quotation case; Total amount; Pending Approver/User; Step name; Step date and time.
+- PO header order remains: Purchase order; Vendor account; Invoice account; Vendor name; Purchase type; Approval status; Purchase order status; Currency; Requested receipt date; Created date and time; Purchase requisition; RFQ number; Total amount; Department; Location; Contract; Pending Approver/User; Step name; Step date and time; Created by.
+
+## Production screenshots and verification
+
+- Before: the authenticated Analysis view showed `RFQ issued 0`, `PO created 0`, and `No RFQ issued 0 / AED 0`, despite the structural source failure.
+- After: the authenticated production Analysis view showed `Procurement activity` with separate PR and PO measures, no RFQ-issued or PO-created step, and `No quotation recorded 39 / AED 5,455`.
+- Both 1904 × 900 browser captures were taken in the authenticated production session during this run. They are verification evidence in the Codex task, not repository artifacts.
+- The deployed PO data contains visible `not recorded` owner treatments. A literal `000000` can still occur inside a legitimate purchase-order identifier such as `P0000000009`; owner assertions independently confirm that it never appears as an owner.
+- GitHub Pages build/deploy/report run `34211439606` completed successfully for implementation commit `26b195bd36db05930593e66a57f4b48729845f32`.
+
+## Testing performed
+
+- `node --test tests/*.test.js` — 20 of 20 tests passed, including authentication redirect, sign-in DPR/car/lights, live proxy, dead-field guards, and owner behaviour.
+- `node tests/live-display-check.js` — live before/after regression passed with identical counts, amounts, and stages; corrected owner and quotation checks passed.
+- `node --check race-control.js` and `node --check dataverse-live.js` — passed.
+- Parsed both inline `index.html` scripts and the inline `divisions.html` script with Node `vm.Script` — passed.
+- `git diff --check` — passed apart from informational LF-to-CRLF working-copy warnings.
+- Direct read-only Dataverse OData audit — tested worker/person and all requested requisition/PO line routes; counts are recorded above. No writes were made.
+- `gh run watch 34211439606 --exit-status` — production GitHub Pages build and deployment passed.
+- Downloaded both deployed workbooks, opened them with `openpyxl`, and compared their header arrays with the captured baseline — passed with an empty diff.
+- The repository has no local package manifest or production build command. The production build is the GitHub Pages/Jekyll job, which passed.
+
+## Remaining risks
+
+- Line-level requisition lineage remains incomplete and ambiguous for some orders. It must not be used for an executive conversion metric without a settled business rule and improved source coverage.
+- If F&O later exposes person names or a complete lineage entity, the UI can be extended after a fresh metadata and coverage audit. Personnel numbers must not be presented as names.
+
+## Recommended next step
+
+Keep the corrected quotation-reference exception and explicit owner fallback. Treat the PR-to-PO journey as unavailable until a source can cover all in-scope orders and a rule is agreed for orders linked to multiple requisitions.
+
+---
+
 # Dataverse live-read implementation notes
 
 Evidence was collected on 7 September 2026 (Dubai time) from the production Dataverse organisation and the same-day published `pr.xlsx` / `po.xlsx` files. The live system continued changing during the checks, so the recorded counts are a point-in-time snapshot.
