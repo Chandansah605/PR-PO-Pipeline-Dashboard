@@ -6771,3 +6771,112 @@ Monitor the next scheduled morning email and first weekly live snapshot. Repair 
 - The production normal-window sign-in completed through the live Microsoft provider using the existing SSO session. The overlay closed, the dashboard rendered, sign-out appeared and live F&O loading began; no credential, token or authentication dialog was read or automated.
 - Current deployed popup/redirect code is byte-identical to the locally tested source and the protected `bd667e9` implementation. All seven deployed-source auth regression cases pass. The earlier same-day production popup proof recorded above remains valid because this correction changed no auth line.
 - Browser security policy blocked creating a new synthetic `data:` opener for an additional popup round trip, and prohibited an indirect workaround. This does not change the result: a real production popup round trip was already proven after `bd667e9`, the implementation is unchanged, the current deployed file hash matches, and the current normal-window round trip completed.
+
+# Urgent daily-email routing recovery — 8 September 2026
+
+## What I found
+
+- The production email implementation is in the companion `Strive-Services-Group/pr-po-proxy` repository, not this Pages repository. Its `loadItems()` function had been changed from the published workbooks to the shared live dataset. A workbook-only correction would therefore not have repaired tomorrow's email.
+- The current PR dataset retains only the collapsed `Sourcing` / `Priced — awaiting approval` stage and a comma-joined set of current work items. It does not retain an authoritative original workflow step or single current assignee.
+- The read-only live capture audit returned 1,428 current work items across 1,105 PR documents. There were 113 PRs with two to six simultaneous assignees. Only 3 of those 113 had a unique latest timestamp, so selecting the latest row is not a defensible owner rule.
+- Workflow-element IDs cannot reconstruct the old step. One current element joined to 471 last-export rows spread across five different steps: 300 unit-price updates, 83 quotation-shared steps, 50 quotation-review steps, 35 RFQ steps and 3 operations-confirmation steps.
+- The last-export owner was among today's current assignee candidates for only 22 of the 113 multi-assignee PRs; it was absent or blank for 91. Selecting the first name, latest name, or a text match would be a guess.
+- Commit `d1fbf0482684b0f467cd9f8552af30cc28216ad0` contains the PR and PO workbooks consumed by the successful 7 September 10:00 Dubai run. Replaying that pair through the email code reproduced all 17 owner groups and every supplied reference count exactly.
+
+## Problems and risks
+
+- The permanent live-source design currently cannot satisfy both "original F&O step" and "one current owner" without guessing. The deadline-safe path explicitly allowed by the task is therefore a temporary workbook fallback.
+- PO numbers are reused across legal entities: today's source contained 35 duplicated PO numbers. Joining a fallback PO to its live amount by order number alone is unsafe. The composite `Purchase order + Vendor account` was unique for all 2,959 fallback PO rows.
+- The fallback intentionally freezes routing, status and step timestamps at the successful snapshot while refreshing amounts from live F&O. It is suitable for the authorised one-morning recovery, not a permanent source model.
+- Production currently reports `PRPO_PERSONAL_TEST=true`. This is unchanged. The 17 dry-run owner groups follow the same configuration as the successful baseline; no send endpoint was invoked during verification.
+
+## Files changed
+
+- `scripts/generate_legacy_email_workbooks.py` — produces the temporary exact-routing fallback with live ex-VAT amounts.
+- `tests/test_legacy_email_workbook_fallback.py` — covers exact headers, amount joins, ambiguity failures and owner rejection.
+- `pr.xlsx`, `po.xlsx`, `.legacy-email-workbook-content.json` — generated and committed by the existing publisher.
+- Companion repo `pr-po-proxy`: `src/functions/prpoEmail.js`, `test/emailPopulation.test.js`, `package.json`.
+- `NOTES.md` — this diagnosis, decision and production evidence.
+
+## Exact changes made
+
+- Restored the email sender's workbook input and complete legacy PR step map while retaining the current ex-VAT wording, PO logic, clock labels, templates and addressing.
+- PR routing comes from the exact 7 September successful snapshot. Amounts join to today's live dataset by normalized requisition number. All 4,376 emitted PR rows received a live ex-VAT amount.
+- One closed, non-actionable historical PR (`PR-001630`) no longer exists in today's live source and was omitted. Generation fails if any actionable fallback PR lacks a live amount.
+- PO routing comes from the same successful snapshot. Amounts join by normalized purchase-order number plus vendor account; all 2,959 rows joined uniquely to a live ex-VAT amount.
+- Generation fails on duplicate join keys, missing actionable amounts, or any comma-joined PR/PO owner. It never chooses among simultaneous live work items.
+- Step and owner fields remain exactly those used in the successful run. Step timestamps remain the corresponding successful-snapshot timestamps rather than silently falling back to created dates.
+- The proxy's dry-run response now labels the source `WORKBOOK_FALLBACK` and revision `temporary-workbook-routing-fallback`, making the temporary state explicit.
+
+## Recovered workflow counts
+
+- `Quotation shared to Operations for confirmation`: 100 rows.
+- `Unit prices updated in PR lines`: 380 rows.
+- Total routed through the two operations-confirmation steps: **480 rows**, versus the reported 479 on 7 September.
+- Comma-joined or repeated owners: **0 PR rows and 0 PO rows**.
+
+## Before / after digest comparison
+
+The before figures are the verified 8 September failure supplied in the task. The after figures are from the deployed non-sending `?personal=1` endpoint after both Pages and the proxy were published.
+
+| Owner group | 8 Sep broken | Repaired dry-run |
+|---|---:|---:|
+| dinesh.laxman | not sent | 356 |
+| shijil.c | not sent | 61 |
+| Gokul.Krishna | not sent | 46 |
+| Shakir Ameer Bakhsh | not sent | 5 |
+| pramod.c | not sent | 1 |
+| Judhin.prabhakar | not sent | 1 |
+| Riyaz.n | not sent | 1 |
+| Ayman.ismail | not sent | 6 |
+| it.solutions | not sent | 5 |
+| Adnan.Ullah | 355 | 22 |
+| roderick.red | 232 | 31 |
+| Aparna.Pauly | 95 | 33 |
+
+- Total personal owner groups: **5 before, 17 after**.
+- Other restored groups in the deployed dry-run: Layusha.cleatus 15, arman.b 14, Abdul.Muqeet 2, Sirinikhil 1 and Qasim Jahangir 1.
+- The deployed after-list exactly equals the 17-group replay of the successful PR/PO snapshot; there is no person-by-person shortfall.
+
+## Workbook contract and amounts
+
+- Both published workbooks reopened successfully with `openpyxl`.
+- Comparing live headers to pre-change commit `451a85e65dc14d787b84fab434a27d984f485f29` produced `headerDiff: []` for both files.
+- `pr.xlsx`: 4,376 rows, AED 48,357,961.25 ex-VAT, SHA-256 `A8F2AFE699D41E61BD87162F8894A52D6CC584C327B2006814C64A91030DC3EB`.
+- `po.xlsx`: 2,959 rows, AED 34,272,802.59 ex-VAT, SHA-256 `AF8B800C539964973D4D05668527873C685431C4F285F52D3BF91863B9DEEA29`.
+- The published hashes match the successful generation log exactly.
+
+## What I did not change
+
+- No workbook header, column order, table name, schedule or email timer.
+- No email recipient map, test-mode setting, line-manager CC, BCC or send behavior.
+- No dashboard, sign-in screen, journey board, live dataset builder, F&O query or Dataverse capture.
+- No PO step vocabulary, email layout, ex-VAT wording or settled dashboard calculation.
+
+## Testing performed
+
+- `python -m unittest tests.test_legacy_email_workbook_fallback -v`: 8/8 passed.
+- Live generator run: 4,376 PR rows and 2,959 PO rows; every emitted amount joined to the live ex-VAT dataset; zero comma owners.
+- `npm test` in the companion proxy: 9/9 passed, including the restored successful email population.
+- The authorised proxy workflow run `34229831868` passed checkout, exact-SHA verification, dependency build and all tests. Deployment stopped only because its publish-profile secret is absent.
+- `func azure functionapp publish ssg-prpo-proxy --javascript --build remote`: Azure Oryx remote build, package upload, trigger sync and host health check all succeeded. Host state was `Running`.
+- `gh workflow run publish-legacy-email-workbooks.yml --ref main`; run `34231090922` generated, committed and deployed the final workbooks successfully.
+- Fresh cache-busted HTTPS downloads of both production files matched the generation SHA-256 values and reopened with unchanged headers.
+- Deployed `?personal=1` returned `sourceState: WORKBOOK_FALLBACK`, `peopleCount: 17`, `sent: false` and the exact successful recipient counts. No message was sent during verification.
+- The Pages repository is static and has no `package.json` or separate production build command. Its generator tests plus the successful Pages artifact build/deploy are the applicable build checks.
+
+## Production commits and deployment
+
+- Dashboard generator/test commits: `29e6a945e362ca6df7f037e347ba3694c6237f5d`, `f5c800e8c8942efa345b50f2321909cf1384fe77`.
+- Generated workbook commits: `1dad20c6511fb70ae83b7f629084979b55f13d30`, `42808b00efdd4d1ec19921cceb721d3ab27bb774`.
+- Proxy commit: `f7c96d8a7d87884c8fe348ff847ef4e77d530706` on `Strive-Services-Group/pr-po-proxy` `main`.
+- Final Pages deployment completed at 13:18 UTC on 8 September, more than sixteen hours before the 06:00 UTC deadline on 9 September.
+
+## Remaining risks
+
+- This is deliberately a temporary routing fallback. Live routing still lacks an authoritative original-step field and a one-current-owner contract.
+- Three restored owner groups have no address in the checked-in map, but production is in test mode and the successful baseline used that same behavior. Changing test mode or recipient addresses was outside this task.
+
+## Recommended next step
+
+- Before removing the fallback, extend the capture contract to store the authoritative workflow step ID/name and one current responsible user per document. Validate that replacement person-by-person against this 17-group baseline, then return the sender to the live dataset.
