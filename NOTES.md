@@ -7124,3 +7124,11 @@ Two diagnostic commands were corrected during verification: the generator uses `
 
 - Commit to deploy: `b000caed560dd0eae0141f004abcdeda23a4b2e2`.
 - The deployment workflow was not triggered.
+
+## Dashboard production publication
+
+- Implementation commit `ad3ea395f7c68cc511c46971b609e82fdde9034a` was pushed to `main`.
+- GitHub Pages run `34249020797` completed successfully for that exact commit.
+- Cache-busted production `pr.xlsx` and `po.xlsx` matched the local SHA-256 hashes above.
+- The published workbooks reopened with 1,137 PR rows, 996 PO rows, `AxTable1`, and the appended PR class-code header.
+- The published page contains the class filter and the shared class definition.
