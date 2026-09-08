@@ -6397,3 +6397,72 @@ Monitor the next scheduled morning email and first weekly live snapshot. Repair 
 
 - The browser cannot reliably expose whether a tab strip is visible. The proactive check therefore uses opener, window name and standalone display mode; the error fallback covers other chromeless cases MSAL identifies at runtime.
 - Chrome automation could not directly drive a separate popup window, so the temporary same-origin acceptance page invoked the popup's existing SIGN IN button and independently observed the hidden overlay after the redirect return. No authentication dialog, credential or token was automated or recorded.
+
+# Lights-out sign-in redesign — 2026-09-08
+
+## What I found
+
+- The named OneDrive task folder was not a Git checkout. Work was performed from a fresh canonical clone of `Strive-Services-Group/PR-PO-Pipeline-Dashboard` at `C:\Claude\PR-PO-Pipeline-Dashboard`.
+- The approved specification was `SIGNIN_DESIGN_race-control-signin.html`, SHA-256 `A7D8BCB4306ABDF78EE842B2AAE37234A3161F40F5A58D6DA2F09DA2E31FDD5F`.
+- `index.html` was the only page containing sign-in markup and MSAL logic. The popup/redirect repair from `bd667e9` was present on current `main` and covered by `tests/auth-flow.test.js`.
+- The approved preview's unconstrained full-resolution canvas measured about 20 fps at 1920 × 1080 in Chrome. Repeated crowd geometry, light pools, blur and full-size drawing were the main avoidable per-frame costs.
+
+## Exact changes made
+
+- Replaced the static grid/card and falling-lines overlay with the approved night pit-straight canvas, five stage gantries, lights sequence, sector chips, car, checkered finish, Dubai clock and right-side access panel.
+- Kept `#loginOverlay`, `#loginUser`, `#loginErr` and direct `signIn()` wiring. The button is enabled and visible from the first frame; the sequence never gates authentication.
+- Preserved the existing MSAL client ID, tenant, scopes, cache, popup/redirect selection, popup-error fallback and redirect-return completion logic.
+- Added a self-contained `signin-lights-out.js` lifecycle. Rendering is paused in a background tab, permanently stopped when the overlay closes, and not initialized for an already-authenticated session.
+- Capped canvas DPR at 2 and used responsive render scaling for large viewports. Reduced repeated geometry and expensive blur while retaining the approved scene.
+- Reduced-motion users get all five green sectors, the permanent `Lights out` callout and `Lights out · Sign in` button immediately, with no animation frame.
+- Added the exact Dubai Race / Session / Lap calculation from the approved design and stopped its one-second clock with the overlay.
+- Added a 899 px stacked breakpoint and compact 390 px panel while keeping the sign-in action in the initial mobile viewport.
+- Added Montserrat and Titillium Web through Google Fonts with `display=swap` plus metric-adjusted local fallbacks.
+- Inlined the exact geometry from repository `strive-logo.svg`; only the approved night-livery fills are applied by scoped CSS.
+
+## Strive brand tokens applied
+
+- Steel blue `#618FB4`.
+- Deep ocean blue `#145A95`.
+- Slate blue `#1F466B`.
+- White/night text `#EEF4FA` and `#FFFFFF`.
+- Montserrat body stack and Titillium Web race-label stack, with the existing dashboard typography unchanged.
+
+## Files changed
+
+- `index.html` — overlay markup, scoped styles, font loading and animation shutdown hook.
+- `signin-lights-out.js` — canvas scene, sequence, clock and lifecycle.
+- `tests/signin-lights-out.test.js` — overlay, logo, timing, reduced-motion and lifecycle checks.
+- `evidence/signin-lights-out-desktop.png` — Chrome 1440 × 860 evidence.
+- `evidence/signin-lights-out-mobile.png` — Chrome 390 × 844 evidence.
+- `NOTES.md` — implementation and verification record.
+
+## Visual evidence
+
+![Lights-out sign-in at 1440 by 860](evidence/signin-lights-out-desktop.png)
+
+![Lights-out sign-in at 390 by 844](evidence/signin-lights-out-mobile.png)
+
+## Testing performed before publication
+
+- `node --check signin-lights-out.js` passed.
+- Both inline `index.html` scripts parsed under Node `vm.Script`.
+- `node --test tests/auth-flow.test.js tests/signin-lights-out.test.js tests/dataverse-live.test.js tests/race-control.test.js`: 15/15 passed.
+- Auth regression criteria 1–3 remain covered: popup/named/standalone windows choose redirect; normal tabs keep popup; redirect return restores the same session and enters the dashboard.
+- The exact `user_cancelled` MSAL error maps to `Sign-in was cancelled. Please try again.`; Chrome confirmed the error line renders inside the new mobile panel. A live-provider cancellation was not automated because credentials and authentication dialogs remain user-controlled.
+- Chrome at 1920 × 1080 measured 151 animation frames over 2,500.2 ms: 60.395 fps. The button was visible and enabled; overlay client and scroll heights were both 1,080 px; reported canvas DPR was 0.72.
+- Chrome reduced-motion emulation showed `Lights out · Sign in`, five completed sectors, no active animation frame and an active Dubai clock.
+- A simulated authenticated session hid the overlay, removed the body scroll lock, initialized Race Control and created no lights-out scene object or recurring work.
+- Chrome verified the 1440 × 860 and 390 × 844 layouts visually. Both evidence PNGs were reopened and checked at their exact dimensions.
+
+## What I did not change
+
+- No MSAL configuration, token handling, redirect URI, session keys or sign-out logic.
+- No dashboard data, Dataverse read, Race Control figure, label, bucket, filter, email or workbook logic.
+- No Azure resource, Entra registration or function app.
+- No page other than `index.html`; the other HTML pages have no copied sign-in implementation.
+
+## Remaining checks before completion
+
+- Production GitHub Pages deployment and live signed-out visual verification are pending the merge to `main`.
+- Lighthouse desktop performance will be measured against the deployed URL; no Lighthouse CLI is installed locally.
