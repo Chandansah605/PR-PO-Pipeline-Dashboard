@@ -7,7 +7,9 @@
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Segoe+UI&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800;900&family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -46,6 +48,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;font-family:'Aptos','Segoe UI',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);font-size:13px}
+body.login-active{overflow:hidden}
 
 .topbar{background:linear-gradient(120deg,#1F466B 0%,#145A95 55%,#618FB4 100%);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:10px}
 .topbar-left{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
@@ -263,134 +266,219 @@ table.dataTable thead{background:#f8fafc}
 .suggestion-list li.tip{border-left-color:var(--purple)}.suggestion-list li.tip i{color:var(--purple)}
 .suggestion-list li b{color:#0e2640;font-weight:700;font-family:var(--num-font);font-feature-settings:"tnum" 1,"lnum" 1}
 
-/* ============ LOGIN OVERLAY (matches attached image) ============ */
+/* ============ LIGHTS OUT SIGN-IN OVERLAY ============ */
+@font-face{font-family:'Montserrat Metrics';src:local('Arial');size-adjust:101.2%;ascent-override:96%;descent-override:24%;line-gap-override:0%}
+@font-face{font-family:'Titillium Metrics';src:local('Segoe UI');size-adjust:100.7%;ascent-override:96%;descent-override:24%;line-gap-override:0%}
 .login-overlay{
-  position:fixed;inset:0;z-index:9999;
-  background:radial-gradient(ellipse at center,#0c2340 0%,#06182d 70%,#040f1f 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:#e8eef7;font-family:'Candara','Segoe UI',sans-serif;
-  background-image:
-    linear-gradient(rgba(64,131,255,.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(64,131,255,.04) 1px,transparent 1px),
-    radial-gradient(ellipse at center,#0c2340 0%,#06182d 70%,#040f1f 100%);
-  background-size:40px 40px,40px 40px,100% 100%;
-  background-position:center center;
-  overflow:auto;padding:40px 20px;
+  --login-ground:#04101E;--login-panel:#0A1729;--login-panel-2:#0D1E34;
+  --login-line:#173050;--login-line-2:#22406A;--login-strive:#618FB4;
+  --login-strive-lt:#9CC0E0;--login-strive-deep:#145A95;--login-strive-navy:#1F466B;
+  --login-red:#E63C32;--login-go:#3DDC84;--login-text:#EEF4FA;
+  --login-muted:#93A9C2;--login-dim:#5E7794;
+  --login-body:'Montserrat','Montserrat Metrics','Gotham','Segoe UI',Arial,sans-serif;
+  --login-label:'Titillium Web','Titillium Metrics','Segoe UI',Arial,sans-serif;
+  position:fixed;inset:0;z-index:9999;display:block;overflow:auto;overscroll-behavior:contain;
+  background:var(--login-ground);color:var(--login-text);font-family:var(--login-body);isolation:isolate;
 }
 .login-overlay.hidden{display:none}
-.login-rev{position:absolute;top:18px;right:24px;color:rgba(150,180,220,.35);font-size:10px;letter-spacing:3px;font-weight:700}
-/* Decorative concentric ring */
-.login-overlay::before{
-  content:"";position:absolute;width:540px;height:540px;border:1px solid rgba(80,150,220,.08);border-radius:50%;
-  top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;
+.login-scene-canvas{position:fixed;inset:0;width:100%;height:100%;display:block;background:var(--login-ground)}
+.login-scene-ui{position:relative;z-index:1;min-height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,430px);grid-template-rows:auto 1fr auto;gap:0 24px;padding:20px 28px 18px 30px;pointer-events:none}
+.login-scene-ui>*{pointer-events:auto}
+.login-scene-top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.login-brand{display:flex;align-items:center;gap:14px;min-width:0}
+.login-brand svg{height:56px;width:auto;flex:none}
+.login-brand .st0{fill:#DCE8F3}.login-brand .st1{fill:var(--login-strive)}.login-brand .st2{fill:#fff}
+.login-brand-text{border-left:1px solid var(--login-line-2);padding-left:14px;font-family:var(--login-label);display:grid;gap:2px}
+.login-brand-text b{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--login-text);white-space:nowrap}
+.login-brand-text span{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--login-muted);white-space:nowrap}
+.login-bars{display:inline-flex;gap:3px;margin-left:10px;align-items:flex-end;height:18px}
+.login-bars i{display:block;width:4px;height:100%;background:var(--login-strive);transform:skewX(-22deg);transform-origin:bottom;animation:login-bar 1.6s ease-in-out infinite}
+.login-bars i:nth-child(2){animation-delay:.2s;opacity:.75}.login-bars i:nth-child(3){animation-delay:.4s;opacity:.5}
+@keyframes login-bar{0%,100%{transform:skewX(-22deg) scaleY(.55)}50%{transform:skewX(-22deg) scaleY(1)}}
+.login-pills{display:flex;gap:8px}
+.login-pill{font-family:var(--login-label);font-size:11px;letter-spacing:.06em;color:var(--login-muted);background:rgba(10,23,41,.75);backdrop-filter:blur(8px);border:1px solid var(--login-line-2);border-radius:999px;padding:7px 14px;display:inline-flex;gap:8px;align-items:center;white-space:nowrap}
+.login-pill button{all:unset;cursor:pointer}.login-pill button:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:3px}
+.login-dot{width:7px;height:7px;border-radius:50%;background:var(--login-go);box-shadow:0 0 8px var(--login-go);flex:none}
+.login-scene-hud{position:relative;display:grid;grid-template-rows:auto 1fr auto;align-items:start;justify-items:center;padding-top:10px;min-width:0}
+.login-hero{text-align:center;display:grid;gap:8px;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.login-eyebrow{font-family:var(--login-label);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--login-muted)}
+.login-hero h1{margin:0;font-size:clamp(34px,4.8vw,64px);font-weight:900;letter-spacing:-.02em;line-height:1;text-transform:uppercase;text-wrap:balance;color:var(--login-text)}
+.login-hero h1 em{font-style:normal;color:var(--login-strive-lt)}
+.login-hero-tag{font-size:15px;color:var(--login-muted);letter-spacing:.06em}.login-hero-tag i{font-style:normal;color:var(--login-strive);margin:0 6px}
+.login-callout{align-self:center;margin-top:12vh;text-align:center;font-family:var(--login-label);font-weight:700;font-size:clamp(28px,5vw,72px);letter-spacing:.18em;text-transform:uppercase;color:#fff;text-shadow:0 0 30px rgba(156,192,224,.8),0 0 80px rgba(97,143,180,.5);opacity:0;transform:scale(.9);transition:opacity .25s,transform .25s;pointer-events:none}
+.login-callout.show{opacity:1;transform:scale(1)}
+.login-callout.red{color:#FFB3AB;text-shadow:0 0 30px rgba(255,90,80,.9),0 0 90px rgba(230,60,50,.5)}
+.login-callout.green{color:#D6FFE9;text-shadow:0 0 30px rgba(61,220,132,.9),0 0 90px rgba(61,220,132,.5)}
+.login-strip{align-self:end;width:100%;max-width:900px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:stretch}
+.login-chip{background:rgba(10,23,41,.72);backdrop-filter:blur(10px);border:1px solid var(--login-line);border-radius:10px;padding:11px 16px;font-family:var(--login-label)}
+.login-chip-key{white-space:nowrap;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--login-dim)}
+.login-chip-value{font-size:13px;color:var(--login-text);letter-spacing:.06em;font-variant-numeric:tabular-nums;margin-top:3px;white-space:nowrap}
+.login-sectors{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;min-width:0}
+.login-sector{background:rgba(10,23,41,.72);backdrop-filter:blur(10px);border:1px solid var(--login-line);border-radius:10px;padding:9px 8px;font-family:var(--login-label);display:grid;gap:3px;transition:.25s;min-width:0}
+.login-sector-key{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--login-dim);display:flex;gap:6px;align-items:center}
+.login-sector-key::before{content:"";width:8px;height:8px;border:1.5px solid var(--login-dim);border-radius:2px;transform:rotate(45deg);transition:.2s}
+.login-sector-name{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--login-muted);font-family:var(--login-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.login-sector.hit{border-color:#9B6BFF;box-shadow:0 0 22px rgba(155,107,255,.45)}.login-sector.hit .login-sector-key::before{background:#9B6BFF;border-color:#C9A6FF}
+.login-sector.done{border-color:rgba(61,220,132,.6)}.login-sector.done .login-sector-key{color:var(--login-go)}.login-sector.done .login-sector-key::before{background:var(--login-go);border-color:#9AF0C0;box-shadow:0 0 8px rgba(61,220,132,.7)}.login-sector.done .login-sector-name{color:var(--login-text)}
+.login-panel{background:linear-gradient(170deg,rgba(13,30,52,.88),rgba(10,23,41,.9));backdrop-filter:blur(16px);border:1px solid var(--login-line-2);border-radius:18px;padding:32px 30px 24px;display:flex;flex-direction:column;gap:16px;box-shadow:0 40px 90px rgba(0,0,0,.5);align-self:stretch;transform:none;opacity:1;animation:login-panel-slide .9s cubic-bezier(.2,.8,.2,1);min-height:0}
+@keyframes login-panel-slide{from{transform:translateX(40px);opacity:.7}to{transform:none;opacity:1}}
+.login-panel .login-eyebrow{letter-spacing:.3em;color:var(--login-strive)}
+.login-panel h2{margin:0;font-size:clamp(28px,2.4vw,38px);font-weight:800;line-height:1.08;letter-spacing:-.01em;color:var(--login-text)}
+.login-panel p{margin:0;color:var(--login-muted);font-size:14px;line-height:1.6}
+.login-status{align-self:flex-start;font-family:var(--login-label);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--login-muted);border:1px solid var(--login-line-2);border-radius:999px;padding:6px 12px;display:inline-flex;gap:8px;align-items:center}
+.login-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.login-tile{background:rgba(5,13,24,.55);border:1px solid var(--login-line);border-radius:10px;padding:14px 14px 12px;display:grid;gap:6px}
+.login-tile-icon{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--login-strive);position:relative}
+.login-tile-icon.shield{border-radius:5px 5px 9px 9px}
+.login-tile-icon.data::before{content:"";position:absolute;left:3px;right:3px;top:4px;height:2px;background:var(--login-strive);box-shadow:0 4px 0 var(--login-strive),0 8px 0 var(--login-strive)}
+.login-tile b{font-family:var(--login-label);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--login-text)}
+.login-tile span{font-size:11px;color:var(--login-muted);line-height:1.45}
+.login-signin-btn{margin-top:4px;width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:17px 18px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:linear-gradient(180deg,#2A6FAD,#145A95 60%,#0F4A7E);color:#fff;font-family:var(--login-body);font-size:13px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:transform .15s,box-shadow .2s,filter .2s;position:relative;overflow:hidden;box-shadow:0 8px 28px rgba(20,90,149,.28)}
+.login-signin-btn::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);transform:translateX(-120%)}
+.login-signin-btn.go{box-shadow:0 0 0 1px rgba(97,143,180,.5),0 14px 40px rgba(20,90,149,.55),0 0 60px rgba(97,143,180,.25)}
+.login-signin-btn.go::before{animation:login-sheen 1.4s ease-out 1}
+@keyframes login-sheen{to{transform:translateX(120%)}}
+.login-signin-btn:hover{transform:translateY(-2px);filter:brightness(1.08)}.login-signin-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.login-ms-logo{display:inline-grid;grid-template-columns:1fr 1fr;width:14px;height:14px;gap:1px;flex:none}.login-ms-logo span{display:block}.login-ms-logo span:nth-child(1){background:#f25022}.login-ms-logo span:nth-child(2){background:#7fba00}.login-ms-logo span:nth-child(3){background:#00a4ef}.login-ms-logo span:nth-child(4){background:#ffb900}
+.login-arrow{margin-left:auto;font-weight:400}
+.login-only{font-family:var(--login-label);font-size:11px;letter-spacing:.1em;color:var(--login-muted);border:1px solid var(--login-line);border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:center}
+.login-only .login-dot{width:6px;height:6px;box-shadow:none}
+.login-small{display:flex;justify-content:space-between;gap:12px;font-family:var(--login-label);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--login-dim)}
+.login-motto{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;color:var(--login-muted)}
+.login-swatches{display:flex;gap:5px}.login-swatches i{width:6px;height:6px;border-radius:50%;display:block}.login-swatches i:nth-child(1){background:#618FB4}.login-swatches i:nth-child(2){background:#145A95}.login-swatches i:nth-child(3){background:#1F466B}.login-swatches i:nth-child(4){background:#E63C32}.login-swatches i:nth-child(5){background:#3DDC84}
+.login-user{text-align:center;color:var(--login-muted);font-size:12px}.login-user:empty{display:none}
+.login-err{display:none;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:8px 12px;color:#fca5a5;font-size:12px;text-align:center}
+.login-foot{grid-column:1/-1;display:flex;justify-content:space-between;gap:18px;font-family:var(--login-label);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--login-dim);padding-top:10px}
+.login-foot-mark{color:var(--login-strive)}
+.login-scene-ui.still .login-panel{animation:none;transform:none;opacity:1}.login-scene-ui.still .login-bars i{animation:none}.login-scene-ui.still .login-signin-btn::before{display:none}
+@media (min-width:900px) and (max-height:760px){.login-panel{padding:22px 24px 18px;gap:10px}.login-tile{padding:10px}.login-signin-btn{padding:13px 16px}.login-scene-ui{padding-top:14px;padding-bottom:12px}.login-brand svg{height:46px}.login-callout{margin-top:5vh}}
+@media (max-width:899px){
+  .login-scene-ui{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;gap:14px;padding:16px;min-height:100%}
+  .login-scene-top{grid-column:1}.login-pills{display:none}.login-scene-hud{min-height:32vh;padding-top:2px}.login-callout{margin-top:4vh}
+  .login-strip{grid-template-columns:1fr}.login-strip .login-chip:first-child{display:none}.login-sectors{gap:6px}.login-sector-name{display:none}
+  .login-panel{width:100%;max-width:520px;justify-self:center;padding:22px 20px 18px;gap:12px;align-self:start}
+  .login-foot{grid-column:1;flex-wrap:wrap;justify-content:center;text-align:center;line-height:1.5}
 }
-.login-overlay::after{
-  content:"";position:absolute;width:780px;height:780px;border:1px solid rgba(80,150,220,.05);border-radius:50%;
-  top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;
-}
-.login-logo-card{
-  background:#ffffff;border-radius:14px;padding:20px 40px;box-shadow:0 8px 32px rgba(0,0,0,.4);margin-bottom:24px;z-index:2;position:relative
-}
-.login-logo-card svg{height:60px;width:auto;display:block}
-.login-card{
-  background:rgba(12,30,55,.65);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:1px solid rgba(120,170,220,.15);border-radius:18px;
-  padding:40px 60px;max-width:520px;width:100%;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:2;position:relative
-}
-.login-tagline{text-align:center;color:#618FB4;letter-spacing:8px;font-size:11px;font-weight:700;margin-bottom:18px}
-.login-title{text-align:center;font-size:34px;font-weight:800;margin:0 0 12px;color:#ffffff;letter-spacing:-.5px;line-height:1.15}
-.login-subtitle{text-align:center;color:#94a8c2;font-size:14px;margin-bottom:22px}
-.login-divider{height:2px;background:linear-gradient(90deg,transparent 0%,#618FB4 50%,transparent 100%);margin:22px auto;width:100px}
-.signin-btn{
-  width:100%;padding:16px 24px;border:none;
-  background:linear-gradient(120deg,#145A95 0%,#618FB4 100%);
-  color:#fff;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
-  transition:all .2s ease;box-shadow:0 6px 20px rgba(20,90,149,.40)
-}
-.signin-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(20,90,149,.55)}
-.signin-btn i{font-size:18px}
-.signin-via{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:18px;color:#b8c8de;font-size:13px}
-.signin-via .ms-logo{display:inline-grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:16px;height:16px;gap:1px}
-.signin-via .ms-logo span{background:#f25022}.signin-via .ms-logo span:nth-child(2){background:#7fba00}
-.signin-via .ms-logo span:nth-child(3){background:#00a4ef}.signin-via .ms-logo span:nth-child(4){background:#ffb900}
-.signin-secure{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;color:#7a92b0;font-size:12px}
-.signin-tags{display:flex;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap}
-.signin-tag{padding:5px 14px;border:1px solid rgba(120,170,220,.25);border-radius:14px;font-size:10px;font-weight:700;letter-spacing:2px;color:#94a8c2}
-.login-footer{margin-top:30px;text-align:center;color:#5a738f;font-size:11px;letter-spacing:1px;z-index:2;position:relative}
-.login-footer hr{border:none;border-top:1px solid rgba(80,120,160,.25);width:240px;margin:0 auto 10px}
-.login-footer .motto{color:#618FB4;letter-spacing:3px;font-weight:700;margin-top:4px;font-size:11px}
-.login-user{margin-top:12px;text-align:center;color:#94a8c2;font-size:12px}
-.login-err{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:8px 12px;color:#fca5a5;font-size:12px;margin-top:12px;text-align:center}
-@media (max-width:600px){
-  .login-card{padding:30px 24px}.login-title{font-size:24px}
+@media (max-width:520px){
+  .login-brand{gap:9px}.login-brand svg{height:46px}.login-brand-text{padding-left:10px}.login-brand-text b{font-size:10px;letter-spacing:.18em}.login-brand-text span{display:none}.login-bars{display:none}
+  .login-hero{gap:5px}.login-eyebrow{font-size:9px;letter-spacing:.2em}.login-hero h1{font-size:clamp(27px,9vw,38px)}.login-hero-tag{font-size:11px}
+  .login-chip{padding:8px 10px}.login-panel h2{font-size:27px}.login-panel p{font-size:12px;line-height:1.45}.login-tile{padding:9px}.login-tile span{font-size:10px}.login-signin-btn{font-size:12px;letter-spacing:.14em;gap:10px}.login-small{font-size:8.5px}.login-foot{font-size:8.5px;letter-spacing:.15em}
   .topbar{padding:12px 16px}.topbar-right{width:100%}.data-meta{order:-1;width:100%;max-width:none}.data-warning{width:auto;flex:1;min-width:210px}.global-search{width:100%}
   .app{display:block}.sidebar{position:static;width:100%;height:auto;overflow:visible;border-right:0;border-bottom:1px solid var(--border);padding:14px 16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
   .sidebar>h3,.sidebar>.actions,.sidebar>div:last-child{grid-column:1/-1}.sidebar .filter-group{margin-bottom:0}.sidebar .actions{margin-top:0;flex-direction:row}.sidebar .actions button{flex:1}.main{padding:16px 12px}.kpi-strip{grid-template-columns:1fr}.section-h{max-width:100%;line-height:1.35}.wk-strip{grid-template-columns:1fr}
 }
-
-/* ====== Falling lines graphic simulation ====== */
-.falling-lines{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.fline{position:absolute;top:-150px;width:1px;height:140px;background:linear-gradient(to bottom,transparent 0%,rgba(97,143,180,0.65) 50%,rgba(20,90,149,0.85) 95%,transparent 100%);filter:drop-shadow(0 0 4px rgba(97,143,180,0.5));animation:fall linear infinite;border-radius:50%}
-.fline.gold{background:linear-gradient(to bottom,transparent 0%,rgba(31,70,107,0.55) 50%,rgba(20,90,149,0.85) 95%,transparent 100%);filter:drop-shadow(0 0 5px rgba(31,70,107,0.55))}
-.fline.cyan{background:linear-gradient(to bottom,transparent 0%,rgba(97,143,180,0.55) 50%,rgba(150,190,220,0.85) 95%,transparent 100%);filter:drop-shadow(0 0 5px rgba(97,143,180,0.55))}
-.fline.blue{background:linear-gradient(to bottom,transparent 0%,rgba(20,90,149,0.55) 50%,rgba(97,143,180,0.85) 95%,transparent 100%);filter:drop-shadow(0 0 5px rgba(20,90,149,0.55))}
-@keyframes fall{
-  0%{transform:translateY(0);opacity:0}
-  8%{opacity:1}
-  92%{opacity:1}
-  100%{transform:translateY(110vh);opacity:0}
-}
-/* Ensure the login card and logo stack above the falling lines */
-.login-logo-card,.login-card,.login-footer{z-index:5 !important}
+@media (prefers-reduced-motion:reduce){.login-panel{animation:none;transform:none;opacity:1}.login-bars i{animation:none}.login-signin-btn::before{display:none}.login-callout,.login-sector,.login-signin-btn{transition:none}}
 </style>
 </head>
-<body class="race-control-mode">
+<body class="race-control-mode login-active">
 
 <!-- ============ LOGIN OVERLAY ============ -->
-<div class="login-overlay" id="loginOverlay">
-  <div class="falling-lines" id="fallingLines"></div>
-  <div class="login-rev">REV</div>
+<div class="login-overlay" id="loginOverlay" aria-label="PR and PO Pipeline sign-in">
+  <canvas class="login-scene-canvas" id="loginWorld" aria-hidden="true"></canvas>
+  <div class="login-scene-ui" id="loginUi">
+    <header class="login-scene-top">
+      <div class="login-brand">
+        <svg class="strive-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 74.1 73.58" role="img" aria-label="Strive Services Group">
+          <g>
+            <path class="st2" d="M12.9,45.69l.25-.3c.24.2.49.31.75.31.13,0,.23-.03.31-.08.07-.05.11-.12.11-.21h0c0-.09-.03-.16-.1-.21-.08-.05-.22-.11-.44-.15-.28-.07-.48-.15-.59-.24-.14-.11-.21-.26-.21-.47h0c0-.21.08-.37.23-.5.15-.13.35-.19.59-.19.33,0,.62.1.86.3l-.22.31c-.22-.16-.44-.24-.65-.24-.12,0-.21.03-.29.08-.07.05-.1.12-.1.2h0c0,.1.04.17.11.22.04.02.1.05.17.08.07.03.17.05.29.08.26.06.45.14.57.24.13.11.19.26.19.45h0c0,.22-.08.4-.24.53-.15.12-.36.19-.61.19-.38,0-.71-.13-.99-.38Z"/>
+            <path class="st2" d="M15.46,43.68h1.77v.37h-1.35v.61h1.19v.37h-1.19v.63h1.37v.37h-1.78v-2.36Z"/>
+            <path class="st2" d="M17.95,43.68h1.06c.3,0,.53.08.69.24.13.13.2.3.2.51h0c0,.38-.19.61-.57.72l.64.89h-.5l-.59-.82h-.52v.82h-.42v-2.36ZM18.98,44.85c.15,0,.27-.04.36-.11.09-.07.13-.17.13-.29h0c0-.27-.16-.4-.49-.4h-.61v.79h.61Z"/>
+            <path class="st2" d="M20.36,43.68h.46l.72,1.81.71-1.81h.45l-.99,2.38h-.37l-.99-2.38Z"/>
+            <path class="st2" d="M23.35,43.68h.42v2.36h-.42v-2.36Z"/>
+            <path class="st2" d="M24.71,45.73c-.23-.23-.35-.52-.35-.86h0c0-.35.11-.64.34-.87.23-.24.53-.36.89-.36s.68.12.93.37l-.27.31c-.21-.2-.44-.29-.67-.29s-.41.08-.56.24c-.15.16-.22.35-.22.59h0c0,.24.07.44.22.6.15.16.34.25.57.25.24,0,.47-.1.68-.3l.27.27c-.27.28-.59.42-.97.42-.35,0-.63-.12-.86-.35Z"/>
+            <path class="st2" d="M27.2,43.68h1.77v.37h-1.35v.61h1.19v.37h-1.19v.63h1.37v.37h-1.78v-2.36Z"/>
+            <path class="st2" d="M29.53,45.69l.25-.3c.24.2.49.31.75.31.13,0,.23-.03.31-.08.07-.05.11-.12.11-.21h0c0-.09-.03-.16-.1-.21-.08-.05-.22-.11-.44-.15-.28-.07-.48-.15-.59-.24-.14-.11-.21-.26-.21-.47h0c0-.21.08-.37.23-.5.15-.13.35-.19.59-.19.33,0,.62.1.86.3l-.22.31c-.22-.16-.44-.24-.65-.24-.12,0-.21.03-.29.08-.07.05-.1.12-.1.2h0c0,.1.04.17.11.22.04.02.1.05.17.08.07.03.17.05.29.08.26.06.45.14.57.24.13.11.19.26.19.45h0c0,.22-.08.4-.24.53-.15.12-.36.19-.61.19-.38,0-.71-.13-.99-.38Z"/>
+            <path class="st2" d="M33.56,45.73c-.22-.23-.34-.51-.34-.86h0c0-.34.11-.63.34-.87.24-.24.53-.36.89-.36s.66.11.92.32l-.27.31c-.2-.17-.42-.25-.67-.25-.22,0-.4.08-.55.25-.15.16-.22.36-.22.59h0c0,.25.07.45.22.61.15.16.35.24.59.24.22,0,.41-.06.58-.18v-.44h-.61v-.36h1.01v.99c-.29.25-.62.37-.99.37s-.67-.12-.9-.35Z"/>
+            <path class="st2" d="M36.21,43.68h1.06c.3,0,.53.08.69.24.13.13.2.3.2.51h0c0,.38-.19.61-.57.72l.64.89h-.5l-.59-.82h-.52v.82h-.42v-2.36ZM37.24,44.85c.15,0,.27-.04.36-.11.09-.07.13-.17.13-.29h0c0-.27-.16-.4-.49-.4h-.61v.79h.61Z"/>
+            <path class="st2" d="M39.12,45.72c-.23-.23-.35-.52-.35-.86h0c0-.35.12-.63.35-.87.24-.24.54-.36.9-.36s.66.12.9.36c.23.23.35.52.35.86h0c0,.35-.12.63-.35.87-.24.24-.54.36-.9.36s-.66-.12-.9-.36ZM40.61,45.45c.15-.16.22-.36.22-.59h0c0-.24-.08-.44-.23-.6-.15-.16-.35-.25-.58-.25s-.42.08-.58.24c-.15.16-.22.35-.22.59h0c0,.24.08.44.23.6.15.16.35.25.58.25s.43-.08.58-.24Z"/>
+            <path class="st2" d="M42.23,45.82c-.18-.18-.28-.44-.28-.78v-1.36h.42v1.34c0,.21.05.38.16.5.11.11.25.17.44.17s.33-.06.44-.17c.11-.11.16-.28.16-.49v-1.36h.42v1.34c0,.34-.09.61-.28.79-.18.18-.43.27-.75.27s-.56-.09-.74-.26Z"/>
+            <path class="st2" d="M44.78,43.68h.94c.28,0,.5.07.66.22.16.15.24.34.24.57h0c0,.26-.09.46-.28.61-.17.14-.4.21-.67.21h-.47v.76h-.42v-2.36ZM45.69,44.91c.16,0,.28-.04.37-.12s.14-.18.14-.3h0c0-.14-.05-.25-.14-.32-.09-.07-.22-.11-.37-.11h-.49v.85h.49Z"/>
+          </g>
+          <path class="st2" d="M12.89,36.32l.67-1.95c.95.66,1.9.98,2.94.98.96,0,1.51-.3,1.51-.84s-.51-.83-1.95-1.22c-2.12-.56-3.12-1.46-3.12-3.03s1.31-2.76,3.53-2.76c1.39,0,2.35.22,3.36.97l-.72,1.87c-.66-.51-1.66-.85-2.56-.85-.78,0-1.28.29-1.28.76s.4.76,1.83,1.17c2.24.62,3.29,1.55,3.29,3.09,0,1.72-1.53,2.87-3.84,2.87-1.49,0-2.58-.22-3.67-1.05Z"/>
+          <path class="st2" d="M29.18,27.49l-.87,2.23h-2.19v7.65h-2.43v-7.65h-2.86v-2.23h8.34Z"/>
+          <path class="st2" d="M35.93,37.37l-1.86-3.19h-1.31v3.19h-2.43v-9.87h4.15c2.29,0,3.78,1.34,3.78,3.34,0,1.41-.68,2.45-1.88,2.98l2.19,3.55h-2.64ZM34.24,29.48h-1.52v2.86h1.52c1.03,0,1.59-.52,1.59-1.42s-.56-1.44-1.59-1.44Z"/>
+          <path class="st2" d="M39.92,37.37v-9.87h2.43v9.87h-2.43Z"/>
+          <path class="st2" d="M50.84,27.49h2.57l-3.63,9.87h-2.57l-3.68-9.87h2.6l1.37,3.89,1,3.1.99-3.1,1.35-3.89Z"/>
+          <path class="st2" d="M56.96,35.41h4.25l-.76,1.96h-5.86v-9.87h6.61l-.74,1.93h-3.5v2h4.24l-.75,1.9h-3.49v2.07Z"/>
+          <g>
+            <path class="st2" d="M15.37,39.93v.89c0,.38-.16.57-.47.57h-1c-.62,0-.93-.31-.93-.94v-.53h.23v.53c0,.48.23.71.69.71h.94c.23,0,.32-.09.32-.44v-.79h.23ZM14.08,39.93h-.23v-.27h.23v.27ZM14.51,39.93h-.23v-.27h.23v.27Z"/>
+            <path class="st2" d="M16.52,41.39h-.26c-.12,0-.21-.04-.29-.12-.09-.09-.14-.22-.14-.39v-1.57h.23v1.44c0,.15.02.25.06.32.04.05.1.09.18.1.02,0,.05,0,.21,0v.23Z"/>
+            <path class="st2" d="M18.29,40.94c0,.21-.06.38-.18.51-.12.14-.29.22-.5.22-.25,0-.44-.09-.56-.28h-.63v-.23h.53c-.02-.07-.03-.14-.03-.22,0-.21.06-.39.18-.52.12-.14.29-.21.5-.21s.38.07.5.21c.11.13.17.31.17.52M18.03,40.92c0-.14-.03-.26-.08-.35-.07-.11-.17-.16-.31-.16-.15,0-.26.06-.33.17-.06.09-.09.22-.09.37,0,.14.03.26.09.35.07.11.18.16.32.16.27,0,.41-.18.41-.55"/>
+            <path class="st2" d="M20.49,41.39h-1.95v-.23h1.2c0-.29-.05-.52-.16-.69-.13-.21-.33-.32-.6-.33h-.09v-.21c.68,0,1.04.41,1.08,1.24h.52v.23Z"/>
+            <path class="st2" d="M23,41.39h-2.6v-.23h1.97s0-.08,0-.12c0-.54-.29-.86-.8-.86-.28,0-.48.11-.61.32-.03-.04-.1-.1-.2-.2.18-.23.45-.34.8-.34.65,0,1.07.42,1.07,1.09v.1h.36v.23ZM21.68,39.7h-.23v-.27h.23v.27Z"/>
+            <path class="st2" d="M24.04,41.39h-1.12v-.22h.21c.14,0,.23-.05.28-.13.03-.06.05-.16.05-.31v-1.42h.23v1.52c0,.14-.02.25-.06.34h.42v.23Z"/>
+            <path class="st2" d="M24.75,39.31v1.52c0,.38-.16.57-.48.57h-.28v-.22h.21c.14,0,.23-.05.28-.14.03-.06.05-.16.05-.31v-1.42h.23Z"/>
+            <path class="st2" d="M28.88,41.39h-.32c-.45,0-.5-.03-.76-.17-.26.15-.31.17-.77.17h-.53c-.62,0-.93-.31-.93-.94v-.46h.23v.46c0,.48.23.71.69.71h.74c.12,0,.23-.03.33-.08-.28-.13-.46-.41-.46-.7,0-.39.29-.67.7-.67s.7.28.7.67c0,.31-.18.57-.46.7.1.05.21.08.33.08h.51v.23ZM27.8,40.95c.28-.12.45-.35.45-.6s-.18-.44-.45-.44-.45.19-.45.44.18.49.45.61M27.88,39.42h-.23v-.27h.23v.27Z"/>
+            <path class="st2" d="M29.58,39.93v.89c0,.38-.16.57-.48.57h-.29v-.22h.21c.14,0,.23-.05.28-.14.03-.06.05-.16.05-.31v-.79h.23ZM29.15,41.88h-.23v-.27h.23v.27ZM29.57,41.88h-.23v-.27h.23v.27Z"/>
+            <rect class="st2" x="30.1" y="39.31" width=".23" height="2.08"/>
+            <path class="st2" d="M31.82,41.39h-.56c-.06.33-.28.51-.66.53v-.22c.3,0,.45-.16.45-.54v-1.23h.23v1.24h.53v.23Z"/>
+            <path class="st2" d="M32.86,41.39h-1.12v-.22h.21c.14,0,.23-.05.28-.13.03-.06.05-.16.05-.31v-.79h.23v.89c0,.14-.02.25-.06.34h.42v.23ZM32.08,39.7h-.23v-.27h.23v.27ZM32.5,39.7h-.23v-.27h.23v.27Z"/>
+            <path class="st2" d="M35.41,39.93v.89c0,.38-.16.57-.48.57h-2.15v-.23h.3c.21,0,.32-.14.34-.41v-.82h.23v.89c0,.13-.02.24-.06.33h0s.42.01.42.01c.21,0,.28-.1.28-.44v-.79h.23v.89c0,.14-.02.25-.06.34h.39c.24,0,.32-.1.32-.44v-.79h.23Z"/>
+            <path class="st2" d="M38.08,41.39h-.15c-.32,0-.53-.16-.62-.47-.1.16-.26.25-.5.25-.33,0-.58-.34-.58-.77,0-.46.25-.78.62-.78h.69v1.03c0,.32.15.51.41.51h.12v.22ZM37.3,40.36v-.57h-.41c-.26,0-.43.26-.43.6s.17.6.42.6c.27,0,.41-.21.42-.63M36.96,39.39h-.23v-.27h.23v.27ZM37.39,39.39h-.23v-.27h.23v.27Z"/>
+            <path class="st2" d="M39.73,41.39h-1.78v-.23h.5c-.08-.13-.12-.28-.12-.45,0-.23.06-.41.18-.56.13-.16.3-.23.53-.23.17,0,.31.04.43.12.14.09.22.21.25.37l-.28.03c-.04-.23-.18-.34-.41-.34-.16,0-.28.06-.35.2-.06.11-.09.24-.09.42,0,.2.05.35.15.45h.98v.23Z"/>
+            <path class="st2" d="M41.72,41.39h-.45c-.06.33-.29.51-.66.53v-.22h.03c.21,0,.34-.11.4-.31h-.35c-.18,0-.33-.07-.45-.21s-.18-.31-.18-.52.06-.38.18-.52c.13-.14.28-.21.47-.21.36,0,.58.22.58.64v.6h.42v.22ZM41.07,41.17v-.68c0-.09-.03-.17-.09-.24-.06-.07-.16-.11-.28-.11s-.22.06-.3.17c-.07.1-.1.21-.1.33,0,.13.03.24.09.34.07.12.18.18.3.18h.38Z"/>
+            <path class="st2" d="M43.73,41.39h-.5c-.12.19-.3.28-.54.28s-.44-.09-.56-.28h-.48v-.23h.38c-.02-.07-.03-.14-.03-.22,0-.21.06-.39.18-.52.12-.14.29-.21.5-.21s.38.07.5.21c.11.13.17.31.17.52,0,.08,0,.15-.03.23h.4v.23ZM43.1,40.92c0-.14-.03-.26-.09-.35-.07-.11-.17-.16-.31-.16s-.26.06-.33.17c-.06.09-.09.22-.09.37,0,.14.03.26.09.35.07.11.18.16.32.16.27,0,.41-.18.41-.55"/>
+            <path class="st2" d="M46.24,41.39h-2.6v-.23h1.97s0-.08,0-.12c0-.54-.29-.86-.8-.86-.28,0-.48.11-.61.32-.03-.04-.1-.1-.2-.2.18-.23.45-.34.8-.34.65,0,1.07.42,1.07,1.09v.1h.36v.23ZM44.99,41.88h-.23v-.27h.23v.27Z"/>
+            <path class="st2" d="M48,40.94c0,.21-.06.38-.17.51-.12.14-.29.22-.5.22-.25,0-.44-.09-.56-.28h-.63v-.23h.53c-.02-.07-.03-.14-.03-.22,0-.21.06-.39.18-.52.12-.14.29-.21.5-.21s.38.07.5.21c.11.13.17.31.17.52M47.74,40.92c0-.14-.03-.26-.08-.35-.07-.11-.18-.16-.31-.16-.15,0-.26.06-.33.17-.06.09-.09.22-.09.37,0,.14.03.26.09.35.07.11.18.16.32.16.27,0,.41-.18.41-.55"/>
+          </g>
+          <path class="st2" d="M55.37,46.07l2.67-6.95h2.43l-2.67,6.95h-2.43Z"/>
+          <path class="st0" d="M51.93,46.07l2.67-6.95h2.43l-2.67,6.95h-2.43Z"/>
+          <path class="st1" d="M48.5,46.07l2.67-6.95h2.43l-2.67,6.95h-2.43Z"/>
+        </svg>
+        <div class="login-brand-text"><b>PR / PO Pipeline</b><span>Procurement command centre</span></div>
+        <span class="login-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+      <div class="login-pills">
+        <span class="login-pill"><button id="loginReplay" type="button">↻ Replay intro</button></span>
+        <span class="login-pill"><button id="loginMotion" type="button">◎ Motion on</button></span>
+        <span class="login-pill"><span class="login-dot"></span> System online</span>
+      </div>
+    </header>
 
-  <div class="login-logo-card">
-    <img src="strive-logo.svg" alt="Strive Services Group" style="height:60px;width:auto;display:block"/>
-  </div>
+    <section class="login-scene-hud" aria-label="PR and PO pipeline stages">
+      <div class="login-hero">
+        <div class="login-eyebrow">Race Control · Procurement · Head office is the engine</div>
+        <h1>PR / PO <em>Pipeline</em></h1>
+        <div class="login-hero-tag">Raise <i>·</i> Source <i>·</i> Approve <i>·</i> Order <i>·</i> Receive</div>
+      </div>
+      <div class="login-callout" id="loginCallout" aria-live="polite"></div>
+      <div class="login-strip">
+        <div class="login-chip"><div class="login-chip-key">Session target</div><div class="login-chip-value">PR → goods received · 10 WD</div></div>
+        <div class="login-sectors" id="loginSectors">
+          <div class="login-sector"><div class="login-sector-key">S1</div><div class="login-sector-name">PR</div></div>
+          <div class="login-sector"><div class="login-sector-key">S2</div><div class="login-sector-name">Source</div></div>
+          <div class="login-sector"><div class="login-sector-key">S3</div><div class="login-sector-name">Appr.</div></div>
+          <div class="login-sector"><div class="login-sector-key">S4</div><div class="login-sector-name">PO</div></div>
+          <div class="login-sector"><div class="login-sector-key">S5</div><div class="login-sector-name">Recv.</div></div>
+        </div>
+        <div class="login-chip"><div class="login-chip-key" id="loginRaceSessionLap">Dubai · Race — · Session — · Lap —</div><div class="login-chip-value" id="loginClock">--:--:--</div></div>
+      </div>
+    </section>
 
-  <div class="login-card">
-    <div class="login-tagline">RACE CONTROL</div>
-    <h1 class="login-title">PO / PR Pipeline Dashboard</h1>
-    <div class="login-subtitle">Secure access for authorised personnel</div>
-    <div class="login-divider"></div>
+    <aside class="login-panel">
+      <div class="login-eyebrow">Microsoft 365 access</div>
+      <h2>Enter the<br>PR / PO Pipeline</h2>
+      <p>Every open requisition and order across SSG — who is holding it, at which stage, and for how long.</p>
+      <span class="login-status"><span class="login-dot"></span> Live · Dataverse</span>
+      <div class="login-tiles">
+        <div class="login-tile"><span class="login-tile-icon shield"></span><b>Strive account protected</b><span>Your organisation sign-in, no separate password.</span></div>
+        <div class="login-tile"><span class="login-tile-icon data"></span><b>Live Dataverse data</b><span>Requisitions, orders and approvals loaded after sign-in.</span></div>
+      </div>
+      <button class="login-signin-btn" id="loginSignInButton" type="button" onclick="signIn()">
+        <span class="login-ms-logo" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span id="loginButtonText">Sign in with Microsoft</span><span class="login-arrow" aria-hidden="true">→</span>
+      </button>
+      <div class="login-err" id="loginErr" role="alert"></div>
+      <div class="login-user" id="loginUser" aria-live="polite"></div>
+      <div class="login-only"><span class="login-dot"></span> Strive Services Group accounts only</div>
+      <div class="login-small"><span>Encrypted connection</span><span>Authorised personnel</span></div>
+      <div class="login-motto"><span>For excellence we strive.</span><span class="login-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div>
+    </aside>
 
-    <button class="signin-btn" onclick="signIn()">
-      <i class="fa-solid fa-right-to-bracket"></i> SIGN IN
-    </button>
-
-    <div class="signin-via">
-      <div class="ms-logo"><span></span><span></span><span></span><span></span></div>
-      via Microsoft 365
-    </div>
-    <div class="signin-secure">
-      <i class="fa-solid fa-shield-halved"></i> Secured by Azure Active Directory
-    </div>
-    <div class="signin-tags">
-      <span class="signin-tag">AZURE AD</span>
-      <span class="signin-tag">ENCRYPTED</span>
-      <span class="signin-tag">SSO</span>
-    </div>
-
-    <div class="login-user" id="loginUser"></div>
-    <div class="login-err" id="loginErr" style="display:none"></div>
-  </div>
-
-  <div class="login-footer">
-    <hr/>
-    Palm Jumeirah, Dubai · Strive Services Group
-    <div class="motto">FOR EXCELLENCE WE STRIVE</div>
+    <footer class="login-foot"><span>Strive Services Group · Palm Jumeirah, Dubai</span><span class="login-foot-mark">For excellence we strive</span><span>Authorised personnel only</span></footer>
   </div>
 </div>
+<script src="signin-lights-out.js" defer></script>
 
 <div class="topbar">
   <div class="topbar-left">
@@ -3184,6 +3272,7 @@ function enterDashboard(userName){
     ? `<i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Signed in as <b style="color:#e8eef7">${userName}</b>`
     : '';
   setTimeout(()=>{
+    if(window.stopLightsOutSignin) window.stopLightsOutSignin();
     document.getElementById('loginOverlay').classList.add('hidden');
     // initialize dashboard
     if(!window.__dashInited){ window.__dashInited = true; bootDashboard(); }
@@ -3206,34 +3295,11 @@ async function bootDashboard(){
   hideLoader();
 }
 
-/* Spawn falling lines on the login overlay */
-function spawnFallingLines(){
-  const c = document.getElementById('fallingLines');
-  if(!c) return;
-  c.innerHTML='';
-  const NUM = 40;
-  const palettes = ['','gold','cyan','blue'];
-  for(let i=0;i<NUM;i++){
-    const el = document.createElement('div');
-    const cls = palettes[Math.floor(Math.random()*palettes.length)];
-    el.className = 'fline' + (cls?' '+cls:'');
-    el.style.left = (Math.random()*100) + '%';
-    const dur = 2.5 + Math.random()*4.5;    // 2.5–7 s
-    const delay = -Math.random()*7;         // negative delay so lines pre-stagger
-    el.style.animationDuration = dur.toFixed(2) + 's';
-    el.style.animationDelay = delay.toFixed(2) + 's';
-    el.style.height = (90 + Math.random()*120) + 'px';
-    el.style.opacity = (0.5 + Math.random()*0.5).toFixed(2);
-    c.appendChild(el);
-  }
-}
-
 /* Auth gate on page load */
 (function authGate(){
-  // Always start the falling-lines animation when the login is visible
-  spawnFallingLines();
   // Already signed-in (within session)
   if(sessionStorage.getItem('strive_auth')==='true'){
+    if(window.stopLightsOutSignin) window.stopLightsOutSignin();
     document.getElementById('loginOverlay').classList.add('hidden');
     if(!window.__dashInited){ window.__dashInited = true; bootDashboard(); }
     return;
