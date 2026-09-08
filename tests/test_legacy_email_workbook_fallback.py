@@ -26,6 +26,22 @@ def legacy_row(**overrides):
     return row
 
 
+def legacy_po_row(**overrides):
+    row = {column: None for column in generator.PO_COLUMNS}
+    row.update({
+        "Purchase order": "PO-TEST-001",
+        "Vendor account": "VEND-001",
+        "Approval status": "In review",
+        "Purchase order status": "Backorder",
+        "Step name": "Accounting Manager",
+        "Pending Approver/User": "finance.user",
+        "Step date and time": "2026-09-04T06:00:00Z",
+        "Total amount": 105.0,
+    })
+    row.update(overrides)
+    return row
+
+
 class LegacyEmailFallbackTests(unittest.TestCase):
     def test_preserves_routing_and_replaces_amount_from_live_source(self):
         live = [{"Purchase requisition": "pr-test-001", "Total amount": 100.0}]
@@ -60,6 +76,26 @@ class LegacyEmailFallbackTests(unittest.TestCase):
         headers = [sheet.cell(1, index).value for index in range(1, sheet.max_column + 1)]
         self.assertEqual(headers, generator.PR_COLUMNS)
         self.assertEqual(list(sheet.tables), ["AxTable1"])
+
+    def test_po_fallback_preserves_routing_and_replaces_live_amount(self):
+        live = [{"Purchase order": "po-test-001", "Vendor account": "vend-001", "Total amount": 100.0}]
+        rows, evidence = generator.fallback_po_rows(live, [legacy_po_row()])
+        self.assertEqual(rows[0]["Step name"], "Accounting Manager")
+        self.assertEqual(rows[0]["Pending Approver/User"], "finance.user")
+        self.assertEqual(rows[0]["Total amount"], 100.0)
+        self.assertEqual(evidence["live ex-VAT amount joined"], 1)
+
+    def test_po_fallback_fails_without_a_live_amount(self):
+        with self.assertRaisesRegex(RuntimeError, "purchase order missing"):
+            generator.fallback_po_rows([], [legacy_po_row()])
+
+    def test_po_amount_join_disambiguates_reused_numbers_by_vendor(self):
+        live = [
+            {"Purchase order": "PO-TEST-001", "Vendor account": "VEND-001", "Total amount": 100.0},
+            {"Purchase order": "PO-TEST-001", "Vendor account": "VEND-002", "Total amount": 900.0},
+        ]
+        rows, _ = generator.fallback_po_rows(live, [legacy_po_row()])
+        self.assertEqual(rows[0]["Total amount"], 100.0)
 
 
 if __name__ == "__main__":

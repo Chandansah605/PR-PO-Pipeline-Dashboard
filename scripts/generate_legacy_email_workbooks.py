@@ -28,12 +28,12 @@ DEFAULT_DATASET_URL = (
     "https://ssg-prpo-proxy-h4cvfegaduftedhz.uaenorth-01.azurewebsites.net/api/dataset"
 )
 OUTPUT_NOTE = (
-    "Temporary email compatibility output: verified PR routing snapshot with "
-    "current live ex-VAT amounts; PO remains live."
+    "Temporary email compatibility output: verified PR/PO routing snapshot "
+    "with current live ex-VAT amounts."
 )
 FIXED_ZIP_TIME = (2026, 9, 7, 0, 0, 0)
 # Snapshot consumed by the successful 7 September 10:00 Dubai email run.
-LEGACY_ROUTING_COMMIT = "d1fbf0482684b0f467cd9f8552af30cc28216ad0"
+LEGACY_EMAIL_COMMIT = "d1fbf0482684b0f467cd9f8552af30cc28216ad0"
 
 PR_COLUMNS = [
     "Purchase requisition", "Quotation reference", "Name", "Preparer", "Status",
@@ -102,10 +102,10 @@ def parse_datetime(value):
     return parsed
 
 
-def load_legacy_pr_rows(commit: str = LEGACY_ROUTING_COMMIT) -> list[dict]:
-    """Load the last known-good PR snapshot without changing its file contract."""
+def load_legacy_rows(filename: str, columns: list[str], commit: str = LEGACY_EMAIL_COMMIT) -> list[dict]:
+    """Load one last-known-good snapshot without changing its file contract."""
     result = subprocess.run(
-        ["git", "show", f"{commit}:pr.xlsx"],
+        ["git", "show", f"{commit}:{filename}"],
         check=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -114,15 +114,16 @@ def load_legacy_pr_rows(commit: str = LEGACY_ROUTING_COMMIT) -> list[dict]:
     sheet = workbook.active
     values = sheet.iter_rows(values_only=True)
     headers = list(next(values))
-    if headers != PR_COLUMNS:
-        raise RuntimeError("last known-good PR routing headers do not match the protected contract")
+    if headers != columns:
+        raise RuntimeError(f"last known-good {filename} headers do not match the protected contract")
     rows = []
     for cells in values:
         row = dict(zip(headers, cells))
-        number = str(row.get("Purchase requisition") or "").strip().upper()
+        number_column = "Purchase requisition" if filename == "pr.xlsx" else "Purchase order"
+        number = str(row.get(number_column) or "").strip().upper()
         if not number:
             continue
-        rows.append({column: row.get(column) for column in PR_COLUMNS})
+        rows.append({column: row.get(column) for column in columns})
     return rows
 
 
@@ -161,6 +162,41 @@ def fallback_pr_rows(live_rows: list[dict], legacy_rows: list[dict]) -> tuple[li
         owner = str(translated.get("Pending Approver/User") or "")
         if "," in owner:
             raise RuntimeError(f"fallback requisition has multiple owners: {number}")
+        output.append(translated)
+        evidence["live ex-VAT amount joined"] += 1
+    return output, evidence
+
+
+def fallback_po_rows(live_rows: list[dict], legacy_rows: list[dict]) -> tuple[list[dict], Counter]:
+    """Keep the proven PO routing snapshot but refresh every amount from live F&O."""
+    live_amounts = {}
+    for row in live_rows:
+        number = str(row.get("Purchase order") or "").strip().upper()
+        vendor = str(row.get("Vendor account") or "").strip().upper()
+        if not number:
+            continue
+        key = (number, vendor)
+        if key in live_amounts:
+            raise RuntimeError(f"duplicate purchase order/vendor in live dataset: {number}/{vendor}")
+        live_amounts[key] = row.get("Total amount")
+
+    output = []
+    evidence = Counter()
+    seen = set()
+    for row in legacy_rows:
+        number = str(row.get("Purchase order") or "").strip().upper()
+        vendor = str(row.get("Vendor account") or "").strip().upper()
+        key = (number, vendor)
+        if key in seen:
+            raise RuntimeError(f"duplicate purchase order/vendor in fallback snapshot: {number}/{vendor}")
+        seen.add(key)
+        if key not in live_amounts:
+            raise RuntimeError(f"fallback purchase order missing from live ex-VAT source: {number}/{vendor}")
+        translated = {column: row.get(column) for column in PO_COLUMNS}
+        translated["Total amount"] = live_amounts[key]
+        owner = str(translated.get("Pending Approver/User") or "")
+        if "," in owner:
+            raise RuntimeError(f"fallback purchase order has multiple owners: {number}")
         output.append(translated)
         evidence["live ex-VAT amount joined"] += 1
     return output, evidence
@@ -290,9 +326,10 @@ def main() -> None:
     dataset = json.loads(Path(args.dataset_json).read_text(encoding="utf-8")) if args.dataset_json else fetch_dataset(args.dataset_url)
     if dataset.get("sourceState") != "LIVE":
         raise RuntimeError("refusing to generate from a stale or failed dataset")
-    legacy_rows = load_legacy_pr_rows()
-    pr_rows, pr_excluded = fallback_pr_rows(dataset["pr"]["rows"], legacy_rows)
-    po_rows, po_excluded = dashboard_po_rows(dataset["po"]["rows"])
+    legacy_pr_rows = load_legacy_rows("pr.xlsx", PR_COLUMNS)
+    legacy_po_rows = load_legacy_rows("po.xlsx", PO_COLUMNS)
+    pr_rows, pr_excluded = fallback_pr_rows(dataset["pr"]["rows"], legacy_pr_rows)
+    po_rows, po_excluded = fallback_po_rows(dataset["po"]["rows"], legacy_po_rows)
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     pr_path, po_path = output_dir / "pr.xlsx", output_dir / "po.xlsx"
@@ -331,11 +368,16 @@ def main() -> None:
             ),
             "commaJoinedOwners": sum("," in str(row.get("Pending Approver/User") or "") for row in pr_rows),
         },
-        "po": {"rows": len(po_rows), "columns": PO_COLUMNS, "amountExVat": round(sum(float(row.get("Total amount") or 0) for row in po_rows), 2), "sha256": sha256(po_path), "clockCounts": dataset["po"].get("clockCounts", {}), "notRecordedDatesBlank": sum(1 for row in dataset["po"]["rows"] if row.get("Open pipeline") and row.get("Clock provenance") == "NOT_RECORDED" and not row.get("Step date and time")), "excludedNoEquivalent": dict(po_excluded)},
+        "po": {
+            "rows": len(po_rows), "columns": PO_COLUMNS,
+            "amountExVat": round(sum(float(row.get("Total amount") or 0) for row in po_rows), 2),
+            "sha256": sha256(po_path), "routingRecovery": dict(po_excluded),
+            "commaJoinedOwners": sum("," in str(row.get("Pending Approver/User") or "") for row in po_rows),
+        },
         "amountBasis": "live F&O active-line values excl. VAT",
-        "datePolicy": "last successful routing snapshot; PO remains live event/seed/blank",
+        "datePolicy": "last successful PR/PO routing snapshot",
         "routingPolicy": (
-            f"temporary one-morning PR fallback from {LEGACY_ROUTING_COMMIT}; exact requisition-number join; "
+            f"temporary one-morning PR/PO fallback from {LEGACY_EMAIL_COMMIT}; exact document-number join; "
             "all amounts replaced from the current live ex-VAT dataset"
         ),
         "outputNote": OUTPUT_NOTE,
