@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Generate pr.xlsx and po.xlsx from the shared live PR/PO dataset.
-
-These files are a one-way compatibility output for Chandan's frozen email app.
-Nothing in the dashboard or current email path reads them.
-"""
+"""Generate the temporary legacy-workbook input for the PR/PO email sender."""
 
 from __future__ import annotations
 
@@ -12,6 +8,7 @@ import hashlib
 import io
 import json
 import os
+import subprocess
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,18 +22,18 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 from legacy_email_stage_map import (
     NO_EXACT_OLD_EQUIVALENT,
     PO_STAGE_RULES,
-    PR_MANAGER_STEP_BY_DEPARTMENT,
-    PR_STAGE_RULES,
 )
 
 DEFAULT_DATASET_URL = (
     "https://ssg-prpo-proxy-h4cvfegaduftedhz.uaenorth-01.azurewebsites.net/api/dataset"
 )
 OUTPUT_NOTE = (
-    "Generated from the live dataset for the legacy email app only; not a data "
-    "source; delete when the sender moves to ssg-prpo-proxy."
+    "Temporary email compatibility output: verified PR routing snapshot with "
+    "current live ex-VAT amounts; PO remains live."
 )
 FIXED_ZIP_TIME = (2026, 9, 7, 0, 0, 0)
+# Snapshot consumed by the successful 7 September 10:00 Dubai email run.
+LEGACY_ROUTING_COMMIT = "d1fbf0482684b0f467cd9f8552af30cc28216ad0"
 
 PR_COLUMNS = [
     "Purchase requisition", "Quotation reference", "Name", "Preparer", "Status",
@@ -56,6 +53,27 @@ PR_WIDTHS = [24, 23, 8, 12, 10, 16, 18, 23, 21, 25, 14, 12, 12, 30, 16, 25, 13, 
 PO_WIDTHS = [18, 18, 19, 15, 17, 19, 25, 12, 26, 25, 24, 14, 16, 14, 12, 12, 25, 13, 22, 14]
 PR_DATE_COLUMNS = {"Created date": "mm-dd-yy", "Submitted date": "mm-dd-yy", "Step date and time": "m/d/yy h:mm"}
 PO_DATE_COLUMNS = {"Requested receipt date": "mm-dd-yy", "Created date and time": "m/d/yy h:mm", "Step date and time": "m/d/yy h:mm"}
+LEGACY_EMAIL_PR_STEPS = {
+    "Handyman Services_Manager",
+    "Building Services_Asst. Facility Managers 1",
+    "PurchReqReviewTask",
+    "Procurement sends inquiry/RFQ to suppliers",
+    "Quotation received and logged/attached",
+    "Quotation shared to Operations for confirmation",
+    "Operations confirms material/scope",
+    "Unit prices updated in PR lines",
+    "Building Services_Asst. Facility Managers 2",
+    "Building Services_Facilities Manager",
+    "PAC Services_Manager",
+    "Concierge Services_Manager",
+    "Security Services_Manager",
+    "Home Services_Operations Manager",
+    "Landscaping_Manager",
+    "Finance & Accounts_Accounting Manager",
+    "Facilities Management_Director",
+    "Commercial_Director",
+    "Executive Management_CEO",
+}
 
 
 def fetch_dataset(url: str) -> dict:
@@ -84,33 +102,68 @@ def parse_datetime(value):
     return parsed
 
 
-def pr_workbook_step(row: dict) -> str:
-    stage = str(row.get("Step name") or "")
-    rule = PR_STAGE_RULES.get(stage)
-    if not rule:
-        raise RuntimeError(f"displayed PR stage has no legacy mapping: {stage!r}")
-    if stage == "Dep Managers":
-        return PR_MANAGER_STEP_BY_DEPARTMENT.get(
-            str(row.get("Department") or ""), rule["workbook_step"]
-        )
-    return rule["workbook_step"]
-
-
-def dashboard_pr_rows(rows: list[dict]) -> tuple[list[dict], Counter]:
-    output = []
-    excluded = Counter()
-    for row in rows:
-        status = str(row.get("Status") or "").strip().lower()
-        stage = str(row.get("Step name") or "")
-        if status not in {"in review", "approved"}:
+def load_legacy_pr_rows(commit: str = LEGACY_ROUTING_COMMIT) -> list[dict]:
+    """Load the last known-good PR snapshot without changing its file contract."""
+    result = subprocess.run(
+        ["git", "show", f"{commit}:pr.xlsx"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    workbook = load_workbook(io.BytesIO(result.stdout), read_only=True, data_only=True)
+    sheet = workbook.active
+    values = sheet.iter_rows(values_only=True)
+    headers = list(next(values))
+    if headers != PR_COLUMNS:
+        raise RuntimeError("last known-good PR routing headers do not match the protected contract")
+    rows = []
+    for cells in values:
+        row = dict(zip(headers, cells))
+        number = str(row.get("Purchase requisition") or "").strip().upper()
+        if not number:
             continue
-        if stage not in PR_STAGE_RULES:
-            excluded[stage or "(blank)"] += 1
+        rows.append({column: row.get(column) for column in PR_COLUMNS})
+    return rows
+
+
+def fallback_pr_rows(live_rows: list[dict], legacy_rows: list[dict]) -> tuple[list[dict], Counter]:
+    """Keep the proven routing snapshot but refresh every amount from live F&O."""
+    live_amounts = {}
+    for row in live_rows:
+        number = str(row.get("Purchase requisition") or "").strip().upper()
+        if not number:
+            continue
+        if number in live_amounts:
+            raise RuntimeError(f"duplicate requisition in live dataset: {number}")
+        live_amounts[number] = row.get("Total amount")
+
+    output = []
+    evidence = Counter()
+    seen = set()
+    for row in legacy_rows:
+        number = str(row.get("Purchase requisition") or "").strip().upper()
+        if number in seen:
+            raise RuntimeError(f"duplicate requisition in fallback snapshot: {number}")
+        seen.add(number)
+        if number not in live_amounts:
+            status = str(row.get("Status") or "")
+            email_actionable = (
+                str(row.get("Step name") or "") in LEGACY_EMAIL_PR_STEPS
+                and status.lower() != "closed"
+                and status not in {"Rejected", "Cancelled"}
+            )
+            if email_actionable:
+                raise RuntimeError(f"actionable fallback requisition missing from live ex-VAT source: {number}")
+            evidence["unavailable non-action row omitted"] += 1
             continue
         translated = {column: row.get(column) for column in PR_COLUMNS}
-        translated["Step name"] = pr_workbook_step(row)
+        translated["Total amount"] = live_amounts[number]
+        owner = str(translated.get("Pending Approver/User") or "")
+        if "," in owner:
+            raise RuntimeError(f"fallback requisition has multiple owners: {number}")
         output.append(translated)
-    return output, excluded
+        evidence["live ex-VAT amount joined"] += 1
+    return output, evidence
 
 
 def dashboard_po_rows(rows: list[dict]) -> tuple[list[dict], Counter]:
@@ -237,7 +290,8 @@ def main() -> None:
     dataset = json.loads(Path(args.dataset_json).read_text(encoding="utf-8")) if args.dataset_json else fetch_dataset(args.dataset_url)
     if dataset.get("sourceState") != "LIVE":
         raise RuntimeError("refusing to generate from a stale or failed dataset")
-    pr_rows, pr_excluded = dashboard_pr_rows(dataset["pr"]["rows"])
+    legacy_rows = load_legacy_pr_rows()
+    pr_rows, pr_excluded = fallback_pr_rows(dataset["pr"]["rows"], legacy_rows)
     po_rows, po_excluded = dashboard_po_rows(dataset["po"]["rows"])
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -264,10 +318,26 @@ def main() -> None:
     summary = {
         "datasetRevision": dataset["revision"],
         "sourceState": dataset["sourceState"],
-        "pr": {"rows": len(pr_rows), "columns": PR_COLUMNS, "amountExVat": round(sum(float(row.get("Total amount") or 0) for row in pr_rows), 2), "sha256": sha256(pr_path), "excludedNoEquivalent": dict(pr_excluded)},
+        "pr": {
+            "rows": len(pr_rows), "columns": PR_COLUMNS,
+            "amountExVat": round(sum(float(row.get("Total amount") or 0) for row in pr_rows), 2),
+            "sha256": sha256(pr_path), "routingRecovery": dict(pr_excluded),
+            "operationsConfirmationRows": sum(
+                row.get("Step name") in {
+                    "Quotation shared to Operations for confirmation",
+                    "Unit prices updated in PR lines",
+                }
+                for row in pr_rows
+            ),
+            "commaJoinedOwners": sum("," in str(row.get("Pending Approver/User") or "") for row in pr_rows),
+        },
         "po": {"rows": len(po_rows), "columns": PO_COLUMNS, "amountExVat": round(sum(float(row.get("Total amount") or 0) for row in po_rows), 2), "sha256": sha256(po_path), "clockCounts": dataset["po"].get("clockCounts", {}), "notRecordedDatesBlank": sum(1 for row in dataset["po"]["rows"] if row.get("Open pipeline") and row.get("Clock provenance") == "NOT_RECORDED" and not row.get("Step date and time")), "excludedNoEquivalent": dict(po_excluded)},
         "amountBasis": "live F&O active-line values excl. VAT",
-        "datePolicy": "live event, final-workbook seed, or blank for NOT_RECORDED",
+        "datePolicy": "last successful routing snapshot; PO remains live event/seed/blank",
+        "routingPolicy": (
+            f"temporary one-morning PR fallback from {LEGACY_ROUTING_COMMIT}; exact requisition-number join; "
+            "all amounts replaced from the current live ex-VAT dataset"
+        ),
         "outputNote": OUTPUT_NOTE,
         "contentChanged": content_changed,
         "noExactOldEquivalent": NO_EXACT_OLD_EQUIVALENT,
