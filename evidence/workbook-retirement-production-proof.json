@@ -1,0 +1,45 @@
+{
+  "provedAt": "2026-09-07T17:17:50Z",
+  "proxyCommit": "1dfb69be2c58c458a40d6697f9268554547b3a4b",
+  "deployment": {
+    "target": "ssg-prpo-proxy",
+    "method": "Azure Functions Core Tools",
+    "successful": true,
+    "githubWorkflowRun": 34146527247,
+    "githubWorkflowStoppedBeforeDeploy": "AZURE_FUNCTIONAPP_PUBLISH_PROFILE_SSG_PRPO_PROXY missing"
+  },
+  "dataset": {
+    "revision": "cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5",
+    "sourceState": "LIVE",
+    "prCount": 4413,
+    "poCount": 3188,
+    "poOpenCount": 983,
+    "stageNotEvidenced": 0,
+    "pendingObservationWrites": 0,
+    "clockCounts": {
+      "liveDated": 904,
+      "seededFromFinalWorkbook": 12,
+      "pendingSinceFirstObserved": 0,
+      "notRecorded": 67
+    }
+  },
+  "sameRevision": {
+    "dataset": "cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5",
+    "prEndpoint": "cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5",
+    "poEndpoint": "cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5",
+    "emailDryRun": "cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5",
+    "passed": true
+  },
+  "emailDryRun": {
+    "sentAll": false,
+    "divisionSummaries": 2,
+    "personalSummaries": 19
+  },
+  "browser": {
+    "pagesOriginAllowed": true,
+    "legacyConfiguredOriginPreserved": true,
+    "divisionViewLoadedLive": true,
+    "staleOrFailureWarningShown": false,
+    "visibleSeededClockLabels": 12
+  }
+}

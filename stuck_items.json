@@ -1,0 +1,40 @@
+{
+  "items": [
+    {
+      "documentNumber": "CPR-000429",
+      "reason": "No lines; cannot be cancelled without database-level changes.",
+      "reportedBy": "IT",
+      "reportedDate": "2026-08-13"
+    },
+    {
+      "documentNumber": "CPR-012411",
+      "reason": "No lines; cannot be cancelled without database-level changes.",
+      "reportedBy": "IT",
+      "reportedDate": "2026-08-13"
+    },
+    {
+      "documentNumber": "CPR-003220",
+      "reason": "No lines; cannot be cancelled without database-level changes.",
+      "reportedBy": "IT",
+      "reportedDate": "2026-08-13"
+    },
+    {
+      "documentNumber": "CPR-027356",
+      "reason": "No lines; cannot be cancelled without database-level changes.",
+      "reportedBy": "IT",
+      "reportedDate": "2026-08-13"
+    },
+    {
+      "documentNumber": "PR-000104",
+      "reason": "No lines; cannot be cancelled without database-level changes.",
+      "reportedBy": "IT",
+      "reportedDate": "2026-08-13"
+    },
+    {
+      "documentNumber": "PR-001523",
+      "reason": "Cancelled by Operations; still pending and requires technical support.",
+      "reportedBy": "IT",
+      "reportedDate": "2026-08-19"
+    }
+  ]
+}

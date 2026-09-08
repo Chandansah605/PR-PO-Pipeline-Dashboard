@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-09-07T18:51:31Z",
+  "commit": "31e5930d79559e0e9c05b52b8710ff2a54857d03",
+  "commitTimeUtc": "2026-09-07T18:48:56Z",
+  "pages": {
+    "runId": 34153150970,
+    "completedAt": "2026-09-07T18:49:38Z",
+    "conclusion": "success"
+  },
+  "generator": {
+    "runId": 34153156222,
+    "completedAt": "2026-09-07T18:49:22Z",
+    "conclusion": "success",
+    "contentChanged": false
+  },
+  "datasetRevision": "cfff6fb83ee9e9ebc0a372bb91d3260281aa8a6afc93f883c8d977be7a3333e5",
+  "files": [
+    {
+      "url": "https://strive-services-group.github.io/PR-PO-Pipeline-Dashboard/pr.xlsx",
+      "httpStatus": 200,
+      "validXlsx": true,
+      "rows": 822,
+      "columns": 18,
+      "headersExact": true,
+      "sha256": "42df2352c9c72945c04c5f523d6137b63d5aae84fab5413c178b35777a90f3c5"
+    },
+    {
+      "url": "https://strive-services-group.github.io/PR-PO-Pipeline-Dashboard/po.xlsx",
+      "httpStatus": 200,
+      "validXlsx": true,
+      "rows": 983,
+      "columns": 20,
+      "headersExact": true,
+      "sha256": "5fc48c7b33f0ef011f526f784eece1a372852b8159c58a5b07b8d746ba8748ac"
+    }
+  ]
+}
