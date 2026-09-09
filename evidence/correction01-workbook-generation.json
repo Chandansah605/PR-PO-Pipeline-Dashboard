@@ -1,0 +1,150 @@
+{
+  "datasetRevision": "862f5c4dd30df52a5de7c2cd31c94df3f237f44d745c87f25c725cd8825e3f04",
+  "sourceState": "LIVE",
+  "routingSource": "live",
+  "pr": {
+    "rows": 1093,
+    "sourceDocuments": 949,
+    "columns": [
+      "Purchase requisition",
+      "Quotation reference",
+      "Name",
+      "Preparer",
+      "Status",
+      "Created date",
+      "Submitted date",
+      "Requisition purpose",
+      "Submission Status",
+      "Accepted By/Assign To",
+      "Department",
+      "Location",
+      "Contract",
+      "Request for quotation case",
+      "Total amount",
+      "Pending Approver/User",
+      "Step name",
+      "Step date and time",
+      "Stage reason code"
+    ],
+    "amountExVat": 21268506.01,
+    "sha256": "0bcfe648fc120d7744d01247679a0004e997552c261f0b1b29817e62efcc4ad3",
+    "routingRecovery": {
+      "non-actionable source rows excluded": 3483,
+      "step not reported source documents": 104,
+      "no named owner source documents": 30,
+      "holder attribution rows": 1093,
+      "operations confirmation source documents": 561,
+      "operations mapping missing: Surveying Services": 1,
+      "operations mapping missing: Leisure Services": 2,
+      "operations mapping missing: Housekeeping Services": 1,
+      "operations mapping missing: Accomodation Services": 1,
+      "actionable source documents": 949
+    },
+    "operationsConfirmationDocuments": 561,
+    "operationsConfirmationAttributions": 561,
+    "commaJoinedOwners": 0,
+    "bareNumericOwners": 0,
+    "liveActionableMissingFromWorkbook": 0,
+    "sharedRoutingMetadataRows": 202,
+    "classCountsSourceDocuments": {
+      "NO_CURRENT_WORK_ITEM": 104,
+      "UNMAPPED_ELEMENT": 15,
+      "ACTIVE_LINES_NOT_FULLY_PRICED": 264,
+      "ACTIVE_LINES_PRICED": 561,
+      "ZERO_ACTIVE_LINES": 3,
+      "APPROVAL_CAPTURE": 2
+    },
+    "classCountsWorkbookDocuments": {
+      "NO_CURRENT_WORK_ITEM": 104,
+      "UNMAPPED_ELEMENT": 15,
+      "ACTIVE_LINES_NOT_FULLY_PRICED": 264,
+      "ACTIVE_LINES_PRICED": 561,
+      "ZERO_ACTIVE_LINES": 3,
+      "APPROVAL_CAPTURE": 2
+    },
+    "delivery": {
+      "namedPersonalEmailAttributions": 968,
+      "noNamedOwnerBlockAttributions": 125,
+      "unaddressableAttributions": 95,
+      "noActiveOwnerAttributions": 81,
+      "noEmailAddressAttributions": 14,
+      "ownerNotRecordedAttributions": 30,
+      "unroutedAttributions": 0,
+      "byHolderAndReason": {
+        "No named owner — D365CRM ADMIN | owner not recorded in F&O": 23,
+        "Layusha.cleatus | no active owner": 81,
+        "Firas.altamimi | no email address on file": 1,
+        "Ernie.Lavalle | no email address on file": 1,
+        "No named owner — no operations person mapped for Surveying Services | owner not recorded in F&O": 1,
+        "Dan.roberts | no email address on file": 1,
+        "Sirinikhil | no email address on file": 2,
+        "Abdul Basit Raza | no email address on file": 1,
+        "No named owner — no operations person mapped for Leisure Services | owner not recorded in F&O": 2,
+        "Muhammad.faisal | no email address on file": 1,
+        "Ahamed Noorullah Mohamed | no email address on file": 1,
+        "No named owner — IT DEPARTMENT | owner not recorded in F&O": 2,
+        "Qasim Jahangir | no email address on file": 1,
+        "Joe Orlain Jamisola | no email address on file": 1,
+        "No named owner — no operations person mapped for Housekeeping Services | owner not recorded in F&O": 1,
+        "No named owner — no operations person mapped for Accomodation Services | owner not recorded in F&O": 1,
+        "ruben.senesan | no email address on file": 1,
+        "Mahmud.hasan | no email address on file": 2,
+        "Nathan.Buys | no email address on file": 1
+      }
+    }
+  },
+  "po": {
+    "rows": 999,
+    "columns": [
+      "Purchase order",
+      "Vendor account",
+      "Invoice account",
+      "Vendor name",
+      "Purchase type",
+      "Approval status",
+      "Purchase order status",
+      "Currency",
+      "Requested receipt date",
+      "Created date and time",
+      "Purchase requisition",
+      "RFQ number",
+      "Total amount",
+      "Department",
+      "Location",
+      "Contract",
+      "Pending Approver/User",
+      "Step name",
+      "Step date and time",
+      "Created by"
+    ],
+    "amountExVat": 37795958.25,
+    "sha256": "98794b11f729e75fcdd9fce82261fcf1f94b2c8e8475b552a842f5405baf4e71",
+    "routingRecovery": {
+      "Invoiced": 2133,
+      "STAGE_NOT_EVIDENCED": 73,
+      "Receipt posted": 1,
+      "holder attribution rows": 999
+    },
+    "commaJoinedOwners": 0
+  },
+  "amountBasis": "live F&O active-line values excl. VAT",
+  "datePolicy": "current live dataset clocks; unreported clocks remain blank",
+  "routingPolicy": "current live dataset plus shared holder, work-class, employee, inactive-user, and email-address rules",
+  "outputNote": "Temporary email compatibility output: verified PR/PO routing snapshot with current live ex-VAT amounts.",
+  "contentChanged": true,
+  "noExactOldEquivalent": {
+    "PR": {
+      "Sourcing": "consolidated live stage; mapped to legacy Procurement",
+      "Priced — awaiting approval": "live priced signal; mapped to legacy Operations to Confirm",
+      "Approval — unmapped element": "shown as Step not reported by F&O",
+      "(blank)": "shown as Step not reported by F&O"
+    },
+    "PO": {
+      "Not yet sent": "authoritative F&O state; mapped to legacy Procurement",
+      "Approval — unmapped element": "displayed fallback; mapped to legacy Procurement",
+      "Receipt posted": "routed by Confirmed plus Received to Pending Invoicing",
+      "Invoiced": "excluded by the open-pipeline rule",
+      "STAGE_NOT_EVIDENCED": "must never be open; generation fails if it is"
+    }
+  }
+}

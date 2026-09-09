@@ -10,6 +10,7 @@ const divisions = fs.readFileSync('divisions.html', 'utf8');
 const rule = JSON.parse(fs.readFileSync('holder-rule.json', 'utf8'));
 const workRule = JSON.parse(fs.readFileSync('work-class-rule.json', 'utf8'));
 const employeeMap = JSON.parse(fs.readFileSync('employee-holder-map.json', 'utf8'));
+const inactive = JSON.parse(fs.readFileSync('inactive-usernames.json', 'utf8')).inactiveUsernames.map(value => value.toLowerCase());
 const literal = html.match(/const HOLDER_RULE = (\{.*\});/);
 assert.ok(literal, 'dashboard HOLDER_RULE literal not found');
 assert.deepEqual(JSON.parse(literal[1]), rule, 'dashboard and workbook holder rules drifted');
@@ -22,6 +23,9 @@ assert.ok(workLiteral, 'dashboard WORK_CLASS_RULE literal not found');
 assert.ok(employeeLiteral, 'dashboard EMPLOYEE_HOLDER_MAP literal not found');
 assert.deepEqual(JSON.parse(workLiteral[1]), workRule, 'dashboard and workbook class rules drifted');
 assert.deepEqual(JSON.parse(employeeLiteral[1]), employeeMap, 'dashboard and workbook employee maps drifted');
+const inactiveLiteral = html.match(/const INACTIVE_USERNAMES = new Set\((\[.*\])\);/);
+assert.ok(inactiveLiteral, 'dashboard inactive-user literal not found');
+assert.deepEqual(JSON.parse(inactiveLiteral[1]), inactive, 'dashboard inactive-user list drifted');
 assert.deepEqual(race.OWNER_ALIASES, rule.ownerAliases, 'Race Control owner aliases drifted');
 const divisionScript = divisions.match(/<script>\s*([\s\S]*?)<\/script>\s*<\/body>/);
 assert.ok(divisionScript, 'division dashboard script not found');
@@ -50,6 +54,10 @@ function build(overrides) {
 }
 
 assert.deepEqual(Array.from(build({ 'Pending Approver/User': 'Adnan.Ullah, adnan.ullah, Layusha.cleatus' }).holders), ['Adnan.Ullah', 'Layusha.cleatus']);
+const shared = build({ 'Pending Approver/User': 'Adnan.Ullah, Layusha.cleatus, roderick.red' });
+assert.equal(shared.sourceShared, true);
+assert.deepEqual(Array.from(shared.liveBuyers), ['Adnan.Ullah', 'roderick.red']);
+assert.doesNotMatch(shared.sharedLabel, /Layusha/i);
 assert.deepEqual(Array.from(build({ 'Pending Approver/User': 'Aparna.Pauly' }).holders), ['Aparna.Pauly']);
 assert.deepEqual(Array.from(build({ 'Pending Approver/User': '' }).holders), ['not recorded']);
 
@@ -83,5 +91,11 @@ assert.equal(vm.runInContext('ageBand(8)', context), '8–30');
 assert.equal(vm.runInContext('ageBand(31)', context), '31–60');
 assert.equal(vm.runInContext('ageBand(61)', context), '61–90');
 assert.equal(vm.runInContext('ageBand(91)', context), 'Over 90');
+const raisedClock = build({ 'Created date': '2026-09-01T00:00:00Z', 'Step date and time': '2026-09-01T00:00:00Z' });
+assert.equal(raisedClock.ageBasis, 'Raised');
+assert.match(raisedClock.ageLabel, /^Raised \d+d ago$/);
+const stepClock = build({ 'Created date': '2026-08-01T00:00:00Z', 'Step date and time': '2026-09-05T00:00:00Z' });
+assert.equal(stepClock.ageBasis, 'Current step');
+assert.match(stepClock.ageLabel, /^Current step \d+d$/);
 
 console.log('Holder rule tests passed');

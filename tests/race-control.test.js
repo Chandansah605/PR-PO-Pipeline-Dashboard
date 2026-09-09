@@ -74,8 +74,17 @@ assert.equal(race.personOwner(row('PO-DRAFT', '', 1, 'Procurement', 0, { 'Approv
 assert.deepEqual(race.holderNames(row('PR-SHARED', 'Adnan.Ullah, adnan.ullah, Layusha.cleatus', 1, 'Procurement', 10)), ['Adnan.Ullah', 'Layusha.cleatus']);
 assert.equal(race.median([7, 1, 3, 9]), 5);
 assert.deepEqual(race.metric([row('PR-NO-DATE', 'Owner', null, 'Procurement', 10)]), {
-  items: 1, value: 10, averageDays: null, medianDays: null, oldestDays: null, over7: 0
+  items: 1, pricedItems: 1, unpricedItems: 0, value: 10, averageDays: null, medianDays: null, oldestDays: null, over7: 0
 });
+
+const mixedPricing = race.metric([
+  row('PR-UNPRICED', 'Adnan.Ullah', 4, 'Procurement', 0, { 'Total amount': 0 }),
+  row('PR-PRICED', 'Adnan.Ullah', 3, 'Procurement', 250, { 'Total amount': 250 })
+]);
+assert.equal(mixedPricing.items, 2);
+assert.equal(mixedPricing.pricedItems, 1);
+assert.equal(mixedPricing.unpricedItems, 1);
+assert.equal(mixedPricing.value, 250);
 
 (async function testLineTracker() {
   const response = new Response(JSON.stringify({ value: [

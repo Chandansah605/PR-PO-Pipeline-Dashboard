@@ -1,0 +1,68 @@
+{
+  "provedAt": "2026-09-09T10:12:55.830Z",
+  "datasetRevision": "862f5c4dd30df52a5de7c2cd31c94df3f237f44d745c87f25c725cd8825e3f04",
+  "datasetGeneratedAt": "2026-09-09T09:51:20.688Z",
+  "workbookRows": {
+    "pr": 1093,
+    "po": 999
+  },
+  "adnan": {
+    "count": 189,
+    "pricingQueueCount": 189,
+    "pricedCount": 0,
+    "unvaluedOutsidePricing": 0,
+    "pricedValueExVat": 0,
+    "sourceSharedCount": 58,
+    "sharedWithOtherActiveBuyers": 57,
+    "headerLines": [
+      "189 items pending your action · 189 still being priced · not yet priced.",
+      "Oldest item was with you since 2025-05-26 (471 days).",
+      "58 source-shared items · 57 of these are shared with other active buyers. Inactive usernames are excluded from the names shown on each line."
+    ],
+    "sections": [
+      {
+        "code": "ACTIVE_LINES_NOT_FULLY_PRICED",
+        "label": "With procurement to price",
+        "count": 189,
+        "departments": [
+          {
+            "department": "Building Services",
+            "count": 165
+          },
+          {
+            "department": "Contracted Cleaning Services",
+            "count": 17
+          },
+          {
+            "department": "Home Maintenance Services",
+            "count": 3
+          },
+          {
+            "department": "Landscaping Services",
+            "count": 2
+          },
+          {
+            "department": "FitOut Services",
+            "count": 1
+          },
+          {
+            "department": "Office Support",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "operationsConfirmation": {
+    "documentsDashboard": 561,
+    "documentsEmail": 561,
+    "pricedValueDashboardExVat": 15229769.11,
+    "pricedValueEmailExVat": 15229769.11
+  },
+  "dashboard": {
+    "actionableDocuments": 949,
+    "sourceLabelledAgeRows": 949,
+    "sourceSharedDocuments": 58
+  },
+  "sendsPerformed": 0
+}

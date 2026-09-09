@@ -196,14 +196,37 @@ class LegacyEmailFallbackTests(unittest.TestCase):
             generator.fallback_pr_rows(live, [row])
 
     def test_generated_workbook_keeps_exact_header_contract(self):
+        metadata = [
+            {"Purchase requisition": "PR-TEST-001", "Source holder": "one.user"},
+            {"Purchase requisition": "PR-TEST-001", "Source holder": "two.user"},
+        ]
         payload = generator.workbook_bytes(
-            [legacy_row()], generator.PR_COLUMNS, generator.PR_WIDTHS, generator.PR_DATE_COLUMNS
+            [legacy_row()], generator.PR_COLUMNS, generator.PR_WIDTHS,
+            generator.PR_DATE_COLUMNS, metadata
         )
-        sheet = load_workbook(io.BytesIO(payload), read_only=False, data_only=True).active
+        workbook = load_workbook(io.BytesIO(payload), read_only=False, data_only=True)
+        sheet = workbook.active
         headers = [sheet.cell(1, index).value for index in range(1, sheet.max_column + 1)]
         self.assertEqual(headers, generator.PR_COLUMNS)
         self.assertEqual(headers[-1], "Stage reason code")
         self.assertEqual(list(sheet.tables), ["AxTable1"])
+        self.assertEqual(workbook["Routing metadata"].sheet_state, "hidden")
+        self.assertEqual(list(workbook["Routing metadata"].values)[1:], [
+            ("PR-TEST-001", "one.user"), ("PR-TEST-001", "two.user")
+        ])
+
+    def test_shared_metadata_keeps_one_holder_per_row(self):
+        row = legacy_row(**{
+            "Stage reason code": "ACTIVE_LINES_NOT_FULLY_PRICED",
+            "Pending Approver/User": "Adnan.Ullah, Adnan.Ullah, Layusha.cleatus, roderick.red",
+        })
+        metadata = generator.shared_routing_metadata([row])
+        self.assertEqual(metadata, [
+            {"Purchase requisition": "PR-TEST-001", "Source holder": "Adnan.Ullah"},
+            {"Purchase requisition": "PR-TEST-001", "Source holder": "Layusha.cleatus"},
+            {"Purchase requisition": "PR-TEST-001", "Source holder": "roderick.red"},
+        ])
+        self.assertFalse(any("," in item["Source holder"] for item in metadata))
 
     def test_po_fallback_preserves_routing_and_replaces_live_amount(self):
         live = [{"Purchase order": "po-test-001", "Vendor account": "vend-001", "Total amount": 100.0}]

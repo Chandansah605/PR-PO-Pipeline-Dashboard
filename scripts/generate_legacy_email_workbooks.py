@@ -401,7 +401,10 @@ def content_hash(rows: list[dict], columns: list[str]) -> str:
     ).hexdigest()
 
 
-def workbook_bytes(rows: list[dict], columns: list[str], widths: list[int], date_columns: dict[str, str]) -> bytes:
+def workbook_bytes(
+    rows: list[dict], columns: list[str], widths: list[int], date_columns: dict[str, str],
+    routing_metadata: list[dict] | None = None,
+) -> bytes:
     workbook = Workbook()
     workbook.properties.creator = "Strive Services Group"
     workbook.properties.title = "Legacy PR/PO email compatibility output"
@@ -439,6 +442,12 @@ def workbook_bytes(rows: list[dict], columns: list[str], widths: list[int], date
         showRowStripes=True, showColumnStripes=False,
     )
     sheet.add_table(table)
+    if routing_metadata is not None:
+        metadata_sheet = workbook.create_sheet("Routing metadata")
+        metadata_sheet.append(["Purchase requisition", "Source holder"])
+        for row in routing_metadata:
+            metadata_sheet.append([row["Purchase requisition"], row["Source holder"]])
+        metadata_sheet.sheet_state = "hidden"
     raw = io.BytesIO()
     workbook.save(raw)
     raw.seek(0)
@@ -454,7 +463,10 @@ def workbook_bytes(rows: list[dict], columns: list[str], widths: list[int], date
     return deterministic.getvalue()
 
 
-def validate_saved(path: Path, columns: list[str], expected_rows: int) -> None:
+def validate_saved(
+    path: Path, columns: list[str], expected_rows: int,
+    expected_routing_metadata: list[dict] | None = None,
+) -> None:
     workbook = load_workbook(path, read_only=False, data_only=False)
     sheet = workbook.active
     headers = [sheet.cell(1, index).value for index in range(1, sheet.max_column + 1)]
@@ -466,6 +478,18 @@ def validate_saved(path: Path, columns: list[str], expected_rows: int) -> None:
         raise RuntimeError(f"{path.name}: legacy-output note missing")
     if list(sheet.tables) != ["AxTable1"]:
         raise RuntimeError(f"{path.name}: AxTable1 missing")
+    if expected_routing_metadata is not None:
+        if "Routing metadata" not in workbook.sheetnames:
+            raise RuntimeError(f"{path.name}: hidden routing metadata missing")
+        metadata_sheet = workbook["Routing metadata"]
+        if metadata_sheet.sheet_state != "hidden":
+            raise RuntimeError(f"{path.name}: routing metadata must be hidden")
+        values = list(metadata_sheet.values)
+        if not values or list(values[0]) != ["Purchase requisition", "Source holder"]:
+            raise RuntimeError(f"{path.name}: routing metadata headers changed")
+        actual = [dict(zip(values[0], row)) for row in values[1:]]
+        if actual != expected_routing_metadata:
+            raise RuntimeError(f"{path.name}: routing metadata content mismatch")
 
 
 def sha256(path: Path) -> str:
@@ -495,6 +519,24 @@ def is_no_named_owner(owner) -> bool:
     )
 
 
+def shared_routing_metadata(rows: list[dict]) -> list[dict]:
+    """Keep source multi-holder membership without changing the visible workbook contract."""
+    output = []
+    for row in rows:
+        if str(row.get("Status") or "").strip().lower() not in {"draft", "in review", "approved"}:
+            continue
+        code, _ = work_class(row)
+        if code != "ACTIVE_LINES_NOT_FULLY_PRICED":
+            continue
+        number = str(row.get("Purchase requisition") or "").strip().upper()
+        holders = split_holder_names(row.get("Pending Approver/User"))
+        if len(holders) < 2:
+            continue
+        for holder in holders:
+            output.append({"Purchase requisition": number, "Source holder": holder})
+    return sorted(output, key=lambda row: (row["Purchase requisition"], row["Source holder"].lower()))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset-url", default=DEFAULT_DATASET_URL)
@@ -519,14 +561,21 @@ def main() -> None:
     else:
         pr_rows, pr_excluded = live_pr_rows(dataset["pr"]["rows"])
         po_rows, po_excluded = live_po_rows(dataset["po"]["rows"])
+    routing_metadata = (
+        shared_routing_metadata(dataset["pr"]["rows"])
+        if args.routing_source == "live" else []
+    )
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     pr_path, po_path = output_dir / "pr.xlsx", output_dir / "po.xlsx"
     state_path = output_dir / args.state_file
     content_state = {
-        "formatVersion": 4,
+        "formatVersion": 5,
         "prContentSha256": content_hash(pr_rows, PR_COLUMNS),
         "poContentSha256": content_hash(po_rows, PO_COLUMNS),
+        "routingMetadataSha256": content_hash(
+            routing_metadata, ["Purchase requisition", "Source holder"]
+        ),
     }
     previous = None
     if state_path.exists():
@@ -538,10 +587,13 @@ def main() -> None:
         "formatVersion": previous.get("formatVersion"),
         "prContentSha256": previous.get("prContentSha256"),
         "poContentSha256": previous.get("poContentSha256"),
+        "routingMetadataSha256": previous.get("routingMetadataSha256"),
     }
     content_changed = previous_content != content_state or not pr_path.exists() or not po_path.exists()
     if content_changed:
-        pr_path.write_bytes(workbook_bytes(pr_rows, PR_COLUMNS, PR_WIDTHS, PR_DATE_COLUMNS))
+        pr_path.write_bytes(workbook_bytes(
+            pr_rows, PR_COLUMNS, PR_WIDTHS, PR_DATE_COLUMNS, routing_metadata
+        ))
         po_path.write_bytes(workbook_bytes(po_rows, PO_COLUMNS, PO_WIDTHS, PO_DATE_COLUMNS))
     state = {
         **content_state,
@@ -552,7 +604,7 @@ def main() -> None:
     (output_dir / "legacy-email-workbook-state.json").write_text(
         json.dumps(state, indent=2) + "\n", encoding="utf-8"
     )
-    validate_saved(pr_path, PR_COLUMNS, len(pr_rows))
+    validate_saved(pr_path, PR_COLUMNS, len(pr_rows), routing_metadata)
     validate_saved(po_path, PO_COLUMNS, len(po_rows))
     source_class_counts = Counter()
     for row in dataset["pr"]["rows"]:
@@ -598,6 +650,7 @@ def main() -> None:
             "commaJoinedOwners": sum("," in str(row.get("Pending Approver/User") or "") for row in pr_rows),
             "bareNumericOwners": sum(str(row.get("Pending Approver/User") or "").strip().isdigit() for row in pr_rows),
             "liveActionableMissingFromWorkbook": 0,
+            "sharedRoutingMetadataRows": len(routing_metadata),
             "classCountsSourceDocuments": dict(source_class_counts),
             "classCountsWorkbookDocuments": dict(workbook_class_counts),
             "delivery": {

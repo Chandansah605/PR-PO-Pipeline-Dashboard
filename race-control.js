@@ -88,11 +88,20 @@
     return clean(rawAmount) ? numeric(rawAmount) : numeric(row && row.amount);
   }
 
+  function hasRecordedAmount(row) {
+    const hasRaw = row && row.raw && Object.prototype.hasOwnProperty.call(row.raw, 'Total amount');
+    const raw = hasRaw ? row.raw['Total amount'] : row && row.amount;
+    return clean(raw) !== '' && numeric(raw) > 0;
+  }
+
   function metric(rows) {
     const ages = finiteAges(rows);
+    const priced = (rows || []).filter(hasRecordedAmount);
     return {
       items: (rows || []).length,
-      value: Math.round((rows || []).reduce(function (sum, row) { return sum + amount(row); }, 0) * 100) / 100,
+      pricedItems: priced.length,
+      unpricedItems: (rows || []).length - priced.length,
+      value: Math.round(priced.reduce(function (sum, row) { return sum + amount(row); }, 0) * 100) / 100,
       averageDays: rounded(average(ages)),
       medianDays: rounded(median(ages)),
       oldestDays: ages.length ? Math.max.apply(null, ages) : null,
@@ -328,7 +337,7 @@
       const preferred = holder.poItems > holder.prItems ? 'PO' : 'PR';
       return '<tr class="rc-holder" tabindex="0" data-holder="' + esc(holder.key) + '" data-type="' + preferred + '">' +
         '<td><b>' + esc(holder.name) + '</b><span class="rc-person-sub">PR ' + holder.prItems + ' · PO ' + holder.poItems + '</span></td>' +
-        '<td><b>' + whole(holder.items) + '</b></td><td>' + money(holder.value) + '</td><td>' + one(holder.oldestDays) + 'd</td><td>' + one(holder.medianDays) + 'd</td><td class="rc-over">' + holder.over7 + '</td><td><button class="rc-view">View queue <i class="fa-solid fa-arrow-right"></i></button></td></tr>';
+        '<td><b>' + whole(holder.items) + '</b></td><td>' + (holder.pricedItems ? whole(holder.pricedItems) + ' priced · ' + money(holder.value) : 'Not yet priced') + '</td><td>' + one(holder.oldestDays) + 'd</td><td>' + one(holder.medianDays) + 'd</td><td class="rc-over">' + holder.over7 + '</td><td><button class="rc-view">View queue <i class="fa-solid fa-arrow-right"></i></button></td></tr>';
     }).join('');
     const history = model.history;
     const movementHolderRows = model.holders.map(function (holder) {
@@ -345,11 +354,11 @@
     const oldestStuck = stuckAges.length ? Math.max.apply(null, stuckAges) : null;
     const excludedText = model.excludedCount + ' stuck item' + (model.excludedCount === 1 ? '' : 's') + ' excluded — see lane';
     container.innerHTML = '<div class="rc-shell">' +
-      '<header class="rc-hero"><div><span class="rc-eyebrow"><i class="fa-solid fa-flag-checkered"></i> Race Control</span><h2>Who is holding what — and is it getting better?</h2><p>Live action queue · current-step clock · ' + esc(model.source) + '. Each document counts once overall; shared holders each receive one personal attribution.</p></div><div class="rc-exclusion"><b>' + model.excludedCount + '</b><span>' + esc(excludedText) + '</span></div></header>' +
-      '<section class="rc-block"><div class="rc-block-head"><span>01</span><div><h3>How long are things taking?</h3><p>Live pipeline only. Stuck IT clean-up items are excluded.</p></div></div>' +
-        '<div class="rc-overall"><div><span>Average at current step</span><b>' + one(overall.averageDays) + '<small>d</small></b></div><div><span>Median at current step</span><b>' + one(overall.medianDays) + '<small>d</small></b></div><div><span>Live action items</span><b>' + whole(overall.items) + '</b></div><div><span>Past seven days</span><b class="danger">' + whole(overall.over7) + '</b></div></div>' +
+      '<header class="rc-hero"><div><span class="rc-eyebrow"><i class="fa-solid fa-flag-checkered"></i> Race Control</span><h2>Who is holding what — and is it getting better?</h2><p>Live action queue · source-labelled age · ' + esc(model.source) + '. Each document counts once overall; shared holders each receive one personal attribution.</p></div><div class="rc-exclusion"><b>' + model.excludedCount + '</b><span>' + esc(excludedText) + '</span></div></header>' +
+      '<section class="rc-block"><div class="rc-block-head"><span>01</span><div><h3>How long are things taking?</h3><p>Live pipeline only. Detail rows say whether age starts at raised date or a distinct step date.</p></div></div>' +
+        '<div class="rc-overall"><div><span>Average source age</span><b>' + one(overall.averageDays) + '<small>d</small></b></div><div><span>Median source age</span><b>' + one(overall.medianDays) + '<small>d</small></b></div><div><span>Live action items</span><b>' + whole(overall.items) + '</b></div><div><span>Past seven days</span><b class="danger">' + whole(overall.over7) + '</b></div></div>' +
         '<div class="rc-table-wrap"><table class="rc-table rc-stage-table"><thead><tr><th>Header stage</th><th>Items</th><th>Average</th><th>Median</th><th>&gt;7d</th></tr></thead><tbody>' + stageRows + '</tbody></table></div></section>' +
-      '<section class="rc-block"><div class="rc-block-head"><span>02</span><div><h3>Who is holding what?</h3><p>Click a person to ring-fence their existing detail queue.</p></div></div><div class="rc-table-wrap"><table class="rc-table rc-holder-table"><thead><tr><th>Person</th><th>Items</th><th>Value</th><th>Oldest</th><th>Median</th><th>&gt;7d</th><th></th></tr></thead><tbody>' + holderRows + '</tbody></table></div></section>' +
+      '<section class="rc-block"><div class="rc-block-head"><span>02</span><div><h3>Who is holding what?</h3><p>Click a person to ring-fence their existing detail queue. Recorded value names its priced-item count.</p></div></div><div class="rc-table-wrap"><table class="rc-table rc-holder-table"><thead><tr><th>Person</th><th>Items</th><th>Recorded value</th><th>Oldest source age</th><th>Median source age</th><th>&gt;7d</th><th></th></tr></thead><tbody>' + holderRows + '</tbody></table></div></section>' +
       '<section class="rc-block"><div class="rc-block-head"><span>03</span><div><h3>Is it getting better?</h3><p>Two Sunday positions against the live queue. Dashes mean no trustworthy snapshot.</p></div></div>' +
         '<div class="rc-trend-overall"><div class="rc-trend-label">Overall live queue</div><table class="rc-table"><thead><tr><th></th><th>' + dateLabel(history[0].key) + '</th><th>' + dateLabel(history[1].key) + '</th><th>Live now</th></tr></thead><tbody><tr><td><b>All stages</b></td>' + movementCells(overall, null, null, history) + '</tr></tbody></table></div>' +
         '<div class="rc-trend-grid"><div><h4>Holders</h4><div class="rc-table-wrap"><table class="rc-table"><thead><tr><th>Person</th><th>' + dateLabel(history[0].key) + '</th><th>' + dateLabel(history[1].key) + '</th><th>Live now</th></tr></thead><tbody>' + movementHolderRows + '</tbody></table></div></div>' +

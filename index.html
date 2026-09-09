@@ -633,6 +633,7 @@ const PO_DATA = [];
 const HOLDER_RULE = {"version":1,"notRecorded":"not recorded","unreportedStage":"Step not reported by F&O","stageRules":{"Sourcing":{"headerBucket":"Procurement","holderMode":"pending","workbookStep":"Procurement sends inquiry/RFQ to suppliers"},"Priced — awaiting approval":{"headerBucket":"Operations to Confirm","holderMode":"departmentOperations","fallbackToPending":true,"workbookStep":"Unit prices updated in PR lines"},"Dep Managers":{"headerBucket":"Dep Managers","holderMode":"pending","workbookStepByDepartment":true},"Finance":{"headerBucket":"Finance","holderMode":"pending","workbookStep":"Finance & Accounts_Accounting Manager"},"Director":{"headerBucket":"Director","holderMode":"pending","workbookStep":"Facilities Management_Director"},"CEO":{"headerBucket":"CEO","holderMode":"pending","workbookStep":"Executive Management_CEO"}},"unreportedRule":{"headerBucket":"Step not reported by F&O","holderMode":"pending","workbookStep":"PurchReqReviewTask"},"operationsHolderByDepartment":{"Building Services":"dinesh.laxman","Landscaping Services":"dinesh.laxman","Contracted Cleaning Services":"Gokul.Krishna","Security Services":"pramod.c","FitOut Services":"Shakir Ameer Bakhsh","Home Maintenance Services":"shijil.c"},"ownerAliases":{"dinesh laxman laxman":"dinesh.laxman","gokul krishna pillai":"Gokul.Krishna","pramod chandrasenan chandrasenan":"pramod.c","shijil choyaprath chandran":"shijil.c","zaheer ahmed ameer":"Zaheer.Ahmed","d365crm admin":"it.solutions","d365crmadmin":"it.solutions","it department":"it.solutions"},"managerWorkbookStepByDepartment":{"Building Services":"Building Services_Asst. Facility Managers 1","Contracted Cleaning Services":"PAC Services_Manager","Concierge Services":"Concierge Services_Manager","Security Services":"Security Services_Manager","Home Maintenance Services":"Home Services_Operations Manager","FitOut Services":"Home Services_Operations Manager","Landscaping Services":"Landscaping_Manager"}};
 const WORK_CLASS_RULE = {"version":1,"unknownLabel":"Work class not recognised","unknownAction":"Check the requisition and classify the next action.","classes":{"ACTIVE_LINES_PRICED":{"order":1,"label":"Prices are in — waiting for you to confirm","action":"Confirm the material, scope and price.","holderMode":"departmentOperations","headerBucket":"Operations to Confirm","workbookStep":"Unit prices updated in PR lines"},"ACTIVE_LINES_NOT_FULLY_PRICED":{"order":2,"label":"With procurement to price","action":"Procurement must obtain and complete the pricing.","holderMode":"pending","headerBucket":"Procurement","workbookStep":"Procurement sends inquiry/RFQ to suppliers"},"NO_CURRENT_WORK_ITEM":{"order":3,"label":"Nobody assigned in F&O — sitting with the person who raised it","action":"The person who raised it must move it forward.","holderMode":"preparer","headerBucket":"Step not reported by F&O","workbookStep":"PurchReqReviewTask"},"UNMAPPED_ELEMENT":{"order":4,"label":"At an approval step F&O cannot name","action":"Check the requisition and identify the approver.","holderMode":"pending","headerBucket":"Step not reported by F&O","workbookStep":"PurchReqReviewTask"},"ZERO_ACTIVE_LINES":{"order":5,"label":"No live lines","action":"Review the requisition lines or close the request.","holderMode":"preparer","headerBucket":"Step not reported by F&O","workbookStep":"PurchReqReviewTask"},"APPROVAL_CAPTURE":{"order":6,"label":"Approval recorded","action":"Check that the requisition moves to its next step.","holderMode":"pending","headerBucket":"Step not reported by F&O","workbookStep":"PurchReqReviewTask"}}};
 const EMPLOYEE_HOLDER_MAP = {"version":1,"employees":{"000000":"D365CRM ADMIN","310523":"Dinesh Laxman Laxman","312005":"Gokul Krishna Pillai","971559811447":"Qasim Jahangir","311141":"Zaheer Ahmed Ameer","310718":"Pramod Chandrasenan Chandrasenan","1111111111":"IT DEPARTMENT","311905":"Shakir Ameer Bakhsh","310083":"Shijil Choyaprath Chandran","000000000":"Sirinikhil","311428":"Ahamed Noorullah Mohamed","311863":"Muhammad Shehzad Ahmeduddin","311322":"Joe Orlain Jamisola","312281":"Abdul Basit Raza","0123456789":"Roderick Red Palma","123456789":"Buying Agent Concierge"},"systemAccounts":["D365CRM ADMIN","IT DEPARTMENT"]};
+const INACTIVE_USERNAMES = new Set(["layusha.cleatus"]);
 const PR_STEPS_MAP = Object.fromEntries(Object.keys(HOLDER_RULE.stageRules).map(name=>[name,name]));
 const PO_STEPS_MAP = {"Advance payment request submitted (if applicable)":"Procurement","Procurement Manager":"Procurement","Accounting Manager":"Finance","Finance and Accounts Director":"Director","CEO":"CEO","Not yet sent":"Not yet sent","Sent to supplier":"Sent to supplier","Receipt posted":"Receipt posted","Invoiced":"Invoiced"};
 
@@ -670,6 +671,19 @@ function splitHolderNames(value){
 }
 function holderNames(value){return splitHolderNames(value);}
 function holderDisplay(r){return ((r&&r.holders)||holderNames(r&&r.pendingUser)).join(' · ');}
+function hasRecordedAmount(r){const raw=r&&r['Total amount'];return raw!==null&&raw!==''&&raw!==undefined&&Number.isFinite(Number(raw))&&Number(raw)>0;}
+function sameMoment(a,b){return !!(a&&b&&Math.abs(a.getTime()-b.getTime())<1000);}
+function prClock(created,step){
+  if(!step||sameMoment(created,step)){const age=created?daysBetween(created,TODAY):null;return {age,basis:'Raised',label:age==null?'Raised date not recorded':`Raised ${age}d ago`};}
+  const age=daysBetween(step,TODAY);return {age,basis:'Current step',label:age==null?'Current-step date not recorded':`Current step ${age}d`};
+}
+function sharedBuyerState(r,work){
+  if(!work||work.code!=='ACTIVE_LINES_NOT_FULLY_PRICED')return {sourceShared:false,liveBuyers:[],label:'Not shared'};
+  const all=splitHolderNames(r&&r['Pending Approver/User']);
+  if(all.length<2)return {sourceShared:false,liveBuyers:[],label:'Not shared'};
+  const live=all.filter(name=>!INACTIVE_USERNAMES.has(_rnorm(name)));
+  return {sourceShared:true,liveBuyers:live,label:live.length>1?`Shared: ${live.join(' · ')}`:'Shared source assignment · no other active buyer'};
+}
 function workClassFor(r){
   let code=String(r&&r['Stage reason code']||'').trim();
   if(!code){const step=String(r&&r['Step name']||'').trim();if(['Priced — awaiting approval','Unit prices updated in PR lines','Quotation shared to Operations for confirmation'].includes(step))code='ACTIVE_LINES_PRICED';else if(['Sourcing','Procurement sends inquiry/RFQ to suppliers','Quotation received and logged/attached','Operations confirms material/scope'].includes(step))code='ACTIVE_LINES_NOT_FULLY_PRICED';}
@@ -845,9 +859,8 @@ function buildPRRecords(prData){
     const bucket = mapped ? PR_STEPS_MAP[step] : HOLDER_RULE.unreportedStage;
     const created=parseDate(r['Created date']);
     const stepDate=parseDate(r['Step date and time']);
-    const refDate=stepDate||created;
-    const aging=refDate?daysBetween(refDate,TODAY):null;
     const rec_=prReconstruct(r,mapped?bucket:null);
+    const clock=prClock(created,stepDate), shared=sharedBuyerState(r,rec_.work);
     recs.push({
       docNumber, prType:prType(docNumber),
       name:r['Name']||'', vendorName:'', quotationRef:r['Quotation reference']||'',
@@ -856,7 +869,8 @@ function buildPRRecords(prData){
       bucket, subBucket: step || HOLDER_RULE.unreportedStage, hdrBucket: rec_.hdr, dispBucket: rec_.disp||bucket,
       status:r['Status']||'—',
       classCode:rec_.work.code, workClass:rec_.work.label, workAction:rec_.work.action,
-      createdDate:created, stepDate, aging, ageBand:ageBand(aging), amount:Number(r['Total amount'])||0,
+      createdDate:created, stepDate, aging:clock.age, ageBasis:clock.basis, ageLabel:clock.label, ageBand:ageBand(clock.age), ageBandLabel:`${clock.basis} · ${ageBand(clock.age)}`, amount:Number(r['Total amount'])||0, hasRecordedAmount:hasRecordedAmount(r),
+      sourceShared:shared.sourceShared, liveBuyers:shared.liveBuyers, sharedLabel:shared.label,
       pendingUser:rec_.owner, holders:rec_.holders, raw:r,
       _isClosed: isClosed,
       _isOpenPipeline: ['draft','in review','approved'].includes(String(r['Status']||'').trim().toLowerCase()),
@@ -1069,6 +1083,9 @@ const AN_CSS=`
 </style>`;
 const AN_PALETTE=['#2f6bd8','#0ea5e9','#14b8a6','#8b5cf6','#f59e0b','#ec4899','#22c55e','#a855f7','#f97316','#64748b'];
 function _anMoney(v){ return 'AED '+(Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:0})+' excl. VAT'; }
+function _anRecordedPriceStats(rows){const priced=(rows||[]).filter(r=>r._doc==='PO'||r.hasRecordedAmount);return {count:priced.length,value:priced.reduce((sum,r)=>sum+(r.amount||0),0)};}
+function _anRecordedPrice(rows){const s=_anRecordedPriceStats(rows);return s.count?`${s.count} priced · ${_anMoney(s.value)}`:'Not yet priced';}
+function _anItemPrice(r){return r&&r._doc==='PR'&&!r.hasRecordedAmount?'Not yet priced':_anMoney(r&&r.amount);}
 function _anAgeB(a){ a=Math.round(a||0); const bg=a>14?'var(--red)':a>7?'var(--amber)':'var(--green)'; return `<span class="anAge" style="background:${bg}">${a}d</span>`; }
 function _anInit(name,i){ const p=String(name||'?').trim().split(/[\s.]+/); const init=((p[0]||'?')[0]+(p[1]?p[1][0]:'')).toUpperCase(); return `<span class="anInit" style="background:${AN_PALETTE[i%AN_PALETTE.length]}">${escapeHtml(init)}</span>`; }
 function _anTbl(head,rows,empty){ if(!rows.length) return `<div style="color:#8a99b3;font-size:12px;padding:10px 4px">${empty||'Nothing right now — all clear ✅'}</div>`;
@@ -2159,7 +2176,7 @@ function renderAnalysis(){
   const prLive=PRR.filter(r=>r._isOpenPipeline&&!['Rejected','Cancelled'].includes(r.status));
   const poLive=POR.filter(r=>!r._isUnmapped&&!r._isPORejected&&!r._isPOCanceled&&!r._isInvoiced);
   const live=prLive.map(r=>({...r,_doc:'PR'})).concat(poLive.map(r=>({...r,_doc:'PO'})));
-  const totV=live.reduce((a,r)=>a+(r.amount||0),0);
+  const totalPricing=_anRecordedPriceStats(live), totV=totalPricing.value;
   const br7=live.filter(r=>(r.aging||0)>7).length;
   let h=AN_CSS+`<div class="anSubPane on" id="anSubCurrent"><div class="anWrap">`;
   /* ---------- HERO ---------- */
@@ -2167,24 +2184,24 @@ function renderAnalysis(){
       <div class="sub">Who must act today, where the pipeline leaks, and how suppliers perform — the same live holder rule as the daily division emails. Each document counts once in pipeline totals; shared holders each receive one personal attribution.</div></div>
       <div class="anHeroStats">
         <div class="anHeroStat"><div class="v">${live.length.toLocaleString()}</div><div class="l">Open items</div></div>
-        <div class="anHeroStat"><div class="v">${(totV/1e6).toFixed(1)}M</div><div class="l">AED excl. VAT</div></div>
+        <div class="anHeroStat"><div class="v">${(totV/1e6).toFixed(1)}M</div><div class="l">Recorded value · ${totalPricing.count} priced items</div></div>
         <div class="anHeroStat"><div class="v" style="color:#ff9d9d">${br7.toLocaleString()}</div><div class="l">Past 7-day SLA</div></div>
       </div></div>`;
   /* ---------- WAITING-ON CARDS ---------- */
-  const waitAgg={}; live.forEach(r=>{const w=_anWaitOf(r,r._doc==='PO'); const e=waitAgg[w]||(waitAgg[w]={n:0,v:0,ages:[]}); e.n++; e.v+=(r.amount||0); if(r.aging!=null)e.ages.push(r.aging);});
+  const waitAgg={}; live.forEach(r=>{const w=_anWaitOf(r,r._doc==='PO'); const e=waitAgg[w]||(waitAgg[w]={n:0,v:0,priced:0,ages:[]}); e.n++; if(r._doc==='PO'||r.hasRecordedAmount){e.v+=(r.amount||0);e.priced++;} if(r.aging!=null)e.ages.push(r.aging);});
   const wDef=[['Procurement','fa-cart-shopping','linear-gradient(135deg,#2f6bd8,#1d4ed8)'],['Operations','fa-helmet-safety','linear-gradient(135deg,#14b8a6,#0f766e)'],['Finance','fa-coins','linear-gradient(135deg,#22c55e,#15803d)'],['Supplier','fa-truck-fast','linear-gradient(135deg,#a855f7,#7e22ce)']];
   h+=`<div class="anWaitRow">`+wDef.map(([w,ic,bg])=>{const e=waitAgg[w]||{n:0,v:0,ages:[]};const av=e.ages.length?Math.round(e.ages.reduce((a,b)=>a+b,0)/e.ages.length):0;
-    return `<div class="anWait" style="background:${bg}"><i class="fa-solid ${ic} ic"></i><div class="l">Waiting on ${w}</div><div class="v">${e.n.toLocaleString()}</div><div class="s">avg ${av}d · ${_anMoney(e.v)}</div></div>`;}).join('')+`</div>`;
+    return `<div class="anWait" style="background:${bg}"><i class="fa-solid ${ic} ic"></i><div class="l">Waiting on ${w}</div><div class="v">${e.n.toLocaleString()}</div><div class="s">avg ${av}d · ${e.priced?`${e.priced} priced · ${_anMoney(e.v)}`:'not yet priced'}</div></div>`;}).join('')+`</div>`;
   /* ---------- PENDING BY PERSON + ESCALATIONS ---------- */
   const pg={};
   live.forEach(r=>{ if(r._doc==='PO'&&(r.hdrBucket==='Sent to supplier'||r.hdrBucket==='Receipt posted'))return;
     (r.holders||holderNames(r.pendingUser)).forEach(o=>{if(o===NOT_RECORDED)return;
-      const k=o.toLowerCase(); const e=pg[k]||(pg[k]={disp:o,pr:0,po:0,v:0,old:0,br:0}); if(r._doc==='PR')e.pr++;else e.po++; e.v+=(r.amount||0); if(r.aging!=null){if(r.aging>e.old)e.old=r.aging; if(r.aging>7)e.br++;}});});
+      const k=o.toLowerCase(); const e=pg[k]||(pg[k]={disp:o,pr:0,po:0,v:0,priced:0,old:0,br:0}); if(r._doc==='PR')e.pr++;else e.po++; if(r._doc==='PO'||r.hasRecordedAmount){e.v+=(r.amount||0);e.priced++;} if(r.aging!=null){if(r.aging>e.old)e.old=r.aging; if(r.aging>7)e.br++;}});});
   const people=Object.values(pg).sort((a,b)=>(b.pr+b.po)-(a.pr+a.po)).slice(0,12);
   const prows=people.map((e,i)=>[`${_anInit(e.disp,i)}<b>${escapeHtml(e.disp)}</b>`,escapeHtml(deptForUser(e.disp)||'—'),
     e.pr?`<span class="anPill" style="background:#e4edff;color:#1d4ed8">${e.pr} PR</span>`:'<span style="color:#c3ccda">—</span>',
     e.po?`<span class="anPill" style="background:#dff3f6;color:#0e7490">${e.po} PO</span>`:'<span style="color:#c3ccda">—</span>',
-    _anAgeB(e.old),e.br?`<span class="anPill" style="background:#fee2e2;color:#b91c1c">${e.br}</span>`:'<span style="color:#c3ccda">0</span>',`<b>${_anMoney(e.v)}</b>`]);
+    _anAgeB(e.old),e.br?`<span class="anPill" style="background:#fee2e2;color:#b91c1c">${e.br}</span>`:'<span style="color:#c3ccda">0</span>',`<b>${e.priced?`${e.priced} priced · ${_anMoney(e.v)}`:'Not yet priced'}</b>`]);
   const unas=live.filter(r=>(r.holders||holderNames(r.pendingUser)).every(o=>o===NOT_RECORDED)&&!(r._doc==='PO'&&(r.hdrBucket==='Sent to supplier'||r.hdrBucket==='Receipt posted')));
   const escAgg={};
   live.forEach(r=>{const b=r.hdrBucket||r.bucket;const e=escAgg[b]||(escAgg[b]={a:0,b:0,n:0});e.n++;if(r.aging!=null){if(r.aging>14)e.b++;else if(r.aging>7)e.a++;}});
@@ -2196,14 +2213,14 @@ function renderAnalysis(){
       <div style="width:90px;text-align:right;white-space:nowrap"><b style="color:var(--amber)">${e.a}</b> · <b style="color:var(--red)">${e.b}</b></div></div>`).join('');
   h+=`<div class="anRow c21">`
    +_anPanel('fa-user-clock','#2f6bd8','Pending by person — next action &amp; accountable','Top 12 people holding live items (supplier-side stages excluded). Br&gt;7 = past the 7-day SLA.',
-      _anTbl(['Accountable person','Department','r:PRs','r:POs','r:Oldest','r:Br>7','r:Value'],prows)
+      _anTbl(['Accountable person','Department','r:PRs','r:POs','r:Oldest','r:Br>7','r:Recorded value'],prows)
       +(unas.length?`<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:800;font-size:12px;color:#64748b">Owner not recorded in source (${unas.length})</summary><div style="margin-top:8px">`
-        +_anTbl(['Doc','#','Department','Stage','r:Age','r:Value'],unas.slice(0,10).map(r=>[r._doc,escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(r.hdrBucket||r.bucket),_anAgeB(r.aging),_anMoney(r.amount)]))+`</div></details>`:''))
+        +_anTbl(['Doc','#','Department','Stage','r:Age','r:Recorded value'],unas.slice(0,10).map(r=>[r._doc,escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(r.hdrBucket||r.bucket),_anAgeB(r.aging),_anItemPrice(r)]))+`</div></details>`:''))
    +_anPanel('fa-fire','#dc2626','Escalation queue by stage','<span style="color:#b45309;font-weight:700">amber</span> 7–14d overdue · <span style="color:#b91c1c;font-weight:700">red</span> &gt;14d escalate.',
       `<div class="anLegend"><span><i style="background:#f59e0b"></i>7–14d</span><span><i style="background:#dc2626"></i>&gt;14d</span></div>`+escHtml)
    +`</div>`;
   /* ---------- HIGH VALUE ---------- */
-  const hv=live.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)).slice(0,8);
+  const hv=live.filter(r=>r._doc==='PO'||r.hasRecordedAmount).sort((a,b)=>(b.amount||0)-(a.amount||0)).slice(0,8);
   const hvMax=hv.length?(hv[0].amount||1):1;
   const hvHtml=hv.map((r,i)=>`<div class="anBarRow"><div class="lbl">${escapeHtml(r.docNumber)} <span style="color:#8a99b3;font-weight:500">· ${escapeHtml(String(holderDisplay(r)||r.vendorName||'—').slice(0,24))}</span></div>
       <div class="trk"><div class="fill" style="width:${Math.max(6,(r.amount||0)/hvMax*100).toFixed(1)}%;background:${AN_PALETTE[i%AN_PALETTE.length]}">${_anMoney(r.amount)}</div></div>
@@ -2228,14 +2245,14 @@ function renderAnalysis(){
   const e3=poLive.filter(r=>['Procurement','Finance','Director','CEO'].includes(r.hdrBucket)&&['Confirmed','Approved'].includes(r.status)&&r.poStatus==='Open order');
   const e4=poLive.filter(r=>r.hdrBucket==='Sent to supplier'&&(()=>{const d=parseDate(r.raw['Requested receipt date']);return d&&d<TODAY;})());
   const e5=poLive.filter(r=>r.hdrBucket==='Receipt posted');
-  const exDef=[['No quotation recorded','fa-file-circle-question','#dc2626','Procurement-stage PR &gt;7d without a quotation reference',e1,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(holderDisplay(r).slice(0,24)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
-               ['Ops confirmation overdue','fa-hourglass-half','#c2410c','Operations sitting &gt;7d on confirmation',e2,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(holderDisplay(r).slice(0,24)),_anAgeB(r.aging),_anMoney(r.amount)],['#','Department','Pending with','r:Age','r:Value']],
+  const exDef=[['No quotation recorded','fa-file-circle-question','#dc2626','Procurement-stage PR &gt;7d without a quotation reference',e1,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(holderDisplay(r).slice(0,24)),_anAgeB(r.aging),_anItemPrice(r)],['#','Department','Pending with','r:Age','r:Recorded value']],
+               ['Ops confirmation overdue','fa-hourglass-half','#c2410c','Operations sitting &gt;7d on confirmation',e2,r=>[escapeHtml(r.docNumber),escapeHtml(r.department),escapeHtml(holderDisplay(r).slice(0,24)),_anAgeB(r.aging),_anItemPrice(r)],['#','Department','Pending with','r:Age','r:Recorded value']],
                ['Approved PO not sent','fa-paper-plane','#7c3aed','Confirmed / approved but never sent to the supplier',e3,r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,20)),escapeHtml(r.status+' / '+r.poStatus),_anAgeB(r.aging),_anMoney(r.amount)],['PO','Vendor','Status','r:Age','r:Value']],
                ['Late delivery','fa-truck-ramp-box','#b45309','Past the requested receipt date, still not received',e4,r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,20)),escapeHtml((typeof fmtDate==='function')?fmtDate(parseDate(r.raw['Requested receipt date'])):String(r.raw['Requested receipt date']||'')),_anAgeB(r.aging),_anMoney(r.amount)],['PO','Vendor','Promised','r:Age','r:Value']],
                ['Received, not invoiced','fa-file-invoice','#ea580c','GRN done — invoice still not posted',e5,r=>[escapeHtml(r.docNumber),escapeHtml(String(r.vendorName||'').slice(0,20)),escapeHtml(r.department),_anAgeB(r.aging),_anMoney(r.amount)],['PO','Vendor','Department','r:Age','r:Value']]];
   const exHtml=`<div class="anExGrid">`+exDef.map(([t,ic,c,sub,arr,fn,head])=>`<div class="anEx" style="border-top-color:${c}">
       <div class="t"><i class="fa-solid ${ic}" style="color:${c};margin-right:6px"></i>${t}</div>
-      <div class="n" style="color:${c}">${arr.length}</div><div class="v">${_anMoney(arr.reduce((a,r)=>a+(r.amount||0),0))}</div>
+      <div class="n" style="color:${c}">${arr.length}</div><div class="v">${_anRecordedPrice(arr)}</div>
       <div style="font-size:10.5px;color:#8a99b3;margin-top:2px">${sub}</div>
       ${arr.length?`<details><summary>View worst 10 ▸</summary><div style="margin-top:8px">${_anTbl(head,arr.slice().sort((a,b)=>(b.aging||0)-(a.aging||0)).slice(0,10).map(fn))}</div></details>`:''}
     </div>`).join('')+`</div>`;
@@ -2418,7 +2435,12 @@ function applyFilters(){
   if(holderBanner){
     const holder=window.__raceControlModel&&window.__raceControlModel.holders.find(h=>h.key===raceHolderFilter);
     holderBanner.classList.toggle('visible',!!raceHolderFilter);
-    holderBanner.querySelector('span').textContent=raceHolderFilter?'Ring-fenced queue: '+(holder?holder.name:raceHolderFilter)+' · '+mode:'';
+    if(raceHolderFilter){
+      const priced=filteredRecords.filter(r=>mode!=='PR'||r.hasRecordedAmount), pricing=filteredRecords.filter(r=>mode==='PR'&&r.classCode==='ACTIVE_LINES_NOT_FULLY_PRICED').length;
+      const pricedValue=priced.reduce((sum,r)=>sum+(r.amount||0),0), shared=filteredRecords.filter(r=>mode==='PR'&&r.sourceShared).length;
+      const priceText=mode==='PR'?(priced.length?`${priced.length} priced, worth AED ${pricedValue.toLocaleString(undefined,{maximumFractionDigits:0})} excl. VAT`:'not yet priced'):`AED ${pricedValue.toLocaleString(undefined,{maximumFractionDigits:0})} excl. VAT`;
+      holderBanner.querySelector('span').textContent=`Ring-fenced queue: ${holder?holder.name:raceHolderFilter} · ${mode} · ${filteredRecords.length} items · ${pricing} still being priced · ${priceText}${shared?` · ${shared} source-shared`:''}`;
+    }else holderBanner.querySelector('span').textContent='';
   }
   renderAll();
 }
@@ -2728,7 +2750,7 @@ function renderCharts(records){
 
 /* ============ Main table - mode-aware ============ */
 function getMainColumns(){
-  if(mode==='PR') return ['PR #','Type','Name','Department','Project / Location','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Aging','Age band','Pending With'];
+  if(mode==='PR') return ['PR #','Type','Name','Department','Project / Location','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Age / source','Age band / source','Pending With','Shared buyers','Recorded price'];
   return ['PO #','Vendor','Department','Project / Location','Bucket','Sub-bucket (Step)','Status','Created','Step Date & Time','Aging','Amount','Pending With'];
 }
 function renderTable(records){
@@ -2737,7 +2759,7 @@ function renderTable(records){
   document.getElementById('mainTableHead').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
   let rows;
   if(mode==='PR'){
-    rows=records.map(r=>[r.docNumber,`<b style="color:${r.prType==='CPR'?'#0ea5e9':'#8b5cf6'}">${r.prType||'—'}</b>`,r.name,r.department,r.project,escapeHtml(r.workClass),escapeHtml(r.workAction),`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(r.subBucket),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),escapeHtml(r.ageBand),escapeHtml(holderDisplay(r))]);
+    rows=records.map(r=>[r.docNumber,`<b style="color:${r.prType==='CPR'?'#0ea5e9':'#8b5cf6'}">${r.prType||'—'}</b>`,r.name,r.department,r.project,escapeHtml(r.workClass),escapeHtml(r.workAction),`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(r.subBucket),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),escapeHtml(r.ageLabel),escapeHtml(r.ageBandLabel),escapeHtml(holderDisplay(r)),escapeHtml(r.sharedLabel),r.hasRecordedAmount?`AED ${(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2})} excl. VAT`:'Not yet priced']);
   } else {
     rows=records.map(r=>[r.docNumber,r.vendorName,r.department,r.project,`<b style="color:${bucketColor(r.bucket)}">${escapeHtml(r.bucket)}</b>`,escapeHtml(stepText(r)),statusBadge(r.status),fmtDate(r.createdDate),fmtDateTime(r.stepDate),agingLabel(r.aging),(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2}),escapeHtml(holderDisplay(r))]);
   }
@@ -2749,7 +2771,7 @@ function renderTable(records){
 
 /* ============ Drill-through ============ */
 function getDrillColumns(){
-  if(mode==='PR') return ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Sub-bucket (Step)','Status','Created','Step Date','Aging','Age band','Pending With'];
+  if(mode==='PR') return ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Sub-bucket (Step)','Status','Created','Step Date','Age / source','Age band / source','Pending With','Shared buyers','Recorded price'];
   return ['PO #','Vendor','Department','Project','Sub-bucket (Step)','Status','Created','Step Date','Aging','Amount','Pending With'];
 }
 /* Shared modal renderer — used by both bucket/dept drill and Overall-KPI drill */
@@ -2763,7 +2785,8 @@ function showDrillModal(subset, title){
   const avg = ag.length ? (ag.reduce((a,b)=>a+b,0)/ag.length).toFixed(1) : '0';
   const max = ag.length ? Math.max(...ag) : 0;
   const breaches = subset.filter(r=>r.aging!=null && r.aging>SLA_WARN_MAX).length;
-  const totalAmt = subset.reduce((a,b)=>a+(b.amount||0),0);
+  const pricedSubset=subset.filter(r=>mode!=='PR'||r.hasRecordedAmount);
+  const totalAmt = pricedSubset.reduce((a,b)=>a+(b.amount||0),0);
   const prC = subset.filter(r=>r.prType==='PR').length;
   const cprC = subset.filter(r=>r.prType==='CPR').length;
 
@@ -2773,7 +2796,7 @@ function showDrillModal(subset, title){
     <div class="modal-stat"><div class="lbl">Avg Aging</div><div class="val">${avg}d</div></div>
     <div class="modal-stat"><div class="lbl">Max Aging</div><div class="val">${max}d</div></div>
     <div class="modal-stat"><div class="lbl">SLA Breaches</div><div class="val" style="color:${breaches>0?'var(--red)':'var(--green)'}">${breaches}</div></div>
-    <div class="modal-stat"><div class="lbl">Total Value (AED excl. VAT)</div><div class="val">${totalAmt.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div>`;
+    <div class="modal-stat"><div class="lbl">${mode==='PR'?'Recorded price':'Total value'} (AED excl. VAT)</div><div class="val">${mode==='PR'?pricedSubset.length+' priced · ':''}${totalAmt.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div>`;
   document.getElementById('drillStats').innerHTML = statsHtml;
 
   const cols = getDrillColumns();
@@ -2795,9 +2818,11 @@ function showDrillModal(subset, title){
         <td>${statusBadge(r.status)}</td>
         <td>${fmtDate(r.createdDate)}</td>
         <td>${fmtDateTime(r.stepDate)}</td>
-        <td>${agingLabel(r.aging)}</td>
-        <td>${escapeHtml(r.ageBand)}</td>
+        <td>${escapeHtml(r.ageLabel)}</td>
+        <td>${escapeHtml(r.ageBandLabel)}</td>
         <td>${escapeHtml(holderDisplay(r))}</td>
+        <td>${escapeHtml(r.sharedLabel)}</td>
+        <td>${r.hasRecordedAmount?'AED '+(r.amount||0).toLocaleString(undefined,{maximumFractionDigits:2})+' excl. VAT':'Not yet priced'}</td>
       </tr>`).join('');
   } else {
     tbody.innerHTML = sorted.map(r=>`
@@ -2867,11 +2892,11 @@ function closeDrill(){document.getElementById('drillModal').classList.remove('ac
 function exportDrillToExcel(){
   if(!currentDrillSubset||!currentDrillSubset.length){alert('Nothing to export.');return;}
   const cols=mode==='PR'
-    ? ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Age band','Pending With','Amount']
+    ? ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Age / source','Age band / source','Pending With','Shared buyers','Recorded price']
     : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With'];
   const wsData=[cols];
   currentDrillSubset.forEach(r=>{
-    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.workClass,r.workAction,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.ageBand,holderDisplay(r),r.amount]);
+    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.workClass,r.workAction,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.ageLabel,r.ageBandLabel,holderDisplay(r),r.sharedLabel,r.hasRecordedAmount?r.amount:'Not yet priced']);
     else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,holderDisplay(r)]);
   });
   const wb=XLSX.utils.book_new();
@@ -2883,11 +2908,11 @@ function exportDrillToExcel(){
 
 function exportToExcel(){
   const cols=mode==='PR'
-    ? ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Age band','Pending With','Amount']
+    ? ['PR #','Type','Quote Ref','Name','Department','Project','Class of work','What to do','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Age / source','Age band / source','Pending With','Shared buyers','Recorded price']
     : ['PO #','Vendor','Department','Project','Bucket','Sub-bucket (Step)','Status','Created','Step Date','Aging (days)','Amount','Pending With'];
   const wsData=[cols];
   filteredRecords.forEach(r=>{
-    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.workClass,r.workAction,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.ageBand,holderDisplay(r),r.amount]);
+    if(mode==='PR') wsData.push([r.docNumber,r.prType,r.quotationRef,r.name,r.department,r.project,r.workClass,r.workAction,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.ageLabel,r.ageBandLabel,holderDisplay(r),r.sharedLabel,r.hasRecordedAmount?r.amount:'Not yet priced']);
     else wsData.push([r.docNumber,r.vendorName,r.department,r.project,r.bucket,r.subBucket,r.status,fmtDate(r.createdDate),fmtDateTime(r.stepDate),r.aging,r.amount,holderDisplay(r)]);
   });
   const wb=XLSX.utils.book_new();

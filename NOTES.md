@@ -7265,3 +7265,88 @@ The largest-holder offline render is Dinesh, 425 rows:
 - Cache-busted production reads returned `pr.xlsx` with 1,096 rows and SHA-256 `B3E04B7EAE439F76323123392369A5521BE9CAD77AD100A9ADA2114F9DADCDE0`, `po.xlsx` with 996 rows and SHA-256 `70A8218B2CB319A20A3D02437DA21EC0A96F9A85176CFEC5CE87D8AB44373AAD`, and the public state file with the exact reconciled revision and timestamp.
 - `gh workflow view publish-legacy-email-workbooks.yml --ref main --yaml` returned the new workflow from `main`, confirming GitHub accepted the off-boundary schedule and run-summary syntax.
 - `gh run list --repo Strive-Services-Group/pr-po-proxy --workflow deploy-ssg-prpo-proxy.yml` showed no run for `90a5dc33d77f1d9e2241b2846229c8416044ca08`; the proxy remains undeployed as required.
+
+# Correction 01 — honest prices, honest clocks, shared buyers, working deploy
+
+## What I found
+
+- The email sender converted blank prices to zero, summed that zero with the few recorded prices, and described the result as covering the whole queue. The arithmetic was faithful but the sentence was not.
+- The email and dashboard both treated `Step date and time` as a holding clock even when it exactly repeated `Created date`. That source fact only proves when the requisition was raised.
+- The workbook had already split source multi-holder strings into individual rows, so the sender could no longer tell which requisitions were shared. The source membership had to be preserved without changing the visible workbook contract.
+- Deploy runs [34229831868](https://github.com/Strive-Services-Group/pr-po-proxy/actions/runs/34229831868) and [34146527247](https://github.com/Strive-Services-Group/pr-po-proxy/actions/runs/34146527247) both stopped at `Require authorised publish profile`: the referenced publish-profile secret did not exist. The repository already had the three GitHub-generated OIDC secret names used by its historical working Azure workflow.
+
+## Exact changes made
+
+Dashboard repository:
+
+- Values are now labelled `Recorded price`; unpriced rows say `Not yet priced`. Holder and drill summaries state the item count, still-being-priced count, and priced-item count/value separately.
+- Every PR age now carries its source. Equal or missing step dates use `raised N days ago`; a genuinely distinct step date uses `with you since YYYY-MM-DD (N days)`. Age-band labels also say `Raised` or `Current step`.
+- Shared procurement items remain attributed to every source-named buyer. A hidden `Routing metadata` sheet records one source holder per row, with case-insensitive de-duplication. Email and dashboard lines name the other active buyers and exclude `inactive-usernames.json` entries.
+- The main and drill-through PR tables expose source-labelled age, source-labelled band, shared assignment, and recorded price.
+
+Proxy repository:
+
+- The sender reads the hidden routing metadata, keeps the existing recipient attribution, and renders honest price, clock, and shared-buyer wording in personal and division output.
+- Personal attachments add explanatory derived columns (`Age basis`, source-labelled `Age band`, `Shared assignment`, and price state). The published source workbook's visible sheet is unchanged.
+- The deployment workflow now uses Azure OIDC with the repository's existing app-specific secret names and deploys the exact manually supplied commit after checkout, SHA verification, install, build, and tests.
+
+## Same-revision reconciliation
+
+The live endpoint was fetched once for implementation evidence and saved outside the repository at `C:\Windows\Temp\prpo-correction01-dataset.json`. All workbooks, dashboard calculations, email output, and evidence below used that one file.
+
+- Dataset revision: `862f5c4dd30df52a5de7c2cd31c94df3f237f44d745c87f25c725cd8825e3f04`.
+- Generated at: `2026-09-09T09:51:20.688Z`; source state `LIVE`.
+- Feed: 4,432 PR rows and 3,206 PO rows; 949 actionable PR documents.
+- Workbook: 1,093 PR attribution rows and 999 PO rows; live actionable PR documents missing: **0**.
+- Operations confirmation: **561 documents** and **AED 15,229,769.11 excl. VAT** in both dashboard and email calculations.
+- All 949 dashboard PR rows have an event-labelled age. There are 58 source-shared documents and 202 one-holder metadata rows.
+
+The current live source moved after the problem snapshot: Adnan's routed queue is now 189 rather than 214. This is not a routing change. All 189 current items are `ACTIVE_LINES_NOT_FULLY_PRICED`; the item-count difference comes from the later live revision.
+
+Adnan's exact rendered header is:
+
+> 189 items pending your action · 189 still being priced · not yet priced.
+>
+> Oldest item was with you since 2025-05-26 (471 days).
+>
+> 58 source-shared items · 57 of these are shared with other active buyers. Inactive usernames are excluded from the names shown on each line.
+
+His only class section is `With procurement to price · 189`. It states that 57 are shared with other active buyers and splits into Building Services 165, Contracted Cleaning Services 17, Home Maintenance Services 3, Landscaping Services 2, FitOut Services 1, and Office Support 1. One of the 58 source-shared rows has no other currently active buyer after inactive usernames are removed, which is why the active-shared count is 57.
+
+The local HTML render is `evidence/correction01-adnan-email.html`; desktop and 412-pixel mobile captures are `evidence/correction01-adnan-email-desktop.png` and `evidence/correction01-adnan-email-mobile.png`. No email was sent.
+
+## Workbook compatibility proof
+
+- `validate_saved` passed for both regenerated workbooks.
+- Against the previous committed workbooks, PR and PO visible header arrays are equal, column widths are equal, table name `AxTable1` is present, and the A1 note is equal.
+- The PR workbook adds only the hidden `Routing metadata` sheet. The PO workbook still has only `Sheet1`.
+- The previously deployed sender at `90a5dc33d77f1d9e2241b2846229c8416044ca08` parsed the new PR workbook unchanged: 1,093 rows; sample `CPR-000004`, class `ACTIVE_LINES_PRICED`, holder `dinesh.laxman`.
+- Current hashes: PR `0bcfe648fc120d7744d01247679a0004e997552c261f0b1b29817e62efcc4ad3`; PO `98794b11f729e75fcdd9fce82261fcf1f94b2c8e8475b552a842f5405baf4e71`.
+
+## Testing and commands
+
+- `Invoke-WebRequest <dataset endpoint> -OutFile C:\Windows\Temp\prpo-correction01-dataset.json` — one successful live fetch used for all reconciliation.
+- `python scripts/generate_legacy_email_workbooks.py --dataset-json C:\Windows\Temp\prpo-correction01-dataset.json --evidence evidence/correction01-workbook-generation.json` — passed; both files opened and validated.
+- `node tests/reconcile_email_meaning.js <proxy repo> C:\Windows\Temp\prpo-correction01-dataset.json evidence/correction01-email-meaning.json evidence/correction01-adnan-email.html` — passed; dashboard/email counts and values reconcile; `sendsPerformed` is 0.
+- `node --test tests/*.test.js` — dashboard 24/24 passed, including equal/distinct date, shared/inactive buyer, price metric, routing, authentication, data, and sign-in regressions.
+- `python -m unittest discover -s tests -p 'test_*.py'` — dashboard 22/22 passed, including hidden metadata and visible workbook contract tests.
+- `npm test` — proxy 21/21 passed, including all-unpriced, partly-priced, same-date, distinct-date, and shared/inactive cases.
+- `npm run build --if-present` and `node --check src/functions/prpoEmail.js` — passed. The dashboard is a static site with no package manifest or separate build target; its full browser-script tests and workbook generation are the production-equivalent local checks.
+- `gh run view 34229831868 --repo Strive-Services-Group/pr-po-proxy --log-failed` and the same command for 34146527247 — confirmed the missing publish-profile guard as both failures' common cause.
+- `git show c254c79:.github/workflows/main_ssg-prpo-proxy.yml` and `gh secret list` — identified the existing OIDC route by secret name only. No secret value was printed.
+- `git diff --check` and narrow protected-setting diffs are run again immediately before commit.
+
+## What I did not change
+
+- No recipient address, address-book entry, manager-copy mapping, `PRPO_*_MAIL_TO`, inactive username, email routing rule, or distribution list changed.
+- No secret value, token, permission, app setting, `PRPO_PERSONAL_TEST`, mail sender, or 06:00 UTC timer changed.
+- No email was sent. No source price was invented, estimated, or carried forward.
+- No Dataverse data, dataset-feed logic, VAT rule, sign-in screen, or journey-board branch changed.
+
+## Deployment proof
+
+- Proxy commit `737793e9f6ef2ce2166ad898ed784602cfae5c57` was pushed to `main` and supplied as the workflow's exact `source_sha`.
+- [Deploy run 34339948377](https://github.com/Strive-Services-Group/pr-po-proxy/actions/runs/34339948377) passed checkout, exact-SHA verification, build/tests, Azure OIDC login, and Function App deployment. It ran from `2026-09-09T10:23:24Z` to `2026-09-09T10:25:12Z`.
+- A post-deploy read-only health request to `/api/dataset` returned HTTP 200 and JSON. Its 5,635,122-byte response was not used for workbook generation or any reported count; the single saved revision above remains the sole reconciliation source.
+- The deploy action emitted a warning that it could not see `AzureWebJobsStorage` or `AzureWebJobsStorage__accountName` through its ARM credential. The deployment still completed and the app answered HTTP 200. No app setting was read, printed, or changed; checking that existing production setting in Azure is the remaining operational follow-up.
+- No email route was invoked before, during, or after deployment.
