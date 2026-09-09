@@ -28,6 +28,14 @@ ROOT = Path(__file__).resolve().parents[1]
 HOLDER_RULE = json.loads((ROOT / "holder-rule.json").read_text(encoding="utf-8"))
 WORK_CLASS_RULE = json.loads((ROOT / "work-class-rule.json").read_text(encoding="utf-8"))
 EMPLOYEE_HOLDER_MAP = json.loads((ROOT / "employee-holder-map.json").read_text(encoding="utf-8"))
+INACTIVE_USERNAMES = {
+    " ".join(name.lower().split())
+    for name in json.loads((ROOT / "inactive-usernames.json").read_text(encoding="utf-8"))["inactiveUsernames"]
+}
+USER_EMAIL_ADDRESSES = {
+    " ".join(name.lower().split()): address
+    for name, address in json.loads((ROOT / "user-email-addresses.json").read_text(encoding="utf-8")).items()
+}
 SYSTEM_ACCOUNT_KEYS = {
     " ".join(name.lower().split()) for name in EMPLOYEE_HOLDER_MAP["systemAccounts"]
 }
@@ -464,6 +472,29 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def delivery_classification(owner) -> tuple[str, str | None]:
+    """Return the only email route for one attribution row and any issue reason."""
+    raw = str(owner or "").strip()
+    key = " ".join(raw.lower().split())
+    canonical = HOLDER_RULE["ownerAliases"].get(key, raw)
+    canonical_key = " ".join(canonical.lower().split())
+    if is_no_named_owner(raw):
+        return "no named owner", "owner not recorded in F&O"
+    if canonical_key in INACTIVE_USERNAMES:
+        return "no named owner", "no active owner"
+    if canonical_key not in USER_EMAIL_ADDRESSES:
+        return "no named owner", "no email address on file"
+    return "named personal email", None
+
+
+def is_no_named_owner(owner) -> bool:
+    key = " ".join(str(owner or "").strip().lower().split())
+    return (
+        not key or key in {"(unassigned)", "not recorded"}
+        or key.startswith("no named owner") or key.startswith("employee number ")
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset-url", default=DEFAULT_DATASET_URL)
@@ -492,8 +523,8 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     pr_path, po_path = output_dir / "pr.xlsx", output_dir / "po.xlsx"
     state_path = output_dir / args.state_file
-    state = {
-        "formatVersion": 3,
+    content_state = {
+        "formatVersion": 4,
         "prContentSha256": content_hash(pr_rows, PR_COLUMNS),
         "poContentSha256": content_hash(po_rows, PO_COLUMNS),
     }
@@ -503,11 +534,24 @@ def main() -> None:
             previous = json.loads(state_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             previous = None
-    content_changed = previous != state or not pr_path.exists() or not po_path.exists()
+    previous_content = None if not previous else {
+        "formatVersion": previous.get("formatVersion"),
+        "prContentSha256": previous.get("prContentSha256"),
+        "poContentSha256": previous.get("poContentSha256"),
+    }
+    content_changed = previous_content != content_state or not pr_path.exists() or not po_path.exists()
     if content_changed:
         pr_path.write_bytes(workbook_bytes(pr_rows, PR_COLUMNS, PR_WIDTHS, PR_DATE_COLUMNS))
         po_path.write_bytes(workbook_bytes(po_rows, PO_COLUMNS, PO_WIDTHS, PO_DATE_COLUMNS))
-        state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+    state = {
+        **content_state,
+        "datasetRevision": dataset["revision"],
+        "datasetGeneratedAt": dataset.get("generatedAt"),
+    }
+    state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+    (output_dir / "legacy-email-workbook-state.json").write_text(
+        json.dumps(state, indent=2) + "\n", encoding="utf-8"
+    )
     validate_saved(pr_path, PR_COLUMNS, len(pr_rows))
     validate_saved(po_path, PO_COLUMNS, len(po_rows))
     source_class_counts = Counter()
@@ -522,6 +566,16 @@ def main() -> None:
     workbook_class_counts = Counter()
     for (code, _), count in workbook_class_documents.items():
         workbook_class_counts[code] += count
+    delivery_routes = Counter()
+    delivery_issues = Counter()
+    delivery_holders = Counter()
+    for row in pr_rows:
+        owner = str(row.get("Pending Approver/User") or "").strip()
+        route, issue = delivery_classification(owner)
+        delivery_routes[route] += 1
+        if issue:
+            delivery_issues[issue] += 1
+            delivery_holders[f"{owner} | {issue}"] += 1
     summary = {
         "datasetRevision": dataset["revision"],
         "sourceState": dataset["sourceState"],
@@ -546,6 +600,18 @@ def main() -> None:
             "liveActionableMissingFromWorkbook": 0,
             "classCountsSourceDocuments": dict(source_class_counts),
             "classCountsWorkbookDocuments": dict(workbook_class_counts),
+            "delivery": {
+                "namedPersonalEmailAttributions": delivery_routes["named personal email"],
+                "noNamedOwnerBlockAttributions": delivery_routes["no named owner"],
+                "unaddressableAttributions": (
+                    delivery_issues["no active owner"] + delivery_issues["no email address on file"]
+                ),
+                "noActiveOwnerAttributions": delivery_issues["no active owner"],
+                "noEmailAddressAttributions": delivery_issues["no email address on file"],
+                "ownerNotRecordedAttributions": delivery_issues["owner not recorded in F&O"],
+                "unroutedAttributions": len(pr_rows) - sum(delivery_routes.values()),
+                "byHolderAndReason": dict(delivery_holders),
+            },
         },
         "po": {
             "rows": len(po_rows), "columns": PO_COLUMNS,
@@ -556,7 +622,7 @@ def main() -> None:
         "amountBasis": "live F&O active-line values excl. VAT",
         "datePolicy": "current live dataset clocks; unreported clocks remain blank",
         "routingPolicy": (
-            "current live dataset, holder-rule.json, work-class-rule.json, and employee-holder-map.json"
+            "current live dataset plus shared holder, work-class, employee, inactive-user, and email-address rules"
             if args.routing_source == "live" else
             f"emergency legacy snapshot {LEGACY_EMAIL_COMMIT} with current live ex-VAT amounts"
         ),

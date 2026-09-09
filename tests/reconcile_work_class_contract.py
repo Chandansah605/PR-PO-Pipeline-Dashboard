@@ -14,11 +14,13 @@ def main() -> None:
     args = parser.parse_args()
     dashboard_root = Path(__file__).resolve().parents[1]
     proxy_root = Path(args.proxy_repo).resolve()
-    dashboard = json.loads((dashboard_root / "work-class-rule.json").read_text(encoding="utf-8"))
-    sender = json.loads((proxy_root / "work-class-rule.json").read_text(encoding="utf-8"))
-    if dashboard != sender:
-        raise SystemExit("dashboard and email sender work-class contracts have drifted")
-    print("Dashboard and email sender work-class contracts match")
+    contracts = ["work-class-rule.json", "inactive-usernames.json", "user-email-addresses.json"]
+    for filename in contracts:
+        dashboard = json.loads((dashboard_root / filename).read_text(encoding="utf-8"))
+        sender = json.loads((proxy_root / filename).read_text(encoding="utf-8"))
+        if dashboard != sender:
+            raise SystemExit(f"dashboard and email sender {filename} contracts have drifted")
+    print("Dashboard and email sender work-class, inactive-user and address contracts match")
 
 
 if __name__ == "__main__":

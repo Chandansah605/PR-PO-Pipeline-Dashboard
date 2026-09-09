@@ -149,6 +149,27 @@ class LegacyEmailFallbackTests(unittest.TestCase):
         self.assertEqual(rows[0]["Pending Approver/User"], "No named owner — D365CRM ADMIN")
         self.assertEqual(evidence["no named owner source documents"], 1)
 
+    def test_delivery_classifies_inactive_unaddressed_and_addressed_holders(self):
+        self.assertEqual(
+            generator.delivery_classification("Layusha.cleatus"),
+            ("no named owner", "no active owner"),
+        )
+        self.assertEqual(
+            generator.delivery_classification("Sirinikhil"),
+            ("no named owner", "no email address on file"),
+        )
+        self.assertEqual(
+            generator.delivery_classification("Zaheer Ahmed Ameer"),
+            ("named personal email", None),
+        )
+
+    def test_delivery_classification_covers_every_attribution_once(self):
+        owners = ["Layusha.cleatus", "Sirinikhil", "Zaheer.Ahmed", "No named owner — IT DEPARTMENT"]
+        routes = [generator.delivery_classification(owner)[0] for owner in owners]
+        self.assertEqual(routes.count("named personal email"), 1)
+        self.assertEqual(routes.count("no named owner"), 3)
+        self.assertEqual(len(routes), 4)
+
     def test_preserves_routing_and_replaces_amount_from_live_source(self):
         live = [{"Purchase requisition": "pr-test-001", "Total amount": 100.0}]
         rows, evidence = generator.fallback_pr_rows(live, [legacy_row()])

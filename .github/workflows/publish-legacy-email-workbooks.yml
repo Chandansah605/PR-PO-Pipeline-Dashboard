@@ -1,9 +1,12 @@
 name: Publish legacy email workbooks
+run-name: Workbook refresh · ${{ github.event_name }} · ${{ github.event.schedule || 'manual' }}
 
 on:
   schedule:
-    # Eight weekday attempts. The last starts at 05:45 UTC, before Chandan's 06:00 timer.
-    - cron: "*/15 4-5 * * 1-5"
+    # Eight off-peak-minute weekday attempts. GitHub documents that scheduled
+    # runs at the start of an hour can be delayed or dropped under load.
+    # The last attempt starts at 05:43 UTC, before the protected 06:00 timer.
+    - cron: "7,19,31,43 4-5 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -34,19 +37,39 @@ jobs:
       - name: Install workbook writer
         run: python -m pip install -r scripts/requirements-legacy-email-workbooks.txt
       - name: Generate one-way legacy email outputs
-        run: python scripts/generate_legacy_email_workbooks.py
+        run: python scripts/generate_legacy_email_workbooks.py --evidence "$RUNNER_TEMP/workbook-run-summary.json"
+      - name: Publish visible run summary
+        shell: bash
+        run: |
+          {
+            echo "### Legacy email workbook refresh"
+            echo "- Trigger: ${{ github.event_name }}"
+            echo "- Intended schedule: ${{ github.event.schedule || 'manual' }}"
+            echo "- Actual UTC time: $(date -u +'%Y-%m-%dT%H:%M:%SZ') (run ${{ github.run_id }})"
+            echo "- Dataset revision: $(jq -r '.datasetRevision' "$RUNNER_TEMP/workbook-run-summary.json")"
+            echo "- Named personal attributions: $(jq -r '.pr.delivery.namedPersonalEmailAttributions' "$RUNNER_TEMP/workbook-run-summary.json")"
+            echo "- No named owner block: $(jq -r '.pr.delivery.noNamedOwnerBlockAttributions' "$RUNNER_TEMP/workbook-run-summary.json")"
+            echo "- Unaddressable: $(jq -r '.pr.delivery.unaddressableAttributions' "$RUNNER_TEMP/workbook-run-summary.json")"
+            echo "- No active owner: $(jq -r '.pr.delivery.noActiveOwnerAttributions' "$RUNNER_TEMP/workbook-run-summary.json")"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve run evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-email-workbook-run-${{ github.run_id }}
+          path: ${{ runner.temp }}/workbook-run-summary.json
+          retention-days: 30
       - name: Commit only changed workbook content
         id: commit
         shell: bash
         run: |
-          if git diff --quiet -- pr.xlsx po.xlsx .legacy-email-workbook-content.json; then
+          if git diff --quiet -- pr.xlsx po.xlsx .legacy-email-workbook-content.json legacy-email-workbook-state.json; then
             echo "Live revision already published; no commit required."
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- pr.xlsx po.xlsx .legacy-email-workbook-content.json
+          git add -- pr.xlsx po.xlsx .legacy-email-workbook-content.json legacy-email-workbook-state.json
           git commit -m "chore: refresh legacy email workbooks"
           git push origin HEAD:main
           echo "changed=true" >> "$GITHUB_OUTPUT"

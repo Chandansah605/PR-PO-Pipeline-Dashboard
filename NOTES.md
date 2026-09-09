@@ -7132,3 +7132,128 @@ Two diagnostic commands were corrected during verification: the generator uses `
 - Cache-busted production `pr.xlsx` and `po.xlsx` matched the local SHA-256 hashes above.
 - The published workbooks reopened with 1,137 PR rows, 996 PO rows, `AxTable1`, and the appended PR class-code header.
 - The published page contains the class filter and the shared class definition.
+
+# Nobody's items go missing; unattended workbook rebuild — 9 September 2026
+
+## What I found
+
+- The live sender deliberately returned without sending when `USER_EMAIL` had no address. Those attribution rows remained in `pr.xlsx`, but were absent from both personal mail and the procurement email.
+- The workbook workflow did not exist three days ago. It first appeared in commit `31e5930d79559e0e9c05b52b8710ff2a54857d03` at 22:48 Dubai on 7 September.
+- Actions history contains one unattended run: run `34205832241`, event `schedule`, created and started at `2026-09-08T08:41:05Z`, completed successfully at `08:42:50Z`. It started almost three hours after the final intended 05:45 UTC attempt and after the protected 06:00 sender. No scheduled run started on 9 September before the sender.
+- GitHub's own documentation says scheduled workflows can be delayed during high load, especially near the start of an hour, and delayed jobs can be dropped: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
+- Therefore “no commit” was not used as proof. Run history proves the scheduler did fire once, but not at a dependable time.
+
+## Problems and risks
+
+- An inactive username and any named holder with no usable address could silently lose visibility.
+- The workbook carried no source timestamp the sender could compare with the live feed, so a stale workbook looked current.
+- The original `*/15 4-5` cadence used common clock boundaries and gave no durable run artifact or plain run summary when content was unchanged.
+
+## Files changed
+
+Dashboard repository:
+
+- `.github/workflows/publish-legacy-email-workbooks.yml`
+- `.gitignore`
+- `scripts/generate_legacy_email_workbooks.py`
+- `tests/reconcile_work_class_contract.py`
+- `tests/test_legacy_email_workbook_fallback.py`
+- `inactive-usernames.json`
+- `user-email-addresses.json`
+- `.legacy-email-workbook-content.json`
+- `legacy-email-workbook-state.json`
+- `pr.xlsx`, `po.xlsx`
+- `evidence/nobody-missing-workbook-generation.json`
+- `evidence/nobody-missing-email-reconciliation.json`
+- `evidence/nobody-missing-largest-holder-email.html`
+- `evidence/nobody-missing-procurement-email.html`
+- `NOTES.md`
+
+Proxy repository:
+
+- `src/functions/prpoEmail.js`
+- `test/emailPopulation.test.js`
+- `test/reconcileDelivery.js`
+- `inactive-usernames.json`
+- `user-email-addresses.json`
+
+## Exact changes made
+
+- Added one mirrored, drift-tested inactive-user list. `Layusha.cleatus` is its only entry. Her work is routed to the existing procurement “No named owner” block with the exact reason `no active owner`; no personal email is built for her.
+- Moved the existing embedded address map into one mirrored, drift-tested JSON file. All 18 previous address entries are byte-for-byte unchanged. The only addition is `Zaheer.Ahmed: Zaheer.Ahmed@domus-housing.com`.
+- Added a single delivery policy after workbook parsing. A named, active, addressable holder goes to one personal email. Existing unowned rows, inactive holders, and holders without an address go to the procurement block, with their recorded holder and reason visible. No attribution can fall into neither route.
+- Added `Delivery issue` to sender-built attachments only. The published `pr.xlsx` and `po.xlsx` contracts were not changed.
+- Added dataset revision and generated-at time to a public workbook state file. The sender compares that time with the live feed. More than six hours produces one plain warning at the top of personal and division emails; missing metadata produces a freshness-unconfirmed warning; a fresh match produces no warning.
+- Changed workbook attempts to `7,19,31,43 4-5 * * 1-5`: eight off-boundary weekday attempts, ending at 05:43 UTC. Each run now has a descriptive title, a plain Actions summary, and a 30-day evidence artifact even when no commit is needed. The protected 06:00 UTC sender timer is unchanged.
+
+## Same-revision production workbook reconciliation
+
+One live response was saved temporarily and used for every workbook and email reconciliation. It was then excluded from the commit.
+
+- Dataset revision: `2b3441c2da63c31818b87c86f4aeb97fa8d1d296bea94439e9635f0dfc3bef4a`
+- Dataset generated: `2026-09-09T07:24:17.075Z`
+- Feed: 4,430 PR rows and 3,203 PO rows.
+- Actionable PR source documents: 959.
+- Workbook attribution rows: 1,096.
+- Named personal-email attributions: **968**.
+- “No named owner” block attributions: **128**.
+- Check: **968 + 128 = 1,096**. Neither route: **0**.
+- The 128 block rows are: 81 `Layusha.cleatus — no active owner`; 13 rows across 12 currently addressless holders; and 34 existing source/system/unmapped-department rows.
+- `Zaheer.Ahmed` resolves from both the username and employee-name alias and has 14 rows, all in one personal email to `Zaheer.Ahmed@domus-housing.com`.
+- The live figures moved since the 9 September morning workbook: Layusha is now 81, not 90; current named/addressless counts in this note are from the single revision above.
+
+Personal counts on that revision:
+
+| Holder | Attributions |
+|---|---:|
+| dinesh.laxman | 425 |
+| Adnan.Ullah | 196 |
+| shijil.c | 94 |
+| roderick.red | 85 |
+| Gokul.Krishna | 75 |
+| Aparna.Pauly | 52 |
+| Shakir Ameer Bakhsh | 22 |
+| Zaheer.Ahmed | 14 |
+| pramod.c | 3 |
+| Abdul.Muqeet | 1 |
+| arman.b | 1 |
+
+The largest-holder offline render is Dinesh, 425 rows:
+
+- Prices are in — waiting for you to confirm: 379 (Building Services 327; Landscaping Services 52).
+- Nobody assigned in F&O — sitting with the person who raised it: 46 (Building Services 26; department not reported 15; Transportation 3; IT 1; Landscaping Services 1).
+
+## Workbook contract proof
+
+- `validate_saved` passed for both regenerated files.
+- Compared with the previous committed files: PR and PO header arrays are equal; column widths are equal; `AxTable1` is present; the A1 note text is equal.
+- PR attribution rows changed from 1,137 to 1,096 because the live revision changed. PO rows remained 996. No header, width, table, or note changed.
+- New SHA-256: `pr.xlsx` `B3E04B7EAE439F76323123392369A5521BE9CAD77AD100A9ADA2114F9DADCDE0`; `po.xlsx` `70A8218B2CB319A20A3D02437DA21EC0A96F9A85176CFEC5CE87D8AB44373AAD`.
+
+## Testing performed
+
+- `python scripts/generate_legacy_email_workbooks.py --dataset-json evidence/nobody-missing-live-dataset.tmp.json --evidence evidence/nobody-missing-workbook-generation.json` — passed from the single live revision; `validate_saved` passed.
+- `node test/reconcileDelivery.js <dashboard> <evidence>` — passed: 968 named + 128 no-named = 1,096; zero neither. Wrote offline largest-holder and procurement HTML. Nothing was sent.
+- `node --test tests/*.test.js` in the dashboard repository — 24/24 passed.
+- `python -m unittest discover -s tests -p 'test_*.py'` — 21/21 passed.
+- `python tests/reconcile_work_class_contract.py --proxy-repo <proxy>` — work-class, inactive-user and address contracts match.
+- `node --check src/functions/prpoEmail.js` — passed.
+- `npm test` in the proxy — 18/18 passed.
+- `npm run build --if-present` — passed; no separate build script exists.
+- The dashboard is static and has no package manifest or separate local production-build command. Full browser-script tests plus workbook generation are its local build-equivalent checks.
+- Stale proof: workbook `2026-09-08T16:06:00Z` versus live `2026-09-09T04:30:00Z` produced “These figures were prepared at 20:06 on 8 September and may not include work raised since.” Fresh proof at 5:59:59 difference produced no warning. Both personal and division render paths were checked.
+- Address diff proof: previous embedded map 18 entries, new repository map 19. The only difference is the authorised Zaheer addition.
+- `git diff --check` passed in both repositories.
+
+## What I did not change
+
+- No recipient, address, manager list, BCC, `PRPO_*_MAIL_TO`, secret, token, permission, app setting, or test-mode value changed beyond the one authorised Zaheer address.
+- The Azure 06:00 UTC email timer is unchanged.
+- No email was sent. No proxy deployment was triggered.
+- No dataset-feed logic, Dataverse data, VAT rule, sign-in screen, journey-board branch, or emergency legacy-snapshot behaviour changed.
+- The raw same-revision dataset is not staged or committed.
+
+## Remaining risk and recommended next step
+
+- The old schedule is proven to have fired unattended once, but too late. The revised off-boundary schedule is implemented and locally validated, but cannot honestly be called proven unattended until its first window on 10 September. Check the new titled runs and their attached summaries before 10:00 Dubai.
+- Proxy commit `90a5dc33d77f1d9e2241b2846229c8416044ca08` is pushed on top of the deliberately held `b000caed560dd0eae0141f004abcdeda23a4b2e2`. Deploy the new exact commit when authorised. The deployment workflow was not triggered.
