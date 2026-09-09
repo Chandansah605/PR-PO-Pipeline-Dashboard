@@ -7257,3 +7257,11 @@ The largest-holder offline render is Dinesh, 425 rows:
 
 - The old schedule is proven to have fired unattended once, but too late. The revised off-boundary schedule is implemented and locally validated, but cannot honestly be called proven unattended until its first window on 10 September. Check the new titled runs and their attached summaries before 10:00 Dubai.
 - Proxy commit `90a5dc33d77f1d9e2241b2846229c8416044ca08` is pushed on top of the deliberately held `b000caed560dd0eae0141f004abcdeda23a4b2e2`. Deploy the new exact commit when authorised. The deployment workflow was not triggered.
+
+## Post-push verification
+
+- Dashboard implementation commit `f2ce8b966832ae81e5a3563d212b1fbece6748f7` was pushed to `main`.
+- Automatic GitHub Pages run `34324646630` passed build, deployment, and build-status reporting. It was the repository's normal push publication; no deployment workflow was manually triggered.
+- Cache-busted production reads returned `pr.xlsx` with 1,096 rows and SHA-256 `B3E04B7EAE439F76323123392369A5521BE9CAD77AD100A9ADA2114F9DADCDE0`, `po.xlsx` with 996 rows and SHA-256 `70A8218B2CB319A20A3D02437DA21EC0A96F9A85176CFEC5CE87D8AB44373AAD`, and the public state file with the exact reconciled revision and timestamp.
+- `gh workflow view publish-legacy-email-workbooks.yml --ref main --yaml` returned the new workflow from `main`, confirming GitHub accepted the off-boundary schedule and run-summary syntax.
+- `gh run list --repo Strive-Services-Group/pr-po-proxy --workflow deploy-ssg-prpo-proxy.yml` showed no run for `90a5dc33d77f1d9e2241b2846229c8416044ca08`; the proxy remains undeployed as required.
